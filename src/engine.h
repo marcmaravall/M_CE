@@ -9,6 +9,7 @@ class Engine
 private:
 	Board currentBoard;
 
+	void ManageInput();
 public:
 	Engine();
 	~Engine();
