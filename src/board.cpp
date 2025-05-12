@@ -1,8 +1,10 @@
 #include "board.h"
-
+#include "utils.h"
+#include "engine.h"
 
 Board::Board(const char* fen)
 {
+	//std::cout << Utils::IsBlackPieceAt(*this, 7) << std::endl;
 	ClearCurrentBitboard();
 
     std::string fenString(fen);
@@ -127,154 +129,18 @@ Board::~Board()
 {
 }
 
-void Board::PrintBitboards()
-{
-	for (size_t i = 0; i < 12; i++) {
-		std::cout << "\n" << bitboards[i] << "\n";
-		for (int j = 0; j < 64; j++) {
-			if (j % 8 == 0)
-				std::cout << "\n";
-			std::cout << GetBitboardValueOnIndex(bitboards[i], j);
-		}
-	}
-}
-
-void Board::PrintBoard()
-{
-	for (int rank = 7; rank >= 0; rank--)
-	{
-		std::cout << rank + 1 << " ";
-		for (int file = 0; file < 8; file++)
-		{
-			int square = rank * 8 + file;
-			bool found = false;
-
-			for (size_t pieceIndex = 0; pieceIndex < 12; pieceIndex++)
-			{
-				if (bitboards[pieceIndex] & (1ULL << square))
-				{
-					std::cout << PIECE_CHAR[pieceIndex] << " ";
-					found = true;
-					break;
-				}
-			}
-
-			if (!found) {
-				std::cout << ". ";
-			}
-		}
-		std::cout << std::endl;
-	}
-
-	std::cout << "  a b c d e f g h\n" << std::endl
-		<< ((turn == WHITE_TURN) ? "White" : "Black") << " to move.\n"
-		<< "En passant: " << (enPassantSquare <= 64 ? ConvertToBoardPosition(enPassantSquare) : "no") << "\n"
-		<< "Castling: "
-		<< (wCastlingKing ? "K" : "-") << (wCastlingQueen ? "Q" : "-") << (bCastlingKing ? "k" : "-") << (bCastlingQueen ? "q" : "-") << "\n";
-}
-
-std::string Board::ConvertToBoardPosition(uint8_t squareIndex) {
+/*std::string Board::ConvertToBoardPosition(uint8_t squareIndex) {
 	return squareIndex < 64 ? (std::string)BOARD_STRINGS[squareIndex] : "null";
-}
-
-int Board::ConvertToIndexPosition(std::string squarePosition) {
-	int ret = 255;
-	squarePosition = ToUpper(squarePosition);
-	// std::cout << squarePosition << "\n";
-	for (int i = 0; i < 64; i++)
-	{
-		if (squarePosition == BOARD_STRINGS[i]) {
-			
-			ret = i;
-			// std::cout << "i equals " << ret << "\n";
-			return ret;
-		}
-	}
-
-	return ret;
-}
-
-std::string Board::ToUpper(std::string str)
-{
-	std::string res = "";
-
-	for (size_t i = 0; i < str.size(); i++) {
-		res += toupper(str[i]);
-	}
-
-	return res;
-}
-
-std::string Board::ConvertToFEN()
-{
-	std::string fen = "";
-
-	for (int rank = 7; rank >= 0; rank--)
-	{
-		int emptyCount = 0;
-		for (int file = 0; file < 8; file++)
-		{
-			bool pieceFound = false;
-			int square = rank * 8 + file;
-
-			for (int piece = 0; piece < 12; piece++)
-			{
-				if (bitboards[piece] & (1ULL << square))
-				{
-					if (emptyCount > 0)
-					{
-						fen += std::to_string(emptyCount);
-						emptyCount = 0;
-					}
-					fen += PIECE_CHAR[piece];
-					pieceFound = true;
-					break;
-				}
-			}
-
-			if (!pieceFound)
-			{
-				emptyCount++;
-			}
-		}
-		if (emptyCount > 0)
-			fen += std::to_string(emptyCount);
-		if (rank != 0)
-			fen += '/';
-	}
-
-	fen += ' ';
-	fen += (turn ? 'w' : 'b');
-
-	std::string castling = "";
-	if (wCastlingKing) castling += 'K';
-	if (wCastlingQueen) castling += 'Q';
-	if (bCastlingKing) castling += 'k';
-	if (bCastlingQueen) castling += 'q';
-	if (castling.empty()) castling = "-";
-	fen += ' ' + castling;
-
-	fen += ' ';
-	if (enPassantSquare >= -1 && enPassantSquare < 64)
-	{
-		fen += ConvertToBoardPosition(enPassantSquare);
-	}
-	else
-	{
-		fen += '-';
-	}
-
-	fen += " 0 1";
-
-	return fen;
-}
+}*/
 
 // TODO: refatorize for struct Move
 bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 {
+	Board start = *this;
+
 	int pieceType = 255;
 	for (int i = 0; i < 12; i++) {
-		if (GetBitboardValueOnIndex(bitboards[i], piecePos)) {
+		if (Utils::GetBitboardValueOnIndex(bitboards[i], piecePos)) {
 			pieceType = i;
 		}
 	}
@@ -286,10 +152,14 @@ bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 
 	Bitboard bitboard = bitboards[pieceType];
 
-	/*if (pieceType < 6 && turn == WHITE_TURN || pieceType > 5 && turn == WHITE_TURN) {
-		std::cout << "ERROR: triying to move a piece in a turn that is not.\n" << "Turn: " << turn << "\n" << "PieceType: " << pieceType << "\n";
+	if (turn == WHITE_TURN && pieceType >= 6) {
+		std::cerr << "ERROR: trying to move a black piece.\n";
 		return false;
-	}*/
+	}
+	else if (turn == !WHITE_TURN && pieceType < 6) {
+		std::cerr << "ERROR: trying to move a white piece.\n";
+		return false;
+	}
 
 	if (promotion < 12) {
 		Promotion(piecePos, position, promotion);
@@ -303,6 +173,41 @@ bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 			MoveWithoutComprobe(piecePos, position);
 		}
 		break;
+	case 1:
+		if (CanMoveKnight(piecePos, position))
+		{
+			MoveWithoutComprobe(piecePos, position);
+			enPassantSquare = 255;
+		}
+		break;
+	case 2:
+		if (CanMoveBishop(piecePos, position))
+		{
+			MoveWithoutComprobe(piecePos, position);
+			enPassantSquare = 255;
+		}
+		break;
+	case 3:
+		if (CanMoveRook(piecePos, position))
+		{
+			MoveWithoutComprobe(piecePos, position);
+			enPassantSquare = 255;
+		}
+		break;
+	case 4:
+		if (CanMoveQueen(piecePos, position))
+		{
+			MoveWithoutComprobe(piecePos, position);
+			enPassantSquare = 255;
+		}
+		break;
+	case 5:
+		if (CanMoveKing(piecePos, position))
+		{
+			MoveWithoutComprobe(piecePos, position);
+			enPassantSquare = 255;
+		}
+		break;
 	case 6:
 
 		if (CanMovePawn(piecePos, position))
@@ -310,15 +215,76 @@ bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 			MoveWithoutComprobe(piecePos, position);
 		}
 		break;
+	case 7:
+		if (CanMoveKnight(piecePos, position))
+		{
+			MoveWithoutComprobe(piecePos, position);
+			enPassantSquare = 255;
+		}
+		break;
+	case 8:
+		if (CanMoveBishop(piecePos, position))
+		{
+			MoveWithoutComprobe(piecePos, position);
+			enPassantSquare = 255;
+		}
+		break;
+	case 9:
+		if (CanMoveRook(piecePos, position))
+		{
+			MoveWithoutComprobe(piecePos, position);
+			enPassantSquare = 255;
+		}
+		break;
+	case 10:
+		if (CanMoveQueen(piecePos, position))
+		{
+			MoveWithoutComprobe(piecePos, position);
+			enPassantSquare = 255;
+		}
+		break;
+	case 11:
+		if (CanMoveKing(piecePos, position))
+		{
+			MoveWithoutComprobe(piecePos, position);
+			enPassantSquare = 255;
+		}
 	default:
 		break;
 	}
 
-	turn = !turn;
+	if (turn == WHITE_TURN ? IsCheck(GetBlackKingPosition()) : IsCheck(GetWhiteKingPosition())) {
+		std::cerr << "ERROR: move puts king in check.\n";
+		*this = start;
+		return false;
+	}
 }
 
 bool Board::Promotion(uint8_t piece, uint8_t position, uint8_t promotion)
 {
+	if (promotion == 0 || promotion == 5 || promotion == 6 || promotion == 11) {
+		std::cerr << "ERROR: cannot promove to pawn or king.\n";
+		return false;
+	}
+
+	if (turn == WHITE_TURN && piece <= 6) {
+		std::cerr << "ERROR: trying to promote a black piece.\n";
+		return false;
+	}
+	else if (turn == !WHITE_TURN && piece < 11) {
+		std::cerr << "ERROR: trying to promote a white piece.\n";
+		return false;
+	}
+
+	if (turn == WHITE_TURN && piece < 56) {
+		std::cerr << "ERROR: cannot promote a piece that is not in the last rank.\n";
+		return false;
+	}
+	else if (turn == !WHITE_TURN && piece > 7) {
+		std::cerr << "ERROR: cannot promote a piece that is not in the last rank.\n";
+		return false;
+	}
+
 	if (!CanMovePawn(piece, position)) {
 		std::cerr << "ERROR: promotion error.\n";
 		return false;
@@ -327,69 +293,71 @@ bool Board::Promotion(uint8_t piece, uint8_t position, uint8_t promotion)
 	MoveWithoutComprobe(piece, position);
 	ClearBitInAllBitboards(position);
 
-	switch (promotion)
-	{
-	case W_QUEEN:
-	case W_ROOK:
-	case W_BISHOP:
-	case W_KNIGHT:
-	case B_QUEEN:
-	case B_ROOK:
-	case B_BISHOP:
-	case B_KNIGHT:
-		SetBitboardBit(promotion, position);
-		return true;
-
-	default:
-		std::cerr << "ERROR: invalid promotion.\n";
-		return false;
-	}
+	SetBitboardBit(promotion, position);
+	return true;
 }
 
+bool Board::CanMovePawn(uint8_t from, uint8_t to) {
+	auto allPieces = Utils::GetAllBitboards(this->bitboards);
+	uint64_t occupied = allPieces;
+	uint64_t empty = ~occupied;
 
-bool Board::CanMovePawn(uint8_t from, uint8_t _where) {
-	auto all = GetAllBitboards(this->bitboards);
+	uint64_t fromBB = 1ULL << from;
+	uint64_t toBB = 1ULL << to;
 
 	if (turn == WHITE_TURN) {
-		if (from + NORTH == _where && GetBitboardValueOnIndex(all, _where) != 1) {
+		uint64_t oneStep = fromBB << 8;
+		uint64_t twoSteps = fromBB << 16;
+		uint64_t captures = (fromBB << 7 & ~FILE_H_MASK) | (fromBB << 9 & ~FILE_A_MASK);
+
+		if ((toBB & oneStep) && (toBB & empty)) {
 			enPassantSquare = 255;
 			return true;
 		}
-		else if (from + (2 * NORTH) == _where &&
-			GetBitboardValueOnIndex(all, _where) != 1 &&
-			GetBitboardValueOnIndex(all, from + NORTH) != 1 &&
-			from >= 8 && from < 16)
-		{
-			enPassantSquare = _where + SOUTH;
+
+		if ((toBB & twoSteps) && (fromBB & RANK_2_MASK) &&
+			((oneStep & empty) && (toBB & empty))) {
+			enPassantSquare = to - 8;
 			return true;
 		}
-		else if ((from + NORTH_EAST == _where || from + NORTH_WEST == _where) ||
-				 (from + NORTH_EAST == enPassantSquare || from + NORTH_WEST == enPassantSquare) &&
-				  IsBlackPieceAt(_where)) {
-			ClearBitInAllBitboards(enPassantSquare + SOUTH);
 
+		if ((toBB & captures) && Utils::IsBlackPieceAt(*this, to)) {
+			enPassantSquare = 255;
+			return true;
+		}
+
+		if ((to == enPassantSquare) &&
+			((from + NORTH_EAST == to) || (from + NORTH_WEST == to))) {
+			ClearBitInAllBitboards(enPassantSquare + SOUTH);
 			enPassantSquare = 255;
 			return true;
 		}
 	}
 
-	else {
-		if (from + SOUTH == _where && GetBitboardValueOnIndex(all, _where) != 1) {
+	else { // BLACK_TURN
+		uint64_t oneStep = fromBB >> 8;
+		uint64_t twoSteps = fromBB >> 16;
+		uint64_t captures = (fromBB >> 7 & ~FILE_A_MASK) | (fromBB >> 9 & ~FILE_H_MASK);
+
+		if ((toBB & oneStep) && (toBB & empty)) {
 			enPassantSquare = 255;
 			return true;
 		}
-		else if (from + (2 * SOUTH) == _where &&
-			GetBitboardValueOnIndex(all, _where) != 1 &&
-			GetBitboardValueOnIndex(all, from + SOUTH) != 1 &&
-			from >= 48 && from < 56)
-		{
-			enPassantSquare = _where + NORTH;
+
+		if ((toBB & twoSteps) && (fromBB & RANK_7_MASK) &&
+			((oneStep & empty) && (toBB & empty))) {
+			enPassantSquare = to + 8;
 			return true;
 		}
-		else if ((from + SOUTH_EAST == _where || from + SOUTH_WEST == _where) &&
-			_where == enPassantSquare)
-		{
-			ClearBitInAllBitboards(enPassantSquare + NORTH);
+
+		if ((toBB & captures) && Utils::IsWhitePieceAt(*this, to)) {
+			enPassantSquare = 255;
+			return true;
+		}
+
+		if ((to == enPassantSquare) &&
+			((from + SOUTH_EAST == to) || (from + SOUTH_WEST == to))) {
+			ClearBitInAllBitboards(enPassantSquare - 8);
 			enPassantSquare = 255;
 			return true;
 		}
@@ -398,14 +366,217 @@ bool Board::CanMovePawn(uint8_t from, uint8_t _where) {
 	return false;
 }
 
-Bitboard Board::GetAllBitboards(Bitboard b[12], PIECE_COLORS colors)
-{
 
-	Bitboard res = 0;
-	for (size_t i = (colors != BLACK ? 0 : 6); i < (colors == BOTH ? 12: (colors == WHITE ? 6: 12)); i++) {
-		res |= b[i];
+bool Board::CanMoveKnight(uint8_t from, uint8_t to) {
+	if (!((Engine::knightMasks[from] >> to) & 1ULL))
+		return false;
+
+	if (turn == WHITE_TURN)
+		return !Utils::IsWhitePieceAt(*this, to);
+	else
+		return !Utils::IsBlackPieceAt(*this, to);
+}
+
+bool Board::CanMoveBishop(uint8_t from, uint8_t _where) {
+	if (from == _where)
+		return false;
+
+	Bitboard fromBB = 1ULL << from;
+	Bitboard toBB = 1ULL << _where;
+
+	if (turn == WHITE_TURN) {
+		if (Utils::IsWhitePieceAt(*this, _where))
+			return false;
 	}
-	return res;
+	else {
+		if (Utils::IsBlackPieceAt(*this, _where))
+			return false;
+	}
+
+	int fromFile = from % 8;
+	int fromRank = from / 8;
+	int toFile = _where % 8;
+	int toRank = _where / 8;
+
+	if (abs(toFile - fromFile) != abs(toRank - fromRank))
+		return false;
+
+	int fileStep = (toFile - fromFile) > 0 ? 1 : -1;
+	int rankStep = (toRank - fromRank) > 0 ? 1 : -1;
+
+	int file = fromFile + fileStep;
+	int rank = fromRank + rankStep;
+
+	while (file != toFile && rank != toRank) {
+		int square = rank * 8 + file;
+		if (IsOccupied(square))
+			return false;
+
+		file += fileStep;
+		rank += rankStep;
+	}
+
+	return true;
+}
+
+bool Board::IsOccupied(uint8_t square) {
+	for (int i = 0; i < 12; i++) {
+		if (Utils::GetBitboardValueOnIndex(bitboards[i], square))
+			return true;
+	}
+	return false;
+}
+
+bool Board::CanMoveRook(uint8_t from, uint8_t _where) {
+	if (from == _where)
+		return false;
+
+	int fromFile = from % 8;
+	int fromRank = from / 8;
+	int toFile = _where % 8;
+	int toRank = _where / 8;
+
+	if (turn == WHITE_TURN) {
+		if (Utils::IsWhitePieceAt(*this, _where))
+			return false;
+	}
+	else {
+		if (Utils::IsBlackPieceAt(*this, _where))
+			return false;
+	}
+
+	if (fromFile != toFile && fromRank != toRank)
+		return false;
+
+	int fileStep = 0;
+	int rankStep = 0;
+
+	if (fromFile != toFile)
+		fileStep = (toFile - fromFile) > 0 ? 1 : -1;
+	else
+		rankStep = (toRank - fromRank) > 0 ? 1 : -1;
+
+	int file = fromFile + fileStep;
+	int rank = fromRank + rankStep;
+
+	while (file != toFile || rank != toRank) {
+		int square = rank * 8 + file;
+		if (IsOccupied(square))
+			return false;
+
+		file += fileStep;
+		rank += rankStep;
+	}
+
+	return true;
+}
+
+
+bool Board::CanMoveQueen(uint8_t from, uint8_t _where) {
+	return CanMoveRook(from, _where) || CanMoveBishop(from, _where);
+}
+
+bool Board::CanMoveKing(uint8_t from, uint8_t _where) {
+	if (from == _where)
+		return false;
+
+	int fromFile = from % 8;
+	int fromRank = from / 8;
+	int toFile = _where % 8;
+	int toRank = _where / 8;
+
+	if (turn == WHITE_TURN) {
+		if (Utils::IsWhitePieceAt(*this, _where))
+			return false;
+	}
+
+	if (abs(toFile - fromFile) > 1 || abs(toRank - fromRank) > 1)
+		return false;
+
+	return true;
+}
+
+bool Board::Castle(uint8_t from, uint8_t _where) {
+	if (from == _where)
+		return false;
+
+	int fromFile = from % 8;
+	int fromRank = from / 8;
+	int toFile = _where % 8;
+	int toRank = _where / 8;
+
+	if (turn == WHITE_TURN) {
+		if (Utils::IsWhitePieceAt(*this, _where))
+			return false;
+	}
+	else {
+		if (Utils::IsBlackPieceAt(*this, _where))
+			return false;
+	}
+
+	if (fromRank != toRank)
+		return false;
+
+	if (fromFile != toFile)
+		return false;
+
+	return true;
+}
+
+Bitboard Board::GetKingAttacks(uint8_t square) {
+	Bitboard attacks = 0;
+	int file = square % 8;
+	int rank = square / 8;
+
+	for (int dr = -1; dr <= 1; dr++) {
+		for (int df = -1; df <= 1; df++) {
+			if (dr == 0 && df == 0) continue;
+
+			int r = rank + dr;
+			int f = file + df;
+
+			if (r >= 0 && r < 8 && f >= 0 && f < 8) {
+				attacks |= (1ULL << (r * 8 + f));
+			}
+		}
+	}
+
+	return attacks;
+}
+
+bool Board::IsSquareAttacked(uint8_t square) {
+	bool attackingColor = turn == WHITE_TURN ? BLACK_TURN : WHITE_TURN;
+
+	for (size_t i = 0; i < 12; i++) {
+		// Saltar piezas que no son del color atacante
+		if ((attackingColor == WHITE_TURN && i < 6) ||
+			(attackingColor == BLACK_TURN && i >= 6)) {
+			continue;
+		}
+
+		for (size_t j = 0; j < 64; j++) {
+			if (!Utils::GetBitboardValueOnIndex(bitboards[i], j)) {
+				continue;
+			}
+
+			// Llama a la función adecuada según el tipo de pieza
+			switch (i % 6) {
+			case 0: if (CanMovePawn(j, square)) return true; break;
+			case 1: if (CanMoveKnight(j, square)) return true; break;
+			case 2: if (CanMoveBishop(j, square)) return true; break;
+			case 3: if (CanMoveRook(j, square)) return true; break;
+			case 4: if (CanMoveQueen(j, square)) return true; break;
+			case 5: if (CanMoveKing(j, square)) return true; break;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool Board::IsCheck(uint8_t indexPosition) {
+
+	return IsSquareAttacked(indexPosition);
 }
 
 // wtf is this, it's not usefull
@@ -428,16 +599,12 @@ void Board::ClearBitInAllBitboards(uint8_t  indexPosition) {
 	}
 }
 
-bool Board::GetBitboardValueOnIndex(Bitboard bitboard, uint8_t index) {
-	return bitboard & (1ULL << index);
-}
-
 void Board::MoveWithoutComprobe(int from, int position) {
 	int pieceType = 255;
 
 	// std::cout << "FROM: " << from << " POSITION: " << position << "\n";
 	for (int i = 0; i < 12; i++) {
-		if (GetBitboardValueOnIndex(bitboards[i], from)) {
+		if (Utils::GetBitboardValueOnIndex(bitboards[i], from)) {
 			pieceType = i;
 		}
 	}
@@ -445,24 +612,28 @@ void Board::MoveWithoutComprobe(int from, int position) {
 	ClearBitInAllBitboards(from);
 	ClearBitInAllBitboards(position);
 	SetBitboardBit(pieceType, position);
+
+	turn = !turn;
 }
 
-bool Board::IsWhitePieceAt(uint8_t index) {
-	return	((GetBitboardValueOnIndex(bitboards[0], index) == 1) ||
-			 (GetBitboardValueOnIndex(bitboards[1], index) == 1) ||
-			 (GetBitboardValueOnIndex(bitboards[2], index) == 1) ||
-			 (GetBitboardValueOnIndex(bitboards[3], index) == 1) ||
-			 (GetBitboardValueOnIndex(bitboards[4], index) == 1) ||
-			 (GetBitboardValueOnIndex(bitboards[5], index) == 1));
+uint8_t Board::GetWhiteKingPosition()
+{
+	for (size_t i = 0; i < 64; i++)
+	{
+		if (Utils::GetBitboardValueOnIndex(bitboards[5], i)) {
+			std::cout << "White king found at: " << i << std::endl;
+			return i;
+		}
+	}
+	return 255;
 }
 
-bool Board::IsBlackPieceAt(uint8_t index) {
-	return	
-		((GetBitboardValueOnIndex(bitboards[6], index) == 1) ||
-		(GetBitboardValueOnIndex(bitboards[7], index) == 1) ||
-		(GetBitboardValueOnIndex(bitboards[8], index) == 1) ||
-		(GetBitboardValueOnIndex(bitboards[9], index) == 1) ||
-		(GetBitboardValueOnIndex(bitboards[10], index) == 1) ||
-		(GetBitboardValueOnIndex(bitboards[11], index) == 1));
+uint8_t Board::GetBlackKingPosition()
+{
+	for (size_t i = 0; i < 64; i++)
+	{
+		if (Utils::GetBitboardValueOnIndex(bitboards[11], i))
+			return i;
+	}
+	return 255;
 }
-

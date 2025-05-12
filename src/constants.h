@@ -18,7 +18,7 @@ inline constexpr int STATIC_PIECE_VALUE[10] = {
 };
 
 inline constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-inline constexpr const char* TEST_FEN = "8/P7/8/8/8/8/8/8 w - - 0 1";
+inline constexpr const char* TEST_FEN = "8/8/8/8/8/8/1r6/7K w - - 0 1";
 
 typedef uint64_t Bitboard;
 
@@ -55,5 +55,9 @@ typedef enum
 } PIECE_COLORS;
 
 inline constexpr const bool WHITE_TURN = true;
+inline constexpr const bool BLACK_TURN = !WHITE_TURN;
 
-
+constexpr uint64_t FILE_A_MASK = 0x0101010101010101ULL;
+constexpr uint64_t FILE_H_MASK = 0x8080808080808080ULL;
+constexpr uint64_t RANK_2_MASK = 0x000000000000FF00ULL;
+constexpr uint64_t RANK_7_MASK = 0x00FF000000000000ULL;

@@ -1,13 +1,17 @@
 #ifndef BOARD_H
 #define BOARD_H
+
 #include <iostream>
 #include <string>
 #include "constants.h"
 
+class Utils;
+class Engine;
+
 struct Board
 {
 private:
-	Bitboard bitboards[12];
+public:
 	bool wCastlingKing = false;
 	bool wCastlingQueen = false;
 
@@ -19,25 +23,21 @@ private:
 	bool turn;	// true = white, false = black
 	int turns;
 
-	std::string ToUpper(std::string str);
-public:
+
+	uint8_t GetWhiteKingPosition();
+	uint8_t GetBlackKingPosition();
+
 	Board(const char* fen);
 	Board();
 	~Board();
-
-	void PrintBoard();
-	void PrintBitboards();
-	std::string ConvertToFEN();
 
 	void SetAllBitboards(uint8_t indexPosition);
 	void SetBitboardBit(int pieceType, int indexPosition);
 	void ClearBitInAllBitboards(uint8_t indexPosition);
 	void ClearCurrentBitboard();
-	std::string ConvertToBoardPosition(uint8_t squareIndex);
+	// std::string ConvertToBoardPosition(uint8_t squareIndex);
 
 	bool MovePiece(uint8_t piece, uint8_t position, uint8_t promotion = 255);
-	Bitboard GetAllBitboards(Bitboard b[12], PIECE_COLORS color = WHITE);
-	int ConvertToIndexPosition(std::string squarePosition);
 
 
 	void MoveWithoutComprobe(int from, int position);
@@ -51,10 +51,18 @@ public:
 	bool CanMoveQueen	(uint8_t from, uint8_t _where);
 	bool CanMoveKing	(uint8_t from, uint8_t _where);
 
-	bool GetBitboardValueOnIndex(Bitboard bitboard, uint8_t index);
+	bool Castle(uint8_t from, uint8_t _where);
 
-	bool IsWhitePieceAt(uint8_t index);
-	bool IsBlackPieceAt(uint8_t index);
+	bool IsSquareAttacked(uint8_t square);
+
+	bool IsOccupied(uint8_t indexPosition);
+	bool IsCheck(uint8_t indexPosition);
+
+	Bitboard GetKingAttacks(uint8_t square);
+
+	Bitboard bitboards[12];
+
+	bool GetTurn() const { return turn; }
 };
 
 #endif
