@@ -4,12 +4,14 @@
 #include "utils.h"
 #include "board.h"
 #include "constants.h"
+#include "evaluation.h"
 
 class Engine
 {
 private:
 
 private:
+	Evaluation eval;
 	Board currentBoard;
 
 	void ManageInput();

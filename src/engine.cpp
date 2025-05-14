@@ -1,7 +1,9 @@
 #include "engine.h"
+#include "board.h"
 
 Engine::Engine()
 {
+    eval = Evaluation();
 	// currentBoard = Board(START_FEN);
 }
 
@@ -23,6 +25,7 @@ void Engine::RunTest()
 	currentBoard = Board(START_FEN);
 	Utils::PrintBoard(currentBoard);
 
+
 	while (true)
 	{
 		ManageInput();
@@ -33,6 +36,17 @@ void Engine::ManageInput()
 {
     std::string input;
     std::cin >> input;
+
+    if (input == "0-0")
+    {
+        currentBoard.Castle(true);
+        Utils::PrintBoard(currentBoard);
+    }
+    else if (input == "0-0-0")
+    {
+        currentBoard.Castle(false);
+        Utils::PrintBoard(currentBoard);
+    }
 
     if (input.length() != 4 && input.length() != 5) {
         std::cerr << "" << std::endl;
@@ -64,6 +78,7 @@ void Engine::ManageInput()
 	}
 
     Utils::PrintBoard(currentBoard);
+    std::cout << "Evaluation: " << eval.Evaluate(currentBoard) << "\n";
 }
 
 void Engine::InitKnightMasks() {

@@ -7,6 +7,8 @@
 09/05/2025: Refactored Board class, added utils.h	Solved a bug with linking
 10/05/2025: Added masks
 11/05/2025: Added bishop, rook, queen and king movements, checks comprobed
+12/05/2025: Nothing because I'm so lazy
+13/05/2025: Implemented castling (a litle)
 */
 
 

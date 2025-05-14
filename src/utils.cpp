@@ -29,6 +29,7 @@ void Utils::PrintBoard(const Board& board)
 	}
 
 	std::cout << "  a b c d e f g h\n" << std::endl
+		<< "FEN: " << ConvertToFEN(board) << "\n"
 		<< ((board.GetTurn() == WHITE_TURN) ? "White" : "Black") << " to move.\n"
 		<< "En passant: " << (board.enPassantSquare <= 64 ? ConvertToBoardPosition(board.enPassantSquare) : "no") << "\n"
 		<< "Castling: "

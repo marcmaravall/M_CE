@@ -51,7 +51,9 @@ public:
 	bool CanMoveQueen	(uint8_t from, uint8_t _where);
 	bool CanMoveKing	(uint8_t from, uint8_t _where);
 
-	bool Castle(uint8_t from, uint8_t _where);
+	void Castle(bool shortCastle);
+	bool CanCastle(bool shortCastle);
+	void DoCastleMove(bool shortCastle);
 
 	bool IsSquareAttacked(uint8_t square);
 

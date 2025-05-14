@@ -190,7 +190,13 @@ bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 	case 3:
 		if (CanMoveRook(piecePos, position))
 		{
+			if (piecePos == 7)
+				wCastlingQueen = false;
+			if (piecePos == 0)
+				wCastlingQueen = false;
+
 			MoveWithoutComprobe(piecePos, position);
+
 			enPassantSquare = 255;
 		}
 		break;
@@ -205,6 +211,8 @@ bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 		if (CanMoveKing(piecePos, position))
 		{
 			MoveWithoutComprobe(piecePos, position);
+			wCastlingKing = false;
+			wCastlingQueen = false;
 			enPassantSquare = 255;
 		}
 		break;
@@ -232,6 +240,11 @@ bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 	case 9:
 		if (CanMoveRook(piecePos, position))
 		{
+			if (piecePos == 63-7)
+				bCastlingQueen = false;
+			if (piecePos == 63)
+				bCastlingQueen = false;
+
 			MoveWithoutComprobe(piecePos, position);
 			enPassantSquare = 255;
 		}
@@ -248,6 +261,9 @@ bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 		{
 			MoveWithoutComprobe(piecePos, position);
 			enPassantSquare = 255;
+
+			bCastlingKing = false;
+			bCastlingQueen = false;
 		}
 	default:
 		break;
@@ -489,6 +505,10 @@ bool Board::CanMoveKing(uint8_t from, uint8_t _where) {
 		if (Utils::IsWhitePieceAt(*this, _where))
 			return false;
 	}
+	else if (turn == BLACK_TURN) {
+		if (Utils::IsWhitePieceAt(*this, _where))
+			return false;
+	}
 
 	if (abs(toFile - fromFile) > 1 || abs(toRank - fromRank) > 1)
 		return false;
@@ -496,32 +516,95 @@ bool Board::CanMoveKing(uint8_t from, uint8_t _where) {
 	return true;
 }
 
-bool Board::Castle(uint8_t from, uint8_t _where) {
-	if (from == _where)
-		return false;
+void Board::Castle(bool shortCasle)
+{
+	if (CanCastle(shortCasle))
+		DoCastleMove(shortCasle);
+}
 
-	int fromFile = from % 8;
-	int fromRank = from / 8;
-	int toFile = _where % 8;
-	int toRank = _where / 8;
+bool Board::CanCastle(bool shortCastle) {
+	bool color = turn;
 
-	if (turn == WHITE_TURN) {
-		if (Utils::IsWhitePieceAt(*this, _where))
+	if (color == WHITE_TURN) {
+		if ((shortCastle && !wCastlingKing) || (!shortCastle && !wCastlingQueen))
 			return false;
+
+		if (shortCastle) {
+			// Enroque corto blanco: casillas f1 (5) y g1 (6) deben estar vacías
+			if (!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 5) &&
+				!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 6)) {
+				return true;
+			}
+		}
+		else {
+			if (!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 1) &&
+				!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 2) &&
+				!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 3)) {
+				return true;
+			}
+		}
 	}
 	else {
-		if (Utils::IsBlackPieceAt(*this, _where))
+		if ((shortCastle && !bCastlingKing) || (!shortCastle && !bCastlingQueen))
 			return false;
+
+		if (shortCastle) {
+			// Enroque corto negro: f8 (61), g8 (62)
+			if (!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 61) &&
+				!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 62)) {
+				return true;
+			}
+		}
+		else {
+			// Enroque largo negro: c8 (58), d8 (59), e8 (60)
+			if (!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 57) &&
+				!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 58) &&
+				!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 59)) {
+				return true;
+			}
+		}
 	}
 
-	if (fromRank != toRank)
-		return false;
-
-	if (fromFile != toFile)
-		return false;
-
-	return true;
+	return false;
 }
+
+
+void Board::DoCastleMove(bool shortCastle)
+{
+	bool color = turn == WHITE_TURN ? WHITE_TURN : BLACK_TURN;
+
+	if (color == WHITE_TURN) {
+
+		if (shortCastle) {
+			MoveWithoutComprobe(4, 6);
+			MoveWithoutComprobe(7, 5);
+		}
+		else {
+			MoveWithoutComprobe(4, 2);
+			MoveWithoutComprobe(0, 3);
+		}
+
+		wCastlingKing = false;
+		wCastlingQueen = false;
+	}
+	else
+	{
+		if (shortCastle) {
+			MoveWithoutComprobe(60, 62);
+			MoveWithoutComprobe(63, 61);
+		}
+		else {
+			MoveWithoutComprobe(60, 58);
+			MoveWithoutComprobe(56, 59);
+		}
+		
+		bCastlingKing = false;
+		bCastlingQueen = false;
+	}
+
+	turn = !turn;
+}
+
 
 Bitboard Board::GetKingAttacks(uint8_t square) {
 	Bitboard attacks = 0;
