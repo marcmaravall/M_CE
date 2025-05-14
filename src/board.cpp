@@ -133,14 +133,17 @@ Board::~Board()
 	return squareIndex < 64 ? (std::string)BOARD_STRINGS[squareIndex] : "null";
 }*/
 
-// TODO: refatorize for struct Move
-bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
+// TODO: refatorize for struct Move				//doing it... I hate C++
+bool Board::MovePiece(const Move move)
 {
+	uint8_t from = move.from;
+	uint8_t to = move.to;
+
 	Board start = *this;
 
 	int pieceType = 255;
 	for (int i = 0; i < 12; i++) {
-		if (Utils::GetBitboardValueOnIndex(bitboards[i], piecePos)) {
+		if (Utils::GetBitboardValueOnIndex(bitboards[i], from)) {
 			pieceType = i;
 		}
 	}
@@ -161,56 +164,56 @@ bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 		return false;
 	}
 
-	if (promotion < 12) {
-		Promotion(piecePos, position, promotion);
+	if (move.promotion < 12) {
+		Promotion(move);
 	}
 
 	switch (pieceType)
 	{
 	case 0:
-		if (CanMovePawn(piecePos, position))
+		if (CanMovePawn(move))
 		{
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 		}
 		break;
 	case 1:
-		if (CanMoveKnight(piecePos, position))
+		if (CanMoveKnight(move))
 		{
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 			enPassantSquare = 255;
 		}
 		break;
 	case 2:
-		if (CanMoveBishop(piecePos, position))
+		if (CanMoveBishop(move))
 		{
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 			enPassantSquare = 255;
 		}
 		break;
 	case 3:
-		if (CanMoveRook(piecePos, position))
+		if (CanMoveRook(move))
 		{
-			if (piecePos == 7)
+			if (from == 7)
 				wCastlingQueen = false;
-			if (piecePos == 0)
+			if (from == 0)
 				wCastlingQueen = false;
 
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 
 			enPassantSquare = 255;
 		}
 		break;
 	case 4:
-		if (CanMoveQueen(piecePos, position))
+		if (CanMoveQueen(move))
 		{
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 			enPassantSquare = 255;
 		}
 		break;
 	case 5:
-		if (CanMoveKing(piecePos, position))
+		if (CanMoveKing(move))
 		{
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 			wCastlingKing = false;
 			wCastlingQueen = false;
 			enPassantSquare = 255;
@@ -218,54 +221,53 @@ bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 		break;
 	case 6:
 
-		if (CanMovePawn(piecePos, position))
+		if (CanMovePawn(move))
 		{
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 		}
 		break;
 	case 7:
-		if (CanMoveKnight(piecePos, position))
+		if (CanMoveKnight(move))
 		{
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 			enPassantSquare = 255;
 		}
 		break;
 	case 8:
-		if (CanMoveBishop(piecePos, position))
+		if (CanMoveBishop(move))
 		{
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 			enPassantSquare = 255;
 		}
 		break;
 	case 9:
-		if (CanMoveRook(piecePos, position))
+		if (CanMoveRook(move))
 		{
-			if (piecePos == 63-7)
+			if (from == 63-7)
 				bCastlingQueen = false;
-			if (piecePos == 63)
+			if (from == 63)
 				bCastlingQueen = false;
 
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 			enPassantSquare = 255;
 		}
 		break;
 	case 10:
-		if (CanMoveQueen(piecePos, position))
+		if (CanMoveQueen(move))
 		{
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 			enPassantSquare = 255;
 		}
 		break;
 	case 11:
-		if (CanMoveKing(piecePos, position))
+		if (CanMoveKing(move))
 		{
-			MoveWithoutComprobe(piecePos, position);
+			MoveWithoutComprobe(from, to);
 			enPassantSquare = 255;
 
 			bCastlingKing = false;
 			bCastlingQueen = false;
 		}
-	default:
 		break;
 	}
 
@@ -276,47 +278,65 @@ bool Board::MovePiece(uint8_t piecePos, uint8_t position, uint8_t promotion)
 	}
 }
 
-bool Board::Promotion(uint8_t piece, uint8_t position, uint8_t promotion)
+bool Board::Promotion(const Move move)
 {
+	int from = move.from;
+	int position = move.to;
+	int promotion = move.promotion;
+	std::cout << from << " " << position << " " << promotion << "\n";
+
+	int pieceType = 255;
+	for (int i = 0; i < 12; i++) {
+		if (Utils::GetBitboardValueOnIndex(bitboards[i], from)) {
+			pieceType = i;
+		}
+	}
+
+	std::cout << promotion;
+
 	if (promotion == 0 || promotion == 5 || promotion == 6 || promotion == 11) {
 		std::cerr << "ERROR: cannot promove to pawn or king.\n";
 		return false;
 	}
 
-	if (turn == WHITE_TURN && piece <= 6) {
-		std::cerr << "ERROR: trying to promote a black piece.\n";
+	if (turn == WHITE_TURN && pieceType != W_PAWN_I) {
+		std::cerr << "ERROR: only pawns can promote.\n";
 		return false;
 	}
-	else if (turn == !WHITE_TURN && piece < 11) {
-		std::cerr << "ERROR: trying to promote a white piece.\n";
-		return false;
-	}
-
-	if (turn == WHITE_TURN && piece < 56) {
-		std::cerr << "ERROR: cannot promote a piece that is not in the last rank.\n";
-		return false;
-	}
-	else if (turn == !WHITE_TURN && piece > 7) {
-		std::cerr << "ERROR: cannot promote a piece that is not in the last rank.\n";
+	if (turn == !WHITE_TURN && pieceType != B_PAWN_I) {
+		std::cerr << "ERROR: only pawns can promote.\n";
 		return false;
 	}
 
-	if (!CanMovePawn(piece, position)) {
+
+	if (turn == WHITE_TURN && position < 56) {
+		std::cerr << "ERROR: cannot promote a piece that is not in the last rank.\n";
+		return false;
+	}
+	else if (turn == !WHITE_TURN && position > 7) {
+		std::cerr << "ERROR: cannot promote a piece that is not in the last rank.\n";
+		return false;
+	}
+
+	if (!CanMovePawn(move)) {
 		std::cerr << "ERROR: promotion error.\n";
 		return false;
 	}
 
-	MoveWithoutComprobe(piece, position);
+	MoveWithoutComprobe(from, position);
 	ClearBitInAllBitboards(position);
 
 	SetBitboardBit(promotion, position);
 	return true;
 }
 
-bool Board::CanMovePawn(uint8_t from, uint8_t to) {
+bool Board::CanMovePawn(Move move) {
 	auto allPieces = Utils::GetAllBitboards(this->bitboards);
 	uint64_t occupied = allPieces;
 	uint64_t empty = ~occupied;
+
+	uint8_t from = move.from;
+	uint8_t to = move.to;
 
 	uint64_t fromBB = 1ULL << from;
 	uint64_t toBB = 1ULL << to;
@@ -383,7 +403,10 @@ bool Board::CanMovePawn(uint8_t from, uint8_t to) {
 }
 
 
-bool Board::CanMoveKnight(uint8_t from, uint8_t to) {
+bool Board::CanMoveKnight(const Move move) {
+	const uint8_t from = move.from;
+	const uint8_t to = move.to;
+
 	if (!((Engine::knightMasks[from] >> to) & 1ULL))
 		return false;
 
@@ -393,26 +416,29 @@ bool Board::CanMoveKnight(uint8_t from, uint8_t to) {
 		return !Utils::IsBlackPieceAt(*this, to);
 }
 
-bool Board::CanMoveBishop(uint8_t from, uint8_t _where) {
-	if (from == _where)
+bool Board::CanMoveBishop(const Move move) {
+	uint8_t from = move.from;
+	uint8_t to = move.to;
+
+	if (from == to)
 		return false;
 
 	Bitboard fromBB = 1ULL << from;
-	Bitboard toBB = 1ULL << _where;
+	Bitboard toBB = 1ULL << to;
 
 	if (turn == WHITE_TURN) {
-		if (Utils::IsWhitePieceAt(*this, _where))
+		if (Utils::IsWhitePieceAt(*this, to))
 			return false;
 	}
 	else {
-		if (Utils::IsBlackPieceAt(*this, _where))
+		if (Utils::IsBlackPieceAt(*this, to))
 			return false;
 	}
 
 	int fromFile = from % 8;
 	int fromRank = from / 8;
-	int toFile = _where % 8;
-	int toRank = _where / 8;
+	int toFile = to % 8;
+	int toRank = to / 8;
 
 	if (abs(toFile - fromFile) != abs(toRank - fromRank))
 		return false;
@@ -443,21 +469,24 @@ bool Board::IsOccupied(uint8_t square) {
 	return false;
 }
 
-bool Board::CanMoveRook(uint8_t from, uint8_t _where) {
-	if (from == _where)
+bool Board::CanMoveRook(const Move move) {
+	uint8_t from = move.from;
+	uint8_t to = move.to;
+
+	if (from == to)
 		return false;
 
 	int fromFile = from % 8;
 	int fromRank = from / 8;
-	int toFile = _where % 8;
-	int toRank = _where / 8;
+	int toFile = to % 8;
+	int toRank = to / 8;
 
 	if (turn == WHITE_TURN) {
-		if (Utils::IsWhitePieceAt(*this, _where))
+		if (Utils::IsWhitePieceAt(*this, to))
 			return false;
 	}
 	else {
-		if (Utils::IsBlackPieceAt(*this, _where))
+		if (Utils::IsBlackPieceAt(*this, to))
 			return false;
 	}
 
@@ -488,25 +517,28 @@ bool Board::CanMoveRook(uint8_t from, uint8_t _where) {
 }
 
 
-bool Board::CanMoveQueen(uint8_t from, uint8_t _where) {
-	return CanMoveRook(from, _where) || CanMoveBishop(from, _where);
+bool Board::CanMoveQueen(const Move move) {
+	return CanMoveRook(move) || CanMoveBishop(move);
 }
 
-bool Board::CanMoveKing(uint8_t from, uint8_t _where) {
-	if (from == _where)
+bool Board::CanMoveKing(const Move move) {
+	uint8_t from = move.from;
+	uint8_t to = move.to;
+
+	if (from == to)
 		return false;
 
 	int fromFile = from % 8;
 	int fromRank = from / 8;
-	int toFile = _where % 8;
-	int toRank = _where / 8;
+	int toFile = to % 8;
+	int toRank = to / 8;
 
 	if (turn == WHITE_TURN) {
-		if (Utils::IsWhitePieceAt(*this, _where))
+		if (Utils::IsWhitePieceAt(*this, to))
 			return false;
 	}
 	else if (turn == BLACK_TURN) {
-		if (Utils::IsWhitePieceAt(*this, _where))
+		if (Utils::IsWhitePieceAt(*this, to))
 			return false;
 	}
 
@@ -516,13 +548,18 @@ bool Board::CanMoveKing(uint8_t from, uint8_t _where) {
 	return true;
 }
 
-void Board::Castle(bool shortCasle)
+void Board::Castle(const Move move)
 {
-	if (CanCastle(shortCasle))
-		DoCastleMove(shortCasle);
+	if (CanCastle(move))
+		DoCastleMove(move);
 }
 
-bool Board::CanCastle(bool shortCastle) {
+bool Board::CanCastle(const Move move) {
+	if (!move.castling)
+		return false;
+
+	bool shortCastle = move.mode;
+
 	bool color = turn;
 
 	if (color == WHITE_TURN) {
@@ -569,9 +606,10 @@ bool Board::CanCastle(bool shortCastle) {
 }
 
 
-void Board::DoCastleMove(bool shortCastle)
+void Board::DoCastleMove(const Move move)
 {
 	bool color = turn == WHITE_TURN ? WHITE_TURN : BLACK_TURN;
+	bool shortCastle = move.mode;
 
 	if (color == WHITE_TURN) {
 
@@ -637,19 +675,18 @@ bool Board::IsSquareAttacked(uint8_t square) {
 			continue;
 		}
 
-		for (size_t j = 0; j < 64; j++) {
+		for (uint8_t j = 0; j < 64; j++) {
 			if (!Utils::GetBitboardValueOnIndex(bitboards[i], j)) {
 				continue;
 			}
-
-			// Llama a la función adecuada según el tipo de pieza
+			
 			switch (i % 6) {
-			case 0: if (CanMovePawn(j, square)) return true; break;
-			case 1: if (CanMoveKnight(j, square)) return true; break;
-			case 2: if (CanMoveBishop(j, square)) return true; break;
-			case 3: if (CanMoveRook(j, square)) return true; break;
-			case 4: if (CanMoveQueen(j, square)) return true; break;
-			case 5: if (CanMoveKing(j, square)) return true; break;
+			case 0: if (CanMovePawn(Move {j, square} )) return true; break;
+			case 1: if (CanMoveKnight(Move{ j, square })) return true; break;
+			case 2: if (CanMoveBishop(Move{ j, square })) return true; break;
+			case 3: if (CanMoveRook(Move{ j, square })) return true; break;
+			case 4: if (CanMoveQueen(Move{ j, square })) return true; break;
+			case 5: if (CanMoveKing(Move{ j, square })) return true; break;
 			}
 		}
 	}

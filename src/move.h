@@ -5,12 +5,15 @@
 struct Move
 {
 	uint8_t from;
-	uint8_t where;
+	uint8_t to;
 
 	bool castling;
-	bool promotion;
+	bool mode;
+
+	uint8_t promotion;
 	bool capture;
 	bool check;
+	bool checkmate;
 };
 
 #endif

@@ -22,7 +22,7 @@ void Engine::RunTest()
     init();
 
 	std::cout << "Running test..." << std::endl;
-	currentBoard = Board(START_FEN);
+	currentBoard = Board(TEST_FEN);
 	Utils::PrintBoard(currentBoard);
 
 
@@ -37,14 +37,24 @@ void Engine::ManageInput()
     std::string input;
     std::cin >> input;
 
+    Move current = {
+        .from = 255, .to = 255, .castling = false, .mode = 0, .check = false, .checkmate = false,
+    };
+
     if (input == "0-0")
     {
-        currentBoard.Castle(true);
+        current.castling = true;
+        current.mode = true;
+
+        currentBoard.Castle(current);
         Utils::PrintBoard(currentBoard);
     }
     else if (input == "0-0-0")
     {
-        currentBoard.Castle(false);
+        current.castling = true;
+        current.mode = false;
+
+        currentBoard.Castle(current);
         Utils::PrintBoard(currentBoard);
     }
 
@@ -60,21 +70,28 @@ void Engine::ManageInput()
     std::string fromStr = input.substr(0, 2);
     std::string toStr = input.substr(2, 2);
 
-    int from =  Utils::ConvertToIndexPosition(fromStr);
-    int to =    Utils::ConvertToIndexPosition(toStr);
+    current.from =  Utils::ConvertToIndexPosition(fromStr);
+    current.to =    Utils::ConvertToIndexPosition(toStr);
+
+    current.promotion = -1;
 
     if (input.length() == 5) {
-        int piecePromoting = -1;
         for (int i = 0; i < 12; i++) {
             if (PIECE_CHAR[i] == input[4]) {
-                piecePromoting = i;
-				currentBoard.Promotion(from, to, piecePromoting);
+                current.promotion = i;
+                currentBoard.Promotion(current);
+                break;
             }
         }
 
+        if (current.promotion == -1) {
+            std::cerr << "Promoción inválida: " << input[4] << std::endl;
+            return;
+        }
     }
+
 	else if (input.length() == 4) {
-		currentBoard.MovePiece(from, to);
+		currentBoard.MovePiece(current);
 	}
 
     Utils::PrintBoard(currentBoard);

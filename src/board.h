@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include "constants.h"
+#include "move.h"
 
 class Utils;
 class Engine;
@@ -37,23 +38,23 @@ public:
 	void ClearCurrentBitboard();
 	// std::string ConvertToBoardPosition(uint8_t squareIndex);
 
-	bool MovePiece(uint8_t piece, uint8_t position, uint8_t promotion = 255);
+	bool MovePiece(const Move move);
 
 
 	void MoveWithoutComprobe(int from, int position);
 
-	bool Promotion(uint8_t piece, uint8_t position, uint8_t promotion);
+	bool Promotion(const Move move);
 
-	bool CanMovePawn	(uint8_t from, uint8_t _where);
-	bool CanMoveKnight	(uint8_t from, uint8_t _where);
-	bool CanMoveBishop	(uint8_t from, uint8_t _where);
-	bool CanMoveRook	(uint8_t from, uint8_t _where);
-	bool CanMoveQueen	(uint8_t from, uint8_t _where);
-	bool CanMoveKing	(uint8_t from, uint8_t _where);
+	bool CanMovePawn	(const Move move);
+	bool CanMoveKnight	(const Move move);
+	bool CanMoveBishop	(const Move move);
+	bool CanMoveRook	(const Move move);
+	bool CanMoveQueen	(const Move move);
+	bool CanMoveKing	(const Move move);
 
-	void Castle(bool shortCastle);
-	bool CanCastle(bool shortCastle);
-	void DoCastleMove(bool shortCastle);
+	void Castle(const Move move);
+	bool CanCastle(const Move move);
+	void DoCastleMove(const Move move);
 
 	bool IsSquareAttacked(uint8_t square);
 
