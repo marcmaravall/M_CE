@@ -7,7 +7,16 @@ endif()
 
 project ("M_CE")
 
-add_executable (M_CE  "src/utils.h" "src/utils.cpp" "src/main.cpp" "src/constants.h" "src/uci.cpp" "src/uci.h" "src/engine.h" "src/engine.cpp" "src/board.h" "src/board.cpp" "src/move.h" "src/search.cpp" "src/search.h" "src/evaluation.cpp" "src/evaluation.h" "src/move_generation.cpp")
+add_executable(M_CE
+    "src/main.cpp"
+    "src/utils.cpp"
+    "src/uci.cpp"
+    "src/engine.cpp"
+    "src/board.cpp"
+    "src/search.cpp"
+    "src/evaluation.cpp"
+ "src/move_generation.cpp"  "src/move_generation.h" "src/search.h")
+
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET M_CE PROPERTY CXX_STANDARD 20)

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include "board.h"
 #include "constants.h"
@@ -16,5 +18,5 @@ class Evaluation
 	int SimpleEvaluation(Board board);
 
 public:
-	int Evaluate(Board board);
+	static int Evaluate(Board board);
 };

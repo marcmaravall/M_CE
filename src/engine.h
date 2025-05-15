@@ -5,6 +5,8 @@
 #include "board.h"
 #include "constants.h"
 #include "evaluation.h"
+#include "search.h"
+#include <chrono>
 
 class Engine
 {
@@ -13,6 +15,8 @@ private:
 private:
 	Evaluation eval;
 	Board currentBoard;
+
+	const int maxSearchDepth = 5;
 
 	void ManageInput();
 public:
@@ -28,6 +32,8 @@ public:
 	void InitKnightMasks();
 
 	void RunTest();
+	void PlayAgainistItself();
+	void PlayAgainistHuman();
 
 public:
 	static Bitboard knightMasks[64];

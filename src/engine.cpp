@@ -22,7 +22,7 @@ void Engine::RunTest()
     init();
 
 	std::cout << "Running test..." << std::endl;
-	currentBoard = Board(TEST_FEN);
+	currentBoard = Board(START_FEN);
 	Utils::PrintBoard(currentBoard);
 
 
@@ -63,10 +63,6 @@ void Engine::ManageInput()
         return;
     }
 
-    if (input.length() == 3) {
-        // castling
-    }
-
     std::string fromStr = input.substr(0, 2);
     std::string toStr = input.substr(2, 2);
 
@@ -85,7 +81,7 @@ void Engine::ManageInput()
         }
 
         if (current.promotion == -1) {
-            std::cerr << "Promoción inválida: " << input[4] << std::endl;
+            std::cerr << "Invalid promotion: " << input[4] << std::endl;
             return;
         }
     }
@@ -96,6 +92,31 @@ void Engine::ManageInput()
 
     Utils::PrintBoard(currentBoard);
     std::cout << "Evaluation: " << eval.Evaluate(currentBoard) << "\n";
+	MoveEval bestMove = Minimax(currentBoard, 4, currentBoard.turn == WHITE_TURN);
+	std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
+}
+
+void Engine::PlayAgainistItself()
+{
+    init();
+
+    std::cout << "Playing vs it..." << std::endl;
+    currentBoard = Board(START_FEN);
+    Utils::PrintBoard(currentBoard);
+
+    while (true)
+    {
+		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
+        MoveEval bestMove = AlphaBeta(currentBoard, 5, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
+        std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
+        currentBoard.MovePiece(bestMove.move);
+        Utils::PrintBoard(currentBoard);
+
+		std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+		std::cout << "Elapsed time: " << elapsed.count() << " seconds\n";
+    }
 }
 
 void Engine::InitKnightMasks() {
@@ -120,6 +141,103 @@ void Engine::InitKnightMasks() {
     }
 }
 
+void Engine::PlayAgainistHuman()
+{
+    init();
+    currentBoard = Board(START_FEN);
+    Utils::PrintBoard(currentBoard);
+    while (true)
+    {
+        if (currentBoard.turn == WHITE_TURN)
+        {
+            std::string input;
+            std::cout << "Move: ";
+            std::cin >> input;
+
+            Move current = {
+                .from = 255, .to = 255, .castling = false, .mode = 0, .check = false, .checkmate = false,
+            };
+
+            if (input == "0-0")
+            {
+                current.castling = true;
+                current.mode = true;
+                currentBoard.Castle(current);
+                Utils::PrintBoard(currentBoard);
+                continue;
+            }
+            else if (input == "0-0-0")
+            {
+                current.castling = true;
+                current.mode = false;
+                currentBoard.Castle(current);
+                Utils::PrintBoard(currentBoard);
+                continue;
+            }
+
+            if (input.length() != 4 && input.length() != 5)
+            {
+                std::cerr << "Invalid format." << std::endl;
+                continue;
+            }
+
+            std::string fromStr = input.substr(0, 2);
+            std::string toStr = input.substr(2, 2);
+
+            current.from = Utils::ConvertToIndexPosition(fromStr);
+            current.to = Utils::ConvertToIndexPosition(toStr);
+            current.promotion = -1;
+
+            if (input.length() == 5)
+            {
+                for (int i = 0; i < 12; i++)
+                {
+                    if (PIECE_CHAR[i] == input[4])
+                    {
+                        current.promotion = i;
+                        break;
+                    }
+                }
+
+                if (current.promotion == -1)
+                {
+                    std::cerr << "Invalid promotion: " << input[4] << std::endl;
+                    continue;
+                }
+
+                currentBoard.Promotion(current);
+            }
+            else
+            {
+                currentBoard.MovePiece(current);
+            }
+
+            Utils::PrintBoard(currentBoard);
+            std::cout << "Evaluation: " << eval.Evaluate(currentBoard) << "\n";
+        }
+        else
+        {
+            std::cout << "Engine thnking..." << std::endl;
+
+            MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, false);
+
+            if (bestMove.move.from == 255 || bestMove.move.to == 255)
+            {
+                std::cout << "GAME OVER" << std::endl;
+                break;
+            }
+
+            currentBoard.MovePiece(bestMove.move);
+            Utils::PrintBoard(currentBoard);
+
+            std::cout << "M_CE plays: "
+                << Utils::ConvertToBoardPosition(bestMove.move.from)
+                << Utils::ConvertToBoardPosition(bestMove.move.to)
+                << (bestMove.move.promotion != -1 ? PIECE_CHAR[bestMove.move.promotion] : ' ')
+                << "\nEvaluation: " << bestMove.eval << "\n";
+        }
+    }
+}
 
 uint64_t Engine::knightMasks[64];
 

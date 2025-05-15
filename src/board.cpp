@@ -156,11 +156,11 @@ bool Board::MovePiece(const Move move)
 	Bitboard bitboard = bitboards[pieceType];
 
 	if (turn == WHITE_TURN && pieceType >= 6) {
-		std::cerr << "ERROR: trying to move a black piece.\n";
+		//std::cerr << "ERROR: trying to move a black piece.\n";
 		return false;
 	}
 	else if (turn == !WHITE_TURN && pieceType < 6) {
-		std::cerr << "ERROR: trying to move a white piece.\n";
+		//std::cerr << "ERROR: trying to move a white piece.\n";
 		return false;
 	}
 
@@ -272,10 +272,12 @@ bool Board::MovePiece(const Move move)
 	}
 
 	if (turn == WHITE_TURN ? IsCheck(GetBlackKingPosition()) : IsCheck(GetWhiteKingPosition())) {
-		std::cerr << "ERROR: move puts king in check.\n";
+		// std::cerr << "ERROR: move puts king in check.\n";
 		*this = start;
 		return false;
 	}
+
+	return true;
 }
 
 bool Board::Promotion(const Move move)
@@ -669,7 +671,6 @@ bool Board::IsSquareAttacked(uint8_t square) {
 	bool attackingColor = turn == WHITE_TURN ? BLACK_TURN : WHITE_TURN;
 
 	for (size_t i = 0; i < 12; i++) {
-		// Saltar piezas que no son del color atacante
 		if ((attackingColor == WHITE_TURN && i < 6) ||
 			(attackingColor == BLACK_TURN && i >= 6)) {
 			continue;
@@ -700,11 +701,12 @@ bool Board::IsCheck(uint8_t indexPosition) {
 }
 
 // wtf is this, it's not usefull
+/*
 void Board::SetAllBitboards(uint8_t indexPosition) {
 	for (size_t i = 0; i < 12; i++) {
 		bitboards[i] |= (1ULL << indexPosition);
 	}
-}
+}*/
 
 void Board::SetBitboardBit(int piece, int indexPosition) {
 	if (piece > 12)
@@ -741,7 +743,7 @@ uint8_t Board::GetWhiteKingPosition()
 	for (size_t i = 0; i < 64; i++)
 	{
 		if (Utils::GetBitboardValueOnIndex(bitboards[5], i)) {
-			std::cout << "White king found at: " << i << std::endl;
+			// std::cout << "White king found at: " << i << std::endl;
 			return i;
 		}
 	}

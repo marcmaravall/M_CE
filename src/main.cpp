@@ -9,6 +9,8 @@
 11/05/2025: Added bishop, rook, queen and king movements, checks comprobed
 12/05/2025: Nothing because I'm so lazy
 13/05/2025: Implemented castling (a litle)
+14/05/2025: Implemented castling, simple evaluation function based on bitmaps, started to implement pseudo legal moves generation
+15/05/2025: Implemented pseudo legal moves generation, minimax implemented
 */
 
 
@@ -18,6 +20,6 @@
 int main()
 {
 	Engine engine;
-	engine.RunTest();
+	engine.PlayAgainistHuman();
 	return 0;
 }
