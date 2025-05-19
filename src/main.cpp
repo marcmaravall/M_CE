@@ -10,7 +10,10 @@
 12/05/2025: Nothing because I'm so lazy
 13/05/2025: Implemented castling (a litle)
 14/05/2025: Implemented castling, simple evaluation function based on bitmaps, started to implement pseudo legal moves generation
-15/05/2025: Implemented pseudo legal moves generation, minimax implemented
+15/05/2025: Implemented pseudo legal moves generation, minimax with alphabeta implemented, max depth is 5
+16/05/2025: Optimized search and move generation (a bit), avg(nps) is more than 200k, implemented move ordering, max depth is 7
+17/05/2025: Transposition table implemented, search at depth 6 more accesible
+18/05/2025: Started to implement 
 */
 
 
@@ -20,6 +23,6 @@
 int main()
 {
 	Engine engine;
-	engine.PlayAgainistHuman();
+	engine.PlayAgainistItself();
 	return 0;
 }

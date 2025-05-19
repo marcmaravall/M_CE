@@ -12,6 +12,8 @@ struct Move
 
 	uint8_t promotion;
 	bool capture;
+	uint8_t capturedPiece;
+
 	bool check;
 	bool checkmate;
 };

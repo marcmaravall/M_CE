@@ -22,6 +22,17 @@ inline constexpr const char* TEST_FEN = "r4r2/1ppqbpkP/2n1bnp1/3Pp3/p1B5/P1NP1N1
 // r2q3r/pp1k1pb1/2np3p/5b2/3N2p1/3P4/PP1QNPPP/R3KB1R b KQ - 0 1
 
 typedef uint64_t Bitboard;
+typedef uint64_t ZobristHash;
+
+typedef struct ZobristHashSettings
+{
+	uint64_t zobristPieces[12][64];
+	uint64_t zobristCastling[4];
+	uint64_t zobristEnPassant[8];
+	uint64_t zobristTurn;
+} ZobristHashSettings;
+
+inline constexpr int TT_SIZE = 1 << 20;
 
 inline constexpr const char* BOARD_STRINGS[64] = {
 	"A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1",
@@ -197,9 +208,36 @@ inline constexpr const int B_PAWN_BITMAP[64] = {
 	 0,  0,  0,  0,  0,  0,  0,  0
 };
 
+inline constexpr const int* PIECE_SQUARE_TABLES[12] = {
+	W_PAWN_BITMAP,
+	W_KNIGHT_BITMAP,
+	W_BISHOP_BITMAP,
+	W_ROOK_BITMAP,
+	W_QUEEN_BITMAP,
+	W_KING_BITMAP_MIDGAME,
+	B_PAWN_BITMAP,
+	B_KNIGHT_BITMAP,
+	B_BISHOP_BITMAP,
+	B_ROOK_BITMAP,
+	B_QUEEN_BITMAP,
+	B_KING_BITMAP_MIDGAME
+};
+
+
 typedef enum
 {
 	W_PAWN_I = 0, W_KNIGHT_I = 1, W_BISHOP_I = 2, W_ROOK_I = 3, W_QUEEN_I = 4, W_KING_I = 5,
 	B_PAWN_I = 6, B_KNIGHT_I = 7, B_BISHOP_I = 8, B_ROOK_I = 9, B_QUEEN_I = 10, B_KING_I = 11,
 } PIECE_INDEX;
 
+// attacker = rows, victim = columns
+// 0: Pawn, 1: Knight, 2: Bishop, 3: Rook, 4: Queen, 5: King (no se captura)
+inline constexpr int MVV_LVA[6][6] = {
+	// P    N    B    R    Q    K
+	{105, 205, 305, 405, 505, 0}, // attacker = P
+	{104, 204, 304, 404, 504, 0}, // attacker = N
+	{103, 203, 303, 403, 503, 0}, // attacker = B
+	{102, 202, 302, 402, 502, 0}, // attacker = R
+	{101, 201, 301, 401, 501, 0}, // attacker = Q
+	{100, 200, 300, 400, 500, 0}, // attacker = K
+};

@@ -1,6 +1,6 @@
 #include "move_generation.h"
 
-std::vector<Move> GeneratePawnMoves(Board board, uint8_t from) {
+std::vector<Move> GeneratePawnMoves(const Board& board, const uint8_t from) {
 	std::vector<Move> moves;
 
 	Move currentMove =
@@ -18,29 +18,96 @@ std::vector<Move> GeneratePawnMoves(Board board, uint8_t from) {
 	if (from < 8 || from > 55)
 		canPromote = true;
 
-	for (size_t i = 0; i < 64; i++)
+	uint8_t positionsComprobe[4];
+
+	if (Utils::IsWhitePieceAt(board, from)) {
+		positionsComprobe[0] = from + NORTH;
+		positionsComprobe[1] = from + NORTH * 2;
+		positionsComprobe[2] = from + NORTH_EAST;
+		positionsComprobe[3] = from + NORTH_WEST;
+	}
+	else {
+		positionsComprobe[0] = from + SOUTH;
+		positionsComprobe[1] = from + SOUTH * 2;
+		positionsComprobe[2] = from + SOUTH_EAST;
+		positionsComprobe[3] = from + SOUTH_WEST;
+	}
+
+	for (size_t i = 0; i < 4; i++)
 	{
-		currentMove.to = i;
+		currentMove.to = positionsComprobe[i];
 
 		if (canPromote) {
 			for (size_t j = 0; j < 12; j++)
 			{
 				currentMove.promotion = j;
-				if (board.CanMovePawn(currentMove))
+				if (board.CanMovePawn(currentMove)) {
+					if (Utils::GetPieceType(board, currentMove.to) < 12) {
+						currentMove.capture = true;
+						currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+					}
+					else
+						currentMove.capture = false;
+
 					moves.push_back(currentMove);
+				}
 			}
 		}
 		else
 		{
-			if (board.CanMovePawn(currentMove))
+			if (board.CanMovePawn(currentMove)) {
+				if (Utils::GetPieceType(board, currentMove.to) < 12) {
+					currentMove.capture = true;
+					currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+				}
+				else
+					currentMove.capture = false;
+
 				moves.push_back(currentMove);
+			}
 		}
 	}
 
 	return moves;
 }
 
-std::vector<Move> GenerateKnightMoves(Board board, uint8_t from) {
+std::vector<Move> GenerateKnightMoves(const Board& board, const uint8_t from) {
+	std::vector<Move> moves;
+
+	Move currentMove =
+	{
+			.from = 0,
+			.to = 0,
+			.promotion = 255,
+			.capture = false,
+	};
+
+	currentMove.from = from;
+
+	uint8_t positionsComprobe[8] = {
+		from + 17, from + 15, from + 10, from + 6,
+		from - 17, from - 15, from - 10, from - 6
+	};
+
+	for (size_t i = 0; i < 8; i++)
+	{
+		currentMove.to = positionsComprobe[i];
+
+		if (board.CanMoveKnight(currentMove)) {
+			if (Utils::GetPieceType(board, currentMove.to) < 12) {
+				currentMove.capture = true;
+				currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+			}
+			else currentMove.capture = false;
+			moves.push_back(currentMove);
+		}
+
+	}
+
+	return moves;
+}
+
+std::vector<Move> GenerateBishopMoves(const Board& board, const uint8_t from) {
 	std::vector<Move> moves;
 
 	Move currentMove =
@@ -57,14 +124,21 @@ std::vector<Move> GenerateKnightMoves(Board board, uint8_t from) {
 	{
 		currentMove.to = i;
 
-		if (board.CanMoveKnight(currentMove))
+		if (board.CanMoveBishop(currentMove)) {
+			if (Utils::GetPieceType(board, currentMove.to) < 12) {
+				currentMove.capture = true;
+				currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+			}
+			else 
+				currentMove.capture = false;
 			moves.push_back(currentMove);
+		}
 	}
 
 	return moves;
 }
 
-std::vector<Move> GenerateBishopMoves(Board board, uint8_t from) {
+std::vector<Move> GenerateRookMoves(const Board& board, const uint8_t from) {
 	std::vector<Move> moves;
 
 	Move currentMove =
@@ -81,14 +155,21 @@ std::vector<Move> GenerateBishopMoves(Board board, uint8_t from) {
 	{
 		currentMove.to = i;
 
-		if (board.CanMoveBishop(currentMove))
+		if (board.CanMoveRook(currentMove)) {
+			if (Utils::GetPieceType(board, currentMove.to) < 12) {
+				currentMove.capture = true;
+				currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+			}
+			else
+				currentMove.capture = false;
 			moves.push_back(currentMove);
+		}
 	}
 
 	return moves;
 }
 
-std::vector<Move> GenerateRookMoves(Board board, uint8_t from) {
+std::vector<Move> GenerateQueenMoves(const Board& board, const uint8_t from) {
 	std::vector<Move> moves;
 
 	Move currentMove =
@@ -105,14 +186,21 @@ std::vector<Move> GenerateRookMoves(Board board, uint8_t from) {
 	{
 		currentMove.to = i;
 
-		if (board.CanMoveRook(currentMove))
+		if (board.CanMoveQueen(currentMove)) {
+			if (Utils::GetPieceType(board, currentMove.to) < 12) {
+				currentMove.capture = true;
+				currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+			}
+			else
+				currentMove.capture = false;
 			moves.push_back(currentMove);
+		}
 	}
 
 	return moves;
 }
 
-std::vector<Move> GenerateQueenMoves(Board board, uint8_t from) {
+std::vector<Move> GenerateKingMoves(const Board& board, const uint8_t from) {
 	std::vector<Move> moves;
 
 	Move currentMove =
@@ -125,42 +213,30 @@ std::vector<Move> GenerateQueenMoves(Board board, uint8_t from) {
 
 	currentMove.from = from;
 
-	for (size_t i = 0; i < 64; i++)
-	{
-		currentMove.to = i;
-
-		if (board.CanMoveQueen(currentMove))
-			moves.push_back(currentMove);
-	}
-
-	return moves;
-}
-
-std::vector<Move> GenerateKingMoves(Board board, uint8_t from) {
-	std::vector<Move> moves;
-
-	Move currentMove =
-	{
-			.from = 0,
-			.to = 0,
-			.promotion = 255,
-			.capture = false,
+	const uint8_t positionsComprobe[8] = {
+		from + NORTH, from + SOUTH, from + EAST, from + WEST,
+		from + NORTH_EAST, from + NORTH_WEST, from + SOUTH_EAST, from + SOUTH_WEST
 	};
 
-	currentMove.from = from;
-
-	for (size_t i = 0; i < 64; i++)
+	for (size_t i = 0; i < 8; i++)
 	{
-		currentMove.to = i;
+		currentMove.to = positionsComprobe[i];
 
-		if (board.CanMoveKing(currentMove))
+		if (board.CanMoveKing(currentMove)) {
+			if (Utils::GetPieceType(board, currentMove.to) < 12) {
+				currentMove.capture = true;
+				currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+			}
+			else
+				currentMove.capture = false;
 			moves.push_back(currentMove);
+		}
 	}
 
 	return moves;
 }
 
-std::vector<Move> GeneratePseudoLegalMoves(const Board board)
+std::vector<Move> GeneratePseudoLegalMoves(const Board& board)
 {
 	std::vector<Move> moves;
 
@@ -172,7 +248,7 @@ std::vector<Move> GeneratePseudoLegalMoves(const Board board)
 			{
 				if (i == 0 || i == 6)
 				{
-					std::vector<Move> pawnMoves = GeneratePawnMoves(board, j);
+					const std::vector<Move> pawnMoves = GeneratePawnMoves(board, j);
 					moves.insert(moves.end(), pawnMoves.begin(), pawnMoves.end());
 				}
 				else if (i == 1 || i == 7)
@@ -207,22 +283,54 @@ std::vector<Move> GeneratePseudoLegalMoves(const Board board)
 	return moves;
 }
 
-
-
-std::vector<Move> GenerateLegalMoves(const Board board)
+std::vector<Move> GenerateLegalMoves(const Board& board)
 {
 	std::vector<Move> pseudoLegalMoves = GeneratePseudoLegalMoves(board);
 
-	Board buffer = board;
-
-	for (int i = pseudoLegalMoves.size() - 1; i >= 0; --i)
+	std::vector<Move> legalMoves;
+	for (const Move& move : pseudoLegalMoves)
 	{
-		buffer = board;
-		Move currentMove = pseudoLegalMoves[i];
-
-		if (!buffer.MovePiece(currentMove))
-			pseudoLegalMoves.erase(pseudoLegalMoves.begin() + i);
+		Board copy = board;
+		if (copy.MovePiece(move)) // deja el rey fuera de jaque
+			legalMoves.push_back(move);
 	}
-	return pseudoLegalMoves;
+	return legalMoves;
 }
 
+
+std::vector<Move> MVV_LVA_Order(const std::vector<Move>& moves, const Board& board, uint8_t depth) {
+	std::vector<Move> captures;
+	std::vector<Move> nonCaptures;
+	std::vector<Move> orderedMoves;
+
+	for (const Move& move : moves) {
+		if (move.capture) {
+			captures.push_back(move);
+			// std::cout << "Capture move\n";
+		}
+		else {
+			nonCaptures.push_back(move);
+			// std::cout << "Non capture move\n";
+		}
+	}
+
+
+	std::sort(captures.begin(), captures.end(), [&board](const Move& a, const Move& b) {
+		int aValue = 0;
+		int bValue = 0;
+
+		aValue = 10 * STATIC_PIECE_VALUE[a.capturedPiece] - STATIC_PIECE_VALUE[Utils::GetPieceType(board, a.from)];
+		bValue = 10 * STATIC_PIECE_VALUE[b.capturedPiece] - STATIC_PIECE_VALUE[Utils::GetPieceType(board, b.from)];
+
+		return aValue > bValue;
+		});
+	orderedMoves.assign(captures.begin(), captures.end());
+	orderedMoves.insert(orderedMoves.end(), nonCaptures.begin(), nonCaptures.end());
+
+	if (captures.size() > 0) {
+		//Utils::PrintBoard(board);
+		//std::cout << "CAPTURE 0: " << Utils::ConvertToBoardPosition(captures[0].from) << Utils::ConvertToBoardPosition(captures[0].to) << std::endl;
+	}
+
+	return orderedMoves;
+}

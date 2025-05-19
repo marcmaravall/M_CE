@@ -12,6 +12,8 @@ class Engine;
 struct Board
 {
 private:
+	void MovePawn(const Move move);
+
 public:
 	bool wCastlingKing = false;
 	bool wCastlingQueen = false;
@@ -45,12 +47,12 @@ public:
 
 	bool Promotion(const Move move);
 
-	bool CanMovePawn	(const Move move);
-	bool CanMoveKnight	(const Move move);
-	bool CanMoveBishop	(const Move move);
-	bool CanMoveRook	(const Move move);
-	bool CanMoveQueen	(const Move move);
-	bool CanMoveKing	(const Move move);
+	bool CanMovePawn	(const Move move) const;
+	bool CanMoveKnight	(const Move move) const;
+	bool CanMoveBishop	(const Move move) const;
+	bool CanMoveRook	(const Move move) const;
+	bool CanMoveQueen	(const Move move) const;
+	bool CanMoveKing	(const Move move) const;
 
 	void Castle(const Move move);
 	bool CanCastle(const Move move);
@@ -58,7 +60,7 @@ public:
 
 	bool IsSquareAttacked(uint8_t square);
 
-	bool IsOccupied(uint8_t indexPosition);
+	bool IsOccupied(uint8_t indexPosition) const;
 	bool IsCheck(uint8_t indexPosition);
 
 	Bitboard GetKingAttacks(uint8_t square);

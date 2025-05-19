@@ -3,7 +3,6 @@
 
 Engine::Engine()
 {
-    eval = Evaluation();
 	// currentBoard = Board(START_FEN);
 }
 
@@ -14,6 +13,7 @@ Engine::~Engine()
 
 void Engine::init()
 {
+	GenerateZobristHash(rand());
 	InitKnightMasks();
 }
 
@@ -91,7 +91,7 @@ void Engine::ManageInput()
 	}
 
     Utils::PrintBoard(currentBoard);
-    std::cout << "Evaluation: " << eval.Evaluate(currentBoard) << "\n";
+    std::cout << "Evaluation: " << Evaluation::Evaluate(currentBoard) << "\n";
 	MoveEval bestMove = Minimax(currentBoard, 4, currentBoard.turn == WHITE_TURN);
 	std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
 }
@@ -107,15 +107,20 @@ void Engine::PlayAgainistItself()
     while (true)
     {
 		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-
-        MoveEval bestMove = AlphaBeta(currentBoard, 5, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
+        
+		NODES = 0;
+        ALPHA_BETA_PRUNINGS = 0;
+        MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
         std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
         currentBoard.MovePiece(bestMove.move);
         Utils::PrintBoard(currentBoard);
 
 		std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-		std::cout << "Elapsed time: " << elapsed.count() << " seconds\n";
+		std::cout   << "Elapsed time: " << elapsed.count() << " seconds\n"
+		            << "Nodes searched: " << NODES << "\n" 
+                    << "NPS: " << NODES / elapsed.count() << "\n" 
+                    << "Prunings: " << ALPHA_BETA_PRUNINGS << "\n";
     }
 }
 
@@ -213,12 +218,13 @@ void Engine::PlayAgainistHuman()
             }
 
             Utils::PrintBoard(currentBoard);
-            std::cout << "Evaluation: " << eval.Evaluate(currentBoard) << "\n";
+            std::cout << "Evaluation: " << Evaluation::Evaluate(currentBoard) << "\n";
         }
         else
         {
             std::cout << "Engine thnking..." << std::endl;
 
+            NODES = 0;
             MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, false);
 
             if (bestMove.move.from == 255 || bestMove.move.to == 255)
@@ -234,10 +240,31 @@ void Engine::PlayAgainistHuman()
                 << Utils::ConvertToBoardPosition(bestMove.move.from)
                 << Utils::ConvertToBoardPosition(bestMove.move.to)
                 << (bestMove.move.promotion != -1 ? PIECE_CHAR[bestMove.move.promotion] : ' ')
-                << "\nEvaluation: " << bestMove.eval << "\n";
+                << "\nEvaluation: " << bestMove.eval << "\n"
+                << "Nodes: " << NODES << "\n";
         }
     }
 }
 
 uint64_t Engine::knightMasks[64];
+ZobristHashSettings Engine::hashSettings;
 
+void Engine::GenerateZobristHash(const int seed)
+{
+	// generate 64 bit randoms
+	std::mt19937_64 rng(seed);
+	for (int piece = 0; piece < 12; ++piece)
+	{
+		for (int square = 0; square < 64; ++square)
+			hashSettings.zobristPieces[piece][square] = rng();
+		
+	}
+
+	for (int castling = 0; castling < 4; ++castling)
+		hashSettings.zobristCastling[castling] = rng();
+
+	for (int square = 0; square < 8; ++square)
+		hashSettings.zobristEnPassant[square] = rng();
+
+	hashSettings.zobristTurn = rng();
+}

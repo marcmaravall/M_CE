@@ -173,7 +173,7 @@ bool Board::MovePiece(const Move move)
 	case 0:
 		if (CanMovePawn(move))
 		{
-			MoveWithoutComprobe(from, to);
+			MovePawn(move);
 		}
 		break;
 	case 1:
@@ -332,71 +332,61 @@ bool Board::Promotion(const Move move)
 	return true;
 }
 
-bool Board::CanMovePawn(Move move) {
-	auto allPieces = Utils::GetAllBitboards(this->bitboards);
-	uint64_t occupied = allPieces;
-	uint64_t empty = ~occupied;
+bool Board::CanMovePawn(const Move move) const{
+	auto allPieces = Utils::GetAllBitboards(bitboards);
+	const uint64_t occupied = allPieces;
+	const uint64_t empty = ~occupied;
 
-	uint8_t from = move.from;
-	uint8_t to = move.to;
+	const uint8_t from = move.from;
+	const uint8_t to = move.to;
 
-	uint64_t fromBB = 1ULL << from;
-	uint64_t toBB = 1ULL << to;
+	const uint64_t fromBB = 1ULL << from;
+	const uint64_t toBB = 1ULL << to;
 
 	if (turn == WHITE_TURN) {
-		uint64_t oneStep = fromBB << 8;
-		uint64_t twoSteps = fromBB << 16;
-		uint64_t captures = (fromBB << 7 & ~FILE_H_MASK) | (fromBB << 9 & ~FILE_A_MASK);
+		const uint64_t oneStep = fromBB << 8;
+		const uint64_t twoSteps = fromBB << 16;
+		const uint64_t captures = (fromBB << 7 & ~FILE_H_MASK) | (fromBB << 9 & ~FILE_A_MASK);
 
 		if ((toBB & oneStep) && (toBB & empty)) {
-			enPassantSquare = 255;
 			return true;
 		}
 
 		if ((toBB & twoSteps) && (fromBB & RANK_2_MASK) &&
 			((oneStep & empty) && (toBB & empty))) {
-			enPassantSquare = to - 8;
 			return true;
 		}
 
 		if ((toBB & captures) && Utils::IsBlackPieceAt(*this, to)) {
-			enPassantSquare = 255;
 			return true;
 		}
 
 		if ((to == enPassantSquare) &&
 			((from + NORTH_EAST == to) || (from + NORTH_WEST == to))) {
-			ClearBitInAllBitboards(enPassantSquare + SOUTH);
-			enPassantSquare = 255;
 			return true;
 		}
 	}
 
 	else { // BLACK_TURN
-		uint64_t oneStep = fromBB >> 8;
-		uint64_t twoSteps = fromBB >> 16;
-		uint64_t captures = (fromBB >> 7 & ~FILE_A_MASK) | (fromBB >> 9 & ~FILE_H_MASK);
+		const uint64_t oneStep = fromBB >> 8;
+		const uint64_t twoSteps = fromBB >> 16;
+		const uint64_t captures = (fromBB >> 7 & ~FILE_A_MASK) | (fromBB >> 9 & ~FILE_H_MASK);
 
 		if ((toBB & oneStep) && (toBB & empty)) {
-			enPassantSquare = 255;
 			return true;
 		}
 
 		if ((toBB & twoSteps) && (fromBB & RANK_7_MASK) &&
 			((oneStep & empty) && (toBB & empty))) {
-			enPassantSquare = to + 8;
 			return true;
 		}
 
 		if ((toBB & captures) && Utils::IsWhitePieceAt(*this, to)) {
-			enPassantSquare = 255;
 			return true;
 		}
 
 		if ((to == enPassantSquare) &&
 			((from + SOUTH_EAST == to) || (from + SOUTH_WEST == to))) {
-			ClearBitInAllBitboards(enPassantSquare - 8);
-			enPassantSquare = 255;
 			return true;
 		}
 	}
@@ -404,8 +394,52 @@ bool Board::CanMovePawn(Move move) {
 	return false;
 }
 
+void Board::MovePawn(const Move move) {
+	const uint8_t from = move.from;
+	const uint8_t to = move.to;
+	
+	const uint64_t fromBB = 1ULL << from;
+	const uint64_t toBB = 1ULL << to;
 
-bool Board::CanMoveKnight(const Move move) {
+	enPassantSquare = 255;
+
+	if (turn == WHITE_TURN) {
+		if ((fromBB << 16) & toBB && (fromBB & RANK_2_MASK)) {
+			enPassantSquare = to - 8;
+		}
+
+		if (to == enPassantSquare &&
+			(from + NORTH_EAST == to || from + NORTH_WEST == to)) {
+			ClearBitInAllBitboards(enPassantSquare + SOUTH);
+		}
+
+		if (Utils::IsBlackPieceAt(*this, to)) {
+			ClearBitInAllBitboards(to);
+		}
+
+		MoveWithoutComprobe(from, to);
+	}
+
+	else { // BLACK_TURN
+		if ((fromBB >> 16) & toBB && (fromBB & RANK_7_MASK)) {
+			enPassantSquare = to + 8;
+		}
+
+		if (to == enPassantSquare &&
+			(from + SOUTH_EAST == to || from + SOUTH_WEST == to)) {
+			ClearBitInAllBitboards(enPassantSquare - 8);
+		}
+
+		if (Utils::IsWhitePieceAt(*this, to)) {
+			ClearBitInAllBitboards(to);
+		}
+
+		MoveWithoutComprobe(from, to);
+	}
+}
+
+
+bool Board::CanMoveKnight(const Move move) const{
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
 
@@ -418,15 +452,15 @@ bool Board::CanMoveKnight(const Move move) {
 		return !Utils::IsBlackPieceAt(*this, to);
 }
 
-bool Board::CanMoveBishop(const Move move) {
-	uint8_t from = move.from;
-	uint8_t to = move.to;
+bool Board::CanMoveBishop(const Move move) const{
+	const uint8_t from = move.from;
+	const uint8_t to = move.to;
 
 	if (from == to)
 		return false;
 
-	Bitboard fromBB = 1ULL << from;
-	Bitboard toBB = 1ULL << to;
+	const Bitboard fromBB = 1ULL << from;
+	const Bitboard toBB = 1ULL << to;
 
 	if (turn == WHITE_TURN) {
 		if (Utils::IsWhitePieceAt(*this, to))
@@ -437,16 +471,16 @@ bool Board::CanMoveBishop(const Move move) {
 			return false;
 	}
 
-	int fromFile = from % 8;
-	int fromRank = from / 8;
-	int toFile = to % 8;
-	int toRank = to / 8;
+	const int fromFile = from % 8;
+	const int fromRank = from / 8;
+	const int toFile = to % 8;
+	const int toRank = to / 8;
 
 	if (abs(toFile - fromFile) != abs(toRank - fromRank))
 		return false;
 
-	int fileStep = (toFile - fromFile) > 0 ? 1 : -1;
-	int rankStep = (toRank - fromRank) > 0 ? 1 : -1;
+	const int fileStep = (toFile - fromFile) > 0 ? 1 : -1;
+	const int rankStep = (toRank - fromRank) > 0 ? 1 : -1;
 
 	int file = fromFile + fileStep;
 	int rank = fromRank + rankStep;
@@ -463,7 +497,7 @@ bool Board::CanMoveBishop(const Move move) {
 	return true;
 }
 
-bool Board::IsOccupied(uint8_t square) {
+bool Board::IsOccupied(uint8_t square) const{
 	for (int i = 0; i < 12; i++) {
 		if (Utils::GetBitboardValueOnIndex(bitboards[i], square))
 			return true;
@@ -471,17 +505,17 @@ bool Board::IsOccupied(uint8_t square) {
 	return false;
 }
 
-bool Board::CanMoveRook(const Move move) {
-	uint8_t from = move.from;
-	uint8_t to = move.to;
+bool Board::CanMoveRook(const Move move) const{
+	const uint8_t from = move.from;
+	const uint8_t to = move.to;
 
 	if (from == to)
 		return false;
 
-	int fromFile = from % 8;
-	int fromRank = from / 8;
-	int toFile = to % 8;
-	int toRank = to / 8;
+	const int fromFile = from % 8;
+	const int fromRank = from / 8;
+	const int toFile = to % 8;
+	const int toRank = to / 8;
 
 	if (turn == WHITE_TURN) {
 		if (Utils::IsWhitePieceAt(*this, to))
@@ -519,21 +553,21 @@ bool Board::CanMoveRook(const Move move) {
 }
 
 
-bool Board::CanMoveQueen(const Move move) {
+bool Board::CanMoveQueen(const Move move) const{
 	return CanMoveRook(move) || CanMoveBishop(move);
 }
 
-bool Board::CanMoveKing(const Move move) {
-	uint8_t from = move.from;
-	uint8_t to = move.to;
+bool Board::CanMoveKing(const Move move) const{
+	const uint8_t from = move.from;
+	const uint8_t to = move.to;
 
 	if (from == to)
 		return false;
 
-	int fromFile = from % 8;
-	int fromRank = from / 8;
-	int toFile = to % 8;
-	int toRank = to / 8;
+	const int fromFile = from % 8;
+	const int fromRank = from / 8;
+	const int toFile = to % 8;
+	const int toRank = to / 8;
 
 	if (turn == WHITE_TURN) {
 		if (Utils::IsWhitePieceAt(*this, to))
@@ -560,9 +594,9 @@ bool Board::CanCastle(const Move move) {
 	if (!move.castling)
 		return false;
 
-	bool shortCastle = move.mode;
+	const bool shortCastle = move.mode;
 
-	bool color = turn;
+	const bool color = turn;
 
 	if (color == WHITE_TURN) {
 		if ((shortCastle && !wCastlingKing) || (!shortCastle && !wCastlingQueen))
@@ -610,8 +644,8 @@ bool Board::CanCastle(const Move move) {
 
 void Board::DoCastleMove(const Move move)
 {
-	bool color = turn == WHITE_TURN ? WHITE_TURN : BLACK_TURN;
-	bool shortCastle = move.mode;
+	const bool color = turn == WHITE_TURN ? WHITE_TURN : BLACK_TURN;
+	const bool shortCastle = move.mode;
 
 	if (color == WHITE_TURN) {
 
@@ -648,8 +682,8 @@ void Board::DoCastleMove(const Move move)
 
 Bitboard Board::GetKingAttacks(uint8_t square) {
 	Bitboard attacks = 0;
-	int file = square % 8;
-	int rank = square / 8;
+	const int file = square % 8;
+	const int rank = square / 8;
 
 	for (int dr = -1; dr <= 1; dr++) {
 		for (int df = -1; df <= 1; df++) {
@@ -668,7 +702,7 @@ Bitboard Board::GetKingAttacks(uint8_t square) {
 }
 
 bool Board::IsSquareAttacked(uint8_t square) {
-	bool attackingColor = turn == WHITE_TURN ? BLACK_TURN : WHITE_TURN;
+	const bool attackingColor = turn == WHITE_TURN ? BLACK_TURN : WHITE_TURN;
 
 	for (size_t i = 0; i < 12; i++) {
 		if ((attackingColor == WHITE_TURN && i < 6) ||

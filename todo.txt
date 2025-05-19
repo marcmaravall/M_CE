@@ -1,0 +1,6 @@
+MOST IMPORTANT:
+
+1. Impelment move ordering.			[a]
+2. Solve move generation.			[ ]
+3. Implement transposition table.	[a]
+4. Improve evaluation function.		[ ]

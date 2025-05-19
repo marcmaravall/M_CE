@@ -7,22 +7,23 @@
 #include "evaluation.h"
 #include "search.h"
 #include <chrono>
+#include <random>
 
 class Engine
 {
 private:
 
+	void GenerateZobristHash(int seed);
+
 private:
-	Evaluation eval;
 	Board currentBoard;
 
-	const int maxSearchDepth = 5;
+	const int maxSearchDepth = 6;
 
 	void ManageInput();
 public:
 	Engine();
 	~Engine();
-	
 
 	void init();
 	void start();
@@ -37,6 +38,10 @@ public:
 
 public:
 	static Bitboard knightMasks[64];
+
+
+
+	static ZobristHashSettings hashSettings;
 
 };
 

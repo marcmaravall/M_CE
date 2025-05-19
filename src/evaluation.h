@@ -15,8 +15,8 @@ class Evaluation
 		EvalMode mode;
 	};
 
-	int SimpleEvaluation(Board board);
 
 public:
-	static int Evaluate(Board board);
+	static int SimpleEvaluation(const Board board);
+	static int Evaluate(const Board& board);
 };

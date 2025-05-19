@@ -175,7 +175,7 @@ std::string Utils::ToUpper(std::string str) {
 	return str;
 }
 
-Bitboard Utils::GetAllBitboards(Bitboard b[12], PIECE_COLORS colors)
+Bitboard Utils::GetAllBitboards(const Bitboard b[12], PIECE_COLORS colors)
 {
 	Bitboard res = 0;
 	for (size_t i = (colors != BLACK ? 0 : 6); i < (colors == BOTH ? 12 : (colors == WHITE ? 6 : 12)); i++) {
@@ -216,4 +216,68 @@ Bitboard Utils::GetDiagonalMask(uint8_t index)
 	return mask;
 }
 
+uint8_t Utils::GetPieceType(const Board& board, uint8_t index) {
+	for (int i = 0; i < 12; i++) {
+		if (GetBitboardValueOnIndex(board.bitboards[i], index)) {
+			return i;
+		}
+	}
+	return 255;
+}
 
+
+int Utils::PopLSB(uint64_t& bb) {
+	int index;
+
+#if defined(_MSC_VER)
+	unsigned long idx;
+	_BitScanForward64(&idx, bb);
+	index = (int)idx;
+#else
+	index = __builtin_ctzll(bb);
+#endif
+
+	bb &= bb - 1;
+	return index;
+}
+
+ZobristHash Utils::GetZobristHash(const Board& board, const ZobristHashSettings& settings)
+{
+	ZobristHash hash = 0;
+	
+	for (int i = 0; i < 12; i++)
+	{
+		uint64_t bitboard = board.bitboards[i];
+		while (bitboard)
+		{
+			int square = PopLSB(bitboard);
+			hash ^= settings.zobristPieces[i][square];
+		}
+	}
+
+	if (board.wCastlingKing)
+		hash ^= settings.zobristCastling[0];
+	if (board.wCastlingQueen)
+		hash ^= settings.zobristCastling[1];
+	if (board.bCastlingKing)
+		hash ^= settings.zobristCastling[2];
+	if (board.bCastlingQueen)
+		hash ^= settings.zobristCastling[3];
+
+
+	if (board.enPassantSquare != (uint8_t)-1)
+	{
+		int file = board.enPassantSquare % 8;
+		hash ^= settings.zobristEnPassant[file];
+	}
+
+	if (board.turn == BLACK_TURN)
+		hash ^= settings.zobristTurn;
+
+	return hash;
+}
+
+bool Utils::IsEnemyPieceAt(const Board& board, uint8_t position)
+{
+	return (board.turn == WHITE_TURN ? Utils::IsBlackPieceAt(board, position) : IsWhitePieceAt(board, position));
+}
