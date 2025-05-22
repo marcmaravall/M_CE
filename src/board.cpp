@@ -133,9 +133,21 @@ Board::~Board()
 	return squareIndex < 64 ? (std::string)BOARD_STRINGS[squareIndex] : "null";
 }*/
 
-// TODO: refatorize for struct Move				//doing it... I hate C++
+// TODO: refatorize for struct Move				//doing it... I hate C++		did it
 bool Board::MovePiece(const Move move)
 {
+	UndoInfo undo;
+	undo.wCastlingKing = wCastlingKing;
+	undo.wCastlingQueen = wCastlingQueen;
+	undo.bCastlingKing = bCastlingKing;
+	undo.bCastlingQueen = bCastlingQueen;
+	undo.enPassantSquare = enPassantSquare;
+	undo.turn = turn;
+	undo.turns = turns;
+	undo.move = move;
+	undo.capturedPiece = Utils::GetPieceType(*this, move.to);
+	undo.promotedPiece = (move.promotion != 255 ? move.promotion : 255);
+
 	uint8_t from = move.from;
 	uint8_t to = move.to;
 
@@ -273,7 +285,7 @@ bool Board::MovePiece(const Move move)
 
 	if (turn == WHITE_TURN ? IsCheck(GetBlackKingPosition()) : IsCheck(GetWhiteKingPosition())) {
 		// std::cerr << "ERROR: move puts king in check.\n";
-		*this = start;
+		UndoMove(undo);
 		return false;
 	}
 
@@ -285,7 +297,7 @@ bool Board::Promotion(const Move move)
 	int from = move.from;
 	int position = move.to;
 	int promotion = move.promotion;
-	std::cout << from << " " << position << " " << promotion << "\n";
+	// std::cout << from << " " << position << " " << promotion << "\n";
 
 	int pieceType = 255;
 	for (int i = 0; i < 12; i++) {
@@ -438,6 +450,32 @@ void Board::MovePawn(const Move move) {
 	}
 }
 
+void Board::UndoMove(const UndoInfo& undo) {
+	// std::cout << "FEN 0:" << Utils::ConvertToFEN(*this) << "\n";
+
+	Move reverseMove(undo.move.to, undo.move.from);
+
+	MoveWithoutComprobe(reverseMove.from, reverseMove.to);
+
+	if (undo.capturedPiece != 255) {
+		SetBitboardBit(undo.capturedPiece, undo.move.to);
+	}
+
+	if (undo.promotedPiece != 255) {
+		ClearBitInAllBitboards(undo.move.to);
+		SetBitboardBit((undo.turn == WHITE_TURN? 0 : 6), undo.move.from);
+	}
+
+	wCastlingKing = undo.wCastlingKing;
+	wCastlingQueen = undo.wCastlingQueen;
+	bCastlingKing = undo.bCastlingKing;
+	bCastlingQueen = undo.bCastlingQueen;
+	enPassantSquare = undo.enPassantSquare;
+	turn = undo.turn;
+	turns = undo.turns;
+
+	// std::cout << "FEN 1:" << Utils::ConvertToFEN(*this) << "\n";
+}
 
 bool Board::CanMoveKnight(const Move move) const{
 	const uint8_t from = move.from;
@@ -574,7 +612,7 @@ bool Board::CanMoveKing(const Move move) const{
 			return false;
 	}
 	else if (turn == BLACK_TURN) {
-		if (Utils::IsWhitePieceAt(*this, to))
+		if (Utils::IsBlackPieceAt(*this, to))
 			return false;
 	}
 
@@ -603,7 +641,6 @@ bool Board::CanCastle(const Move move) {
 			return false;
 
 		if (shortCastle) {
-			// Enroque corto blanco: casillas f1 (5) y g1 (6) deben estar vacías
 			if (!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 5) &&
 				!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 6)) {
 				return true;
@@ -622,14 +659,12 @@ bool Board::CanCastle(const Move move) {
 			return false;
 
 		if (shortCastle) {
-			// Enroque corto negro: f8 (61), g8 (62)
 			if (!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 61) &&
 				!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 62)) {
 				return true;
 			}
 		}
 		else {
-			// Enroque largo negro: c8 (58), d8 (59), e8 (60)
 			if (!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 57) &&
 				!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 58) &&
 				!Utils::GetBitboardValueOnIndex(Utils::GetAllBitboards(bitboards, BOTH), 59)) {

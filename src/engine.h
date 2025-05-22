@@ -18,7 +18,7 @@ private:
 private:
 	Board currentBoard;
 
-	const int maxSearchDepth = 6;
+	const int maxSearchDepth = 3;
 
 	void ManageInput();
 public:
@@ -38,7 +38,7 @@ public:
 
 public:
 	static Bitboard knightMasks[64];
-
+	static std::vector<UndoInfo> undoStack;
 
 
 	static ZobristHashSettings hashSettings;

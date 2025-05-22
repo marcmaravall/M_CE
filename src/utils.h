@@ -40,4 +40,11 @@ public:
 	static int PopLSB(uint64_t& bitboard);
 
 	static bool IsEnemyPieceAt(const Board& board, uint8_t position);
+
+	static Bitboard RayAttacks(uint8_t from, uint8_t dir, Bitboard occupancy);
+
+	static Bitboard GenerateBishopAttacks(int square, Bitboard occupancy);
+	static Bitboard GenerateRookAttacks(int square, Bitboard occupancy);
+
+	static UndoInfo CreateUndoInfo(const Board& board, const Move& move);
 };

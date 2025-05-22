@@ -1,4 +1,5 @@
 #define M_CE_UCI
+#include "engine.h"
 
 class Engine;
 class UCI
@@ -6,6 +7,8 @@ class UCI
 private:
 	const char* m_uciName = "M_CE";
 	const char* m_uciAuthor = "Marc Maravall Díez";
+
+	Engine engine;
 
 public:
 	void uci();

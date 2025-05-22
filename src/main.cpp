@@ -13,7 +13,9 @@
 15/05/2025: Implemented pseudo legal moves generation, minimax with alphabeta implemented, max depth is 5
 16/05/2025: Optimized search and move generation (a bit), avg(nps) is more than 200k, implemented move ordering, max depth is 7
 17/05/2025: Transposition table implemented, search at depth 6 more accesible
-18/05/2025: Started to implement 
+18/05/2025: Started to optimize code.
+19/05/2025: Nothing.
+20/05/2025: Added bitboards and masks to move generation, not very usefull...
 */
 
 

@@ -1,5 +1,6 @@
 #pragma once
 #define M_CE 1.0
+#include "move.h"
 
 enum PIECE
 {
@@ -17,7 +18,7 @@ inline constexpr int STATIC_PIECE_VALUE[12] = {
 	-100, -300, -330, -500, -900, 0,
 };
 
-inline constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+inline constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1";
 inline constexpr const char* TEST_FEN = "r4r2/1ppqbpkP/2n1bnp1/3Pp3/p1B5/P1NP1N1P/1PPBQP2/2KR3R w - - 0 1";
 // r2q3r/pp1k1pb1/2np3p/5b2/3N2p1/3P4/PP1QNPPP/R3KB1R b KQ - 0 1
 
@@ -241,3 +242,21 @@ inline constexpr int MVV_LVA[6][6] = {
 	{101, 201, 301, 401, 501, 0}, // attacker = Q
 	{100, 200, 300, 400, 500, 0}, // attacker = K
 };
+
+
+struct UndoInfo {
+	bool wCastlingKing;
+	bool wCastlingQueen;
+	bool bCastlingKing;
+	bool bCastlingQueen;
+
+	uint8_t enPassantSquare;
+
+	bool turn;
+	int turns;
+
+	Move move;
+	uint8_t capturedPiece;
+	uint8_t promotedPiece;
+};
+

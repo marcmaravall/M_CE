@@ -74,64 +74,51 @@ std::vector<Move> GeneratePawnMoves(const Board& board, const uint8_t from) {
 std::vector<Move> GenerateKnightMoves(const Board& board, const uint8_t from) {
 	std::vector<Move> moves;
 
-	Move currentMove =
-	{
-			.from = 0,
-			.to = 0,
-			.promotion = 255,
-			.capture = false,
+	Move currentMove = {
+		.from = from,
+		.to = 0,
+		.promotion = 255,
+		.capture = false,
 	};
 
-	currentMove.from = from;
+	uint64_t mask = Engine::knightMasks[from];
 
-	uint8_t positionsComprobe[8] = {
-		from + 17, from + 15, from + 10, from + 6,
-		from - 17, from - 15, from - 10, from - 6
-	};
-
-	for (size_t i = 0; i < 8; i++)
-	{
-		currentMove.to = positionsComprobe[i];
-
-		if (board.CanMoveKnight(currentMove)) {
-			if (Utils::GetPieceType(board, currentMove.to) < 12) {
-				currentMove.capture = true;
-				currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+	for (uint8_t to = 0; to < 64; ++to) {
+		if (mask & (1ULL << to)) {
+			if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+				currentMove.to = to;
+				currentMove.capture = Utils::IsEnemyPieceAt(board, to);
+				moves.push_back(currentMove);
 			}
-			else currentMove.capture = false;
-			moves.push_back(currentMove);
 		}
-
 	}
 
 	return moves;
 }
+
 
 std::vector<Move> GenerateBishopMoves(const Board& board, const uint8_t from) {
 	std::vector<Move> moves;
 
 	Move currentMove =
 	{
-			.from = 0,
-			.to = 0,
-			.promotion = 255,
-			.capture = false,
+		.from = 0,
+		.to = 0,
+		.promotion = 255,
+		.capture = false,
 	};
 
 	currentMove.from = from;
 
-	for (size_t i = 0; i < 64; i++)
-	{
-		currentMove.to = i;
+	Bitboard mask = Utils::GenerateBishopAttacks(from, Utils::GetAllBitboards(board.bitboards, BOTH));
 
-		if (board.CanMoveBishop(currentMove)) {
-			if (Utils::GetPieceType(board, currentMove.to) < 12) {
-				currentMove.capture = true;
-				currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+	for (uint8_t to = 0; to < 64; ++to) {
+		if (mask & (1ULL << to)) {
+			if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+				currentMove.to = to;
+				currentMove.capture = Utils::IsEnemyPieceAt(board, to);
+				moves.push_back(currentMove);
 			}
-			else 
-				currentMove.capture = false;
-			moves.push_back(currentMove);
 		}
 	}
 
@@ -151,18 +138,15 @@ std::vector<Move> GenerateRookMoves(const Board& board, const uint8_t from) {
 
 	currentMove.from = from;
 
-	for (size_t i = 0; i < 64; i++)
-	{
-		currentMove.to = i;
+	Bitboard mask = Utils::GenerateRookAttacks(from, Utils::GetAllBitboards(board.bitboards, BOTH));
 
-		if (board.CanMoveRook(currentMove)) {
-			if (Utils::GetPieceType(board, currentMove.to) < 12) {
-				currentMove.capture = true;
-				currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+	for (uint8_t to = 0; to < 64; ++to) {
+		if (mask & (1ULL << to)) {
+			if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+				currentMove.to = to;
+				currentMove.capture = Utils::IsEnemyPieceAt(board, to);
+				moves.push_back(currentMove);
 			}
-			else
-				currentMove.capture = false;
-			moves.push_back(currentMove);
 		}
 	}
 
@@ -172,33 +156,15 @@ std::vector<Move> GenerateRookMoves(const Board& board, const uint8_t from) {
 std::vector<Move> GenerateQueenMoves(const Board& board, const uint8_t from) {
 	std::vector<Move> moves;
 
-	Move currentMove =
-	{
-			.from = 0,
-			.to = 0,
-			.promotion = 255,
-			.capture = false,
-	};
+	std::vector<Move> bishopMoves = GenerateBishopMoves(board, from);
+	std::vector<Move> rookMoves = GenerateRookMoves(board, from);
 
-	currentMove.from = from;
-
-	for (size_t i = 0; i < 64; i++)
-	{
-		currentMove.to = i;
-
-		if (board.CanMoveQueen(currentMove)) {
-			if (Utils::GetPieceType(board, currentMove.to) < 12) {
-				currentMove.capture = true;
-				currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
-			}
-			else
-				currentMove.capture = false;
-			moves.push_back(currentMove);
-		}
-	}
+	moves.insert(moves.end(), bishopMoves.begin(), bishopMoves.end());
+	moves.insert(moves.end(), rookMoves.begin(), rookMoves.end());
 
 	return moves;
 }
+
 
 std::vector<Move> GenerateKingMoves(const Board& board, const uint8_t from) {
 	std::vector<Move> moves;
@@ -229,6 +195,47 @@ std::vector<Move> GenerateKingMoves(const Board& board, const uint8_t from) {
 			}
 			else
 				currentMove.capture = false;
+			moves.push_back(currentMove);
+		}
+	}
+
+	return moves;
+}
+
+std::vector<Move> GenerateCastlingMoves(const Board& board, const uint8_t from)
+{
+	std::vector<Move> moves;
+
+	Move currentMove;
+
+	if (board.turn == WHITE_TURN)
+	{
+		if (board.wCastlingKing && !board.IsOccupied(5) && !board.IsOccupied(6))
+		{
+			currentMove.castling = true;
+			currentMove.mode = false;
+			moves.push_back(currentMove);
+		}
+		else if (board.wCastlingKing && !board.IsOccupied(1) && !board.IsOccupied(2) && !board.IsOccupied(3))
+		{
+			currentMove.castling = true;
+			currentMove.mode = true;
+			moves.push_back(currentMove);
+		}
+	}
+
+	else if (board.turn == BLACK_TURN)
+	{
+		if (board.bCastlingKing && !board.IsOccupied(62) && !board.IsOccupied(61))
+		{
+			currentMove.castling = true;
+			currentMove.mode = false;
+			moves.push_back(currentMove);
+		}
+		else if (board.bCastlingKing && !board.IsOccupied(59) && !board.IsOccupied(58) && !board.IsOccupied(57))
+		{
+			currentMove.castling = true;
+			currentMove.mode = true;
 			moves.push_back(currentMove);
 		}
 	}
@@ -275,6 +282,9 @@ std::vector<Move> GeneratePseudoLegalMoves(const Board& board)
 				{
 					std::vector<Move> kingMoves = GenerateKingMoves(board, j);
 					moves.insert(moves.end(), kingMoves.begin(), kingMoves.end());
+
+					std::vector<Move> castlingMoves = GenerateCastlingMoves(board, j);
+					moves.insert(moves.end(), castlingMoves.begin(), castlingMoves.end());
 				}
 			}
 		}
@@ -283,16 +293,19 @@ std::vector<Move> GeneratePseudoLegalMoves(const Board& board)
 	return moves;
 }
 
-std::vector<Move> GenerateLegalMoves(const Board& board)
+std::vector<Move> GenerateLegalMoves(Board& board)
 {
 	std::vector<Move> pseudoLegalMoves = GeneratePseudoLegalMoves(board);
 
 	std::vector<Move> legalMoves;
 	for (const Move& move : pseudoLegalMoves)
 	{
-		Board copy = board;
-		if (copy.MovePiece(move)) // deja el rey fuera de jaque
+		UndoInfo info = Utils::CreateUndoInfo(board, move);
+
+		if (board.MovePiece(move)) {
 			legalMoves.push_back(move);
+			board.UndoMove(info);
+		}
 	}
 	return legalMoves;
 }

@@ -63,6 +63,8 @@ public:
 	bool IsOccupied(uint8_t indexPosition) const;
 	bool IsCheck(uint8_t indexPosition);
 
+	void UndoMove(const UndoInfo& undo);
+
 	Bitboard GetKingAttacks(uint8_t square);
 
 	Bitboard bitboards[12];

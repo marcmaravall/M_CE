@@ -103,13 +103,16 @@ void Engine::PlayAgainistItself()
     std::cout << "Playing vs it..." << std::endl;
     currentBoard = Board(START_FEN);
     Utils::PrintBoard(currentBoard);
-
-    while (true)
+    int i = 0;
+    while (i < 10)
     {
 		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
         
 		NODES = 0;
         ALPHA_BETA_PRUNINGS = 0;
+
+        std::cout << "Perft: " << Perft(currentBoard, maxSearchDepth) << "\n\n";
+
         MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
         std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
         currentBoard.MovePiece(bestMove.move);
@@ -121,6 +124,8 @@ void Engine::PlayAgainistItself()
 		            << "Nodes searched: " << NODES << "\n" 
                     << "NPS: " << NODES / elapsed.count() << "\n" 
                     << "Prunings: " << ALPHA_BETA_PRUNINGS << "\n";
+
+        i++;
     }
 }
 
@@ -248,6 +253,7 @@ void Engine::PlayAgainistHuman()
 
 uint64_t Engine::knightMasks[64];
 ZobristHashSettings Engine::hashSettings;
+std::vector<UndoInfo> Engine::undoStack;
 
 void Engine::GenerateZobristHash(const int seed)
 {

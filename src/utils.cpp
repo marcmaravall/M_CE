@@ -281,3 +281,62 @@ bool Utils::IsEnemyPieceAt(const Board& board, uint8_t position)
 {
 	return (board.turn == WHITE_TURN ? Utils::IsBlackPieceAt(board, position) : IsWhitePieceAt(board, position));
 }
+
+Bitboard Utils::RayAttacks(uint8_t from, uint8_t dir, Bitboard occupancy) {
+	Bitboard attacks = 0ULL;
+	int to = from;
+
+	while (true) {
+		to += dir;
+
+		if (to < 0 || to >= 64) break;
+
+		if (abs((to % 8) - (from % 8)) > 1 && (dir == -9 || dir == -1 || dir == 7 || dir == 1 || dir == 9)) break;
+
+		Bitboard toBB = 1ULL << to;
+		attacks |= toBB;
+
+		if (occupancy & toBB) break;
+
+		from = to;
+	}
+
+	return attacks;
+}
+
+Bitboard Utils::GenerateBishopAttacks(int square, Bitboard occupancy) {
+	Bitboard attacks = 0;
+	attacks |= RayAttacks(square, -9, occupancy);
+	attacks |= RayAttacks(square, -7, occupancy);
+	attacks |= RayAttacks(square, 9, occupancy);
+	attacks |= RayAttacks(square, 7, occupancy);
+	return attacks;
+}
+
+Bitboard Utils::GenerateRookAttacks(int square, Bitboard occupancy) {
+	Bitboard attacks = 0;
+	attacks |= RayAttacks(square, -8, occupancy);
+	attacks |= RayAttacks(square, 8, occupancy);
+	attacks |= RayAttacks(square, -1, occupancy);
+	attacks |= RayAttacks(square, 1, occupancy); 
+	return attacks;
+}
+
+UndoInfo Utils::CreateUndoInfo(const Board& board, const Move& move)
+{
+
+	UndoInfo undo;
+	undo.wCastlingKing = board.wCastlingKing;
+	undo.wCastlingQueen =	board.wCastlingQueen;
+	undo.bCastlingKing =	board.bCastlingKing;
+	undo.bCastlingQueen =	board.bCastlingQueen;
+	undo.enPassantSquare =	board.enPassantSquare;
+	undo.turn =				board.turn;
+	undo.turns =			board.turns;
+	undo.move = move;
+	undo.capturedPiece = Utils::GetPieceType(board, move.to);
+	undo.promotedPiece = (move.promotion != 255 ? move.promotion : 255);
+
+	return undo;
+}
+
