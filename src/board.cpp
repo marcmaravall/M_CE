@@ -157,22 +157,25 @@ bool Board::MovePiece(const Move move)
 	for (int i = 0; i < 12; i++) {
 		if (Utils::GetBitboardValueOnIndex(bitboards[i], from)) {
 			pieceType = i;
+			break;
 		}
 	}
 
 	if (pieceType >= 12) {
-		std::cerr << "Piece not found\n";
+		// std::cerr << "Piece not found, piece: " << pieceType << "\n";
+		// Utils::DebugMove(move);
+		// Utils::PrintBitboards(*this);
 		return false;
 	}
 
 	Bitboard bitboard = bitboards[pieceType];
 
 	if (turn == WHITE_TURN && pieceType >= 6) {
-		//std::cerr << "ERROR: trying to move a black piece.\n";
+		// std::cerr << "ERROR: trying to move a black piece.\n";
 		return false;
 	}
 	else if (turn == !WHITE_TURN && pieceType < 6) {
-		//std::cerr << "ERROR: trying to move a white piece.\n";
+		// std::cerr << "ERROR: trying to move a white piece.\n";
 		return false;
 	}
 
@@ -229,6 +232,7 @@ bool Board::MovePiece(const Move move)
 			wCastlingKing = false;
 			wCastlingQueen = false;
 			enPassantSquare = 255;
+
 		}
 		break;
 	case 6:
@@ -250,6 +254,7 @@ bool Board::MovePiece(const Move move)
 		{
 			MoveWithoutComprobe(from, to);
 			enPassantSquare = 255;
+
 		}
 		break;
 	case 9:
@@ -280,6 +285,7 @@ bool Board::MovePiece(const Move move)
 			bCastlingKing = false;
 			bCastlingQueen = false;
 		}
+
 		break;
 	}
 
@@ -595,29 +601,24 @@ bool Board::CanMoveQueen(const Move move) const{
 	return CanMoveRook(move) || CanMoveBishop(move);
 }
 
-bool Board::CanMoveKing(const Move move) const{
+bool Board::CanMoveKing(const Move move) const {
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
 
-	if (from == to)
+	if (from == to || from >= 64 || to >= 64)
 		return false;
 
-	const int fromFile = from % 8;
-	const int fromRank = from / 8;
-	const int toFile = to % 8;
-	const int toRank = to / 8;
+	if (!(Engine::kingMasks[from] & (1ULL << to)))
+		return false;
 
 	if (turn == WHITE_TURN) {
 		if (Utils::IsWhitePieceAt(*this, to))
 			return false;
 	}
-	else if (turn == BLACK_TURN) {
+	else {
 		if (Utils::IsBlackPieceAt(*this, to))
 			return false;
 	}
-
-	if (abs(toFile - fromFile) > 1 || abs(toRank - fromRank) > 1)
-		return false;
 
 	return true;
 }
@@ -736,7 +737,7 @@ Bitboard Board::GetKingAttacks(uint8_t square) {
 	return attacks;
 }
 
-bool Board::IsSquareAttacked(uint8_t square) {
+bool Board::IsSquareAttacked(const int square) {
 	const bool attackingColor = turn == WHITE_TURN ? BLACK_TURN : WHITE_TURN;
 
 	for (size_t i = 0; i < 12; i++) {
@@ -749,9 +750,9 @@ bool Board::IsSquareAttacked(uint8_t square) {
 			if (!Utils::GetBitboardValueOnIndex(bitboards[i], j)) {
 				continue;
 			}
-			
+
 			switch (i % 6) {
-			case 0: if (CanMovePawn(Move {j, square} )) return true; break;
+			case 0: if (CanMovePawn(Move{ j, square })) return true; break;
 			case 1: if (CanMoveKnight(Move{ j, square })) return true; break;
 			case 2: if (CanMoveBishop(Move{ j, square })) return true; break;
 			case 3: if (CanMoveRook(Move{ j, square })) return true; break;
@@ -763,6 +764,7 @@ bool Board::IsSquareAttacked(uint8_t square) {
 
 	return false;
 }
+
 
 bool Board::IsCheck(uint8_t indexPosition) {
 

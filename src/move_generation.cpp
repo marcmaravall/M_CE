@@ -13,10 +13,10 @@ std::vector<Move> GeneratePawnMoves(const Board& board, const uint8_t from) {
 
 	currentMove.from = from;
 
-	bool canPromote = false;
+	bool isWhite = Utils::IsWhitePieceAt(board, from);
+	uint8_t rank = from / 8;
 
-	if (from < 8 || from > 55)
-		canPromote = true;
+	bool canPromote = (isWhite && rank == 6) || (!isWhite && rank == 1);
 
 	uint8_t positionsComprobe[4];
 
@@ -305,6 +305,10 @@ std::vector<Move> GenerateLegalMoves(Board& board)
 		if (board.MovePiece(move)) {
 			legalMoves.push_back(move);
 			board.UndoMove(info);
+		}
+		else
+		{
+			// std::cout << "ahjhsakjdj";
 		}
 	}
 	return legalMoves;

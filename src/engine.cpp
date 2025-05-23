@@ -15,6 +15,10 @@ void Engine::init()
 {
 	GenerateZobristHash(rand());
 	InitKnightMasks();
+    InitKingMasks();
+
+    std::ofstream debugFile("C:\\Users\\Marc\\source\\repos\\M_CE\\tests", std::ios::app);
+    debugFile.clear();
 }
 
 void Engine::RunTest()
@@ -22,9 +26,8 @@ void Engine::RunTest()
     init();
 
 	std::cout << "Running test..." << std::endl;
-	currentBoard = Board(START_FEN);
+	currentBoard = Board(TEST_FEN);
 	Utils::PrintBoard(currentBoard);
-
 
 	while (true)
 	{
@@ -92,8 +95,9 @@ void Engine::ManageInput()
 
     Utils::PrintBoard(currentBoard);
     std::cout << "Evaluation: " << Evaluation::Evaluate(currentBoard) << "\n";
-	MoveEval bestMove = Minimax(currentBoard, 4, currentBoard.turn == WHITE_TURN);
-	std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
+    // std::cout << "TEST: " << currentBoard.IsCheck(currentBoard.turn == !WHITE_TURN? currentBoard.GetWhiteKingPosition() : currentBoard.GetBlackKingPosition()) << "\n";
+	// MoveEval bestMove = Minimax(currentBoard, 0, currentBoard.turn == WHITE_TURN);
+	// std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
 }
 
 void Engine::PlayAgainistItself()
@@ -101,7 +105,7 @@ void Engine::PlayAgainistItself()
     init();
 
     std::cout << "Playing vs it..." << std::endl;
-    currentBoard = Board(START_FEN);
+    currentBoard = Board(TEST_FEN);
     Utils::PrintBoard(currentBoard);
     int i = 0;
     while (i < 10)
@@ -112,8 +116,9 @@ void Engine::PlayAgainistItself()
         ALPHA_BETA_PRUNINGS = 0;
 
         std::cout << "Perft: " << Perft(currentBoard, maxSearchDepth) << "\n\n";
+        std::cout << "Divide: " << Perft(currentBoard, 1);
 
-        MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
+        /*MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
         std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
         currentBoard.MovePiece(bestMove.move);
         Utils::PrintBoard(currentBoard);
@@ -123,7 +128,7 @@ void Engine::PlayAgainistItself()
 		std::cout   << "Elapsed time: " << elapsed.count() << " seconds\n"
 		            << "Nodes searched: " << NODES << "\n" 
                     << "NPS: " << NODES / elapsed.count() << "\n" 
-                    << "Prunings: " << ALPHA_BETA_PRUNINGS << "\n";
+                    << "Prunings: " << ALPHA_BETA_PRUNINGS << "\n";*/
 
         i++;
     }
@@ -252,6 +257,7 @@ void Engine::PlayAgainistHuman()
 }
 
 uint64_t Engine::knightMasks[64];
+uint64_t Engine::kingMasks[64];
 ZobristHashSettings Engine::hashSettings;
 std::vector<UndoInfo> Engine::undoStack;
 
@@ -274,3 +280,29 @@ void Engine::GenerateZobristHash(const int seed)
 
 	hashSettings.zobristTurn = rng();
 }
+
+void Engine::InitKingMasks() {
+    for (int sq = 0; sq < 64; sq++) {
+        uint64_t mask = 0ULL;
+        int rank = sq / 8;
+        int file = sq % 8;
+
+        for (int dr = -1; dr <= 1; dr++) {
+            for (int df = -1; df <= 1; df++) {
+                if (dr == 0 && df == 0) continue;
+
+                int r = rank + dr;
+                int f = file + df;
+
+                if (r >= 0 && r < 8 && f >= 0 && f < 8) {
+                    int targetSq = r * 8 + f;
+                    mask |= (1ULL << targetSq);
+                }
+            }
+        }
+
+        kingMasks[sq] = mask;
+    }
+}
+
+

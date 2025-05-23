@@ -16,6 +16,8 @@
 18/05/2025: Started to optimize code.
 19/05/2025: Nothing.
 20/05/2025: Added bitboards and masks to move generation, not very usefull...
+21/05/2025: Solved some bugs with move generation.
+22/05/2025: Solved king checks errors and added Perft and Divide for debug.
 */
 
 

@@ -58,7 +58,7 @@ public:
 	bool CanCastle(const Move move);
 	void DoCastleMove(const Move move);
 
-	bool IsSquareAttacked(uint8_t square);
+	bool IsSquareAttacked(const int square);
 
 	bool IsOccupied(uint8_t indexPosition) const;
 	bool IsCheck(uint8_t indexPosition);

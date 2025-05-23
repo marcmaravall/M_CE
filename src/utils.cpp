@@ -38,12 +38,23 @@ void Utils::PrintBoard(const Board& board)
 
 void Utils::PrintBitboards(const Board& board)
 {
-	for (size_t i = 0; i < 12; i++) {
-		std::cout << "\n" << board.bitboards[i] << "\n";
-		for (int j = 0; j < 64; j++) {
-			if (j % 8 == 0)
-				std::cout << "\n";
-			std::cout << GetBitboardValueOnIndex(board.bitboards[i], j);
+	std::array<int, 64> pieceCounts = { 0 };
+
+	for (int i = 0; i < 12; ++i) {
+		for (int square = 0; square < 64; ++square) {
+			if (Utils::GetBitboardValueOnIndex(board.bitboards[i], square)) {
+				pieceCounts[square]++;
+			}
+		}
+	}
+
+	for (int square = 0; square < 64; ++square) {
+		if (pieceCounts[square] > 1) {
+			std::cerr << "ERROR: Square " << square << " has " << pieceCounts[square] << " pieces!\n";
+		}
+		if (pieceCounts[square] == 0 && Utils::GetPieceType(board, square) != 255) {
+			std::cerr << "ERROR: Square " << square << " has no bitboard piece but pieceType is set to "
+				<< Utils::GetPieceType(board, square) << "\n";
 		}
 	}
 }
@@ -340,3 +351,10 @@ UndoInfo Utils::CreateUndoInfo(const Board& board, const Move& move)
 	return undo;
 }
 
+void Utils::DebugMove(const Move& move)
+{
+	std::cout
+		<< "\nMOVE\n"
+		<< "from: " << move.from << "\n"
+		<< "to: " << move.to << "\n";
+}

@@ -4,13 +4,13 @@
 
 struct Move
 {
-	uint8_t from;
-	uint8_t to;
+	int from;
+	int to;
 
 	bool castling;
 	bool mode;
 
-	uint8_t promotion;
+	uint8_t promotion = 255;
 	bool capture;
 	uint8_t capturedPiece;
 

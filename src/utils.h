@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <array>
 #include "constants.h"
 #include "engine.h"
 
@@ -47,4 +48,6 @@ public:
 	static Bitboard GenerateRookAttacks(int square, Bitboard occupancy);
 
 	static UndoInfo CreateUndoInfo(const Board& board, const Move& move);
+
+	static void DebugMove(const Move& move);
 };

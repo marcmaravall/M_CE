@@ -6,6 +6,7 @@
 #include "move_generation.h"
 #include <iostream>
 #include <vector>
+#include <fstream>
 
 extern int NODES;
 extern int ALPHA_BETA_PRUNINGS;

@@ -164,32 +164,13 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 	return bestMove;
 }
 
-uint64_t Perft(Board& position, int depth) {
-	if (depth == 0) return 1;
-
-	uint64_t nodes = 0;
-	std::vector<Move> moves = GenerateLegalMoves(position);
-
-	for (const Move& move : moves) {
-		UndoInfo undo = Utils::CreateUndoInfo(position, move);
-		position.MovePiece(move);
-
-		// std::cout << "\n\n";
-		// Utils::PrintBoard(position);
-		// std::cout << "\n\n";
-
-		// if (depth == 2)
-		// 	Divide(position, depth);
-
-		nodes += Perft(position, depth - 1);
-
-		position.UndoMove(undo);
+void Divide(Board& pos, int depth) {
+	const std::string& debugFilePath = "C:\\Users\\Marc\\source\\repos\\M_CE\\tests\\debug.txt";
+	std::ofstream debugFile(debugFilePath, std::ios::app);
+	if (!debugFile.is_open()) {
+		throw std::runtime_error("error");
 	}
 
-	return nodes;
-}
-
-void Divide(Board& pos, int depth) {
 	auto moves = GenerateLegalMoves(pos);
 	uint64_t total = 0;
 	for (const Move& move : moves) {
@@ -200,10 +181,35 @@ void Divide(Board& pos, int depth) {
 
 		pos.UndoMove(undo);
 
-		std::cout << Utils::ConvertToBoardPosition(move.from) << " " << Utils::ConvertToBoardPosition(move.to) << ": " << nodes << "\n";
+		debugFile << Utils::ConvertToFEN(pos) << "		"
+			<< Utils::ConvertToBoardPosition(move.from) << " "
+			<< Utils::ConvertToBoardPosition(move.to) << ": "
+			<< nodes << "\n";
 		total += nodes;
 	}
-	std::cout << "Total nodes: " << total << "\n";
+	debugFile << "Total nodes: " << total << "\n \n";
+	debugFile.close();
+}
+
+uint64_t Perft(Board& position, int depth) {
+	if (depth == 0) return 1;
+
+	uint64_t nodes = 0;
+	std::vector<Move> moves = GenerateLegalMoves(position);
+
+	for (const Move& move : moves) {
+		UndoInfo undo = Utils::CreateUndoInfo(position, move);
+		position.MovePiece(move);
+
+		if (depth == 1)
+			Divide(position, depth);
+
+		nodes += Perft(position, depth - 1);
+
+		position.UndoMove(undo);
+	}
+
+	return nodes;
 }
 
 

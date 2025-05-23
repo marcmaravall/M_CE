@@ -8,6 +8,7 @@
 #include "search.h"
 #include <chrono>
 #include <random>
+#include <fstream>
 
 class Engine
 {
@@ -18,7 +19,7 @@ private:
 private:
 	Board currentBoard;
 
-	const int maxSearchDepth = 3;
+	const int maxSearchDepth = 1;
 
 	void ManageInput();
 public:
@@ -31,6 +32,7 @@ public:
 	void reset();
 
 	void InitKnightMasks();
+	void InitKingMasks();
 
 	void RunTest();
 	void PlayAgainistItself();
@@ -38,6 +40,8 @@ public:
 
 public:
 	static Bitboard knightMasks[64];
+	static Bitboard kingMasks[64];
+
 	static std::vector<UndoInfo> undoStack;
 
 
