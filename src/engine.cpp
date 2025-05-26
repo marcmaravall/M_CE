@@ -26,7 +26,7 @@ void Engine::RunTest()
     init();
 
 	std::cout << "Running test..." << std::endl;
-	currentBoard = Board(TEST_FEN);
+	currentBoard = Board(START_FEN);
 	Utils::PrintBoard(currentBoard);
 
 	while (true)
@@ -59,6 +59,27 @@ void Engine::ManageInput()
 
         currentBoard.Castle(current);
         Utils::PrintBoard(currentBoard);
+    }
+
+    else if (input == "p4") {
+
+        Divide(currentBoard, 4);
+    }
+
+    else if (input == "p3") {
+
+        Divide(currentBoard, 3);
+    }
+
+    else if (input == "p2") {
+
+        Divide(currentBoard, 2);
+    }
+
+
+    else if (input == "p1") {
+
+        Divide(currentBoard, 1);
     }
 
     if (input.length() != 4 && input.length() != 5) {
@@ -105,18 +126,16 @@ void Engine::PlayAgainistItself()
     init();
 
     std::cout << "Playing vs it..." << std::endl;
-    currentBoard = Board(TEST_FEN);
+    currentBoard = Board(START_FEN);
     Utils::PrintBoard(currentBoard);
     int i = 0;
-    while (i < 10)
+    while (i < 1)
     {
 		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
         
 		NODES = 0;
         ALPHA_BETA_PRUNINGS = 0;
-
-        std::cout << "Perft: " << Perft(currentBoard, maxSearchDepth) << "\n\n";
-        std::cout << "Divide: " << Perft(currentBoard, 1);
+        Divide(currentBoard, 4);
 
         /*MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
         std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";

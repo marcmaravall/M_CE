@@ -18,6 +18,9 @@
 20/05/2025: Added bitboards and masks to move generation, not very usefull...
 21/05/2025: Solved some bugs with move generation.
 22/05/2025: Solved king checks errors and added Perft and Divide for debug.
+23/05/2025: Searching why don't works perft tests, and solved a bug.
+24/05/2025: Nothing.
+25/05/2025: Solved bugs of pawns and masks, PERFT(3) works perftectly, but perft(4) is very bad. 
 */
 
 
@@ -27,6 +30,7 @@
 int main()
 {
 	Engine engine;
+	engine.RunTest();
 	engine.PlayAgainistItself();
 	return 0;
 }

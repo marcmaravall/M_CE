@@ -165,14 +165,15 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 }
 
 void Divide(Board& pos, int depth) {
-	const std::string& debugFilePath = "C:\\Users\\Marc\\source\\repos\\M_CE\\tests\\debug.txt";
+	const std::string debugFilePath = "C:\\Users\\marcm\\source\\repos\\M_CE\\debug.txt";
 	std::ofstream debugFile(debugFilePath, std::ios::app);
 	if (!debugFile.is_open()) {
-		throw std::runtime_error("error");
+		throw std::runtime_error("No se pudo abrir el archivo de debug.");
 	}
 
 	auto moves = GenerateLegalMoves(pos);
 	uint64_t total = 0;
+
 	for (const Move& move : moves) {
 		UndoInfo undo = Utils::CreateUndoInfo(pos, move);
 		pos.MovePiece(move);
@@ -181,13 +182,14 @@ void Divide(Board& pos, int depth) {
 
 		pos.UndoMove(undo);
 
-		debugFile << Utils::ConvertToFEN(pos) << "		"
-			<< Utils::ConvertToBoardPosition(move.from) << " "
+		std::cout << Utils::ConvertToBoardPosition(move.from) << " "
 			<< Utils::ConvertToBoardPosition(move.to) << ": "
 			<< nodes << "\n";
+
 		total += nodes;
 	}
-	debugFile << "Total nodes: " << total << "\n \n";
+
+	std::cout << "Total nodes: " << total << "\n\n";
 	debugFile.close();
 }
 
@@ -201,9 +203,6 @@ uint64_t Perft(Board& position, int depth) {
 		UndoInfo undo = Utils::CreateUndoInfo(position, move);
 		position.MovePiece(move);
 
-		if (depth == 1)
-			Divide(position, depth);
-
 		nodes += Perft(position, depth - 1);
 
 		position.UndoMove(undo);
@@ -211,5 +210,4 @@ uint64_t Perft(Board& position, int depth) {
 
 	return nodes;
 }
-
 

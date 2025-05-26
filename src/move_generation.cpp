@@ -144,6 +144,7 @@ std::vector<Move> GenerateRookMoves(const Board& board, const uint8_t from) {
 		if (mask & (1ULL << to)) {
 			if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
 				currentMove.to = to;
+
 				currentMove.capture = Utils::IsEnemyPieceAt(board, to);
 				moves.push_back(currentMove);
 			}

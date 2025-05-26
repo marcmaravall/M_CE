@@ -189,6 +189,7 @@ bool Board::MovePiece(const Move move)
 		if (CanMovePawn(move))
 		{
 			MovePawn(move);
+			return true;
 		}
 		break;
 	case 1:
@@ -350,8 +351,8 @@ bool Board::Promotion(const Move move)
 	return true;
 }
 
-bool Board::CanMovePawn(const Move move) const{
-	auto allPieces = Utils::GetAllBitboards(bitboards);
+bool Board::CanMovePawn(const Move move) const {
+	const Bitboard allPieces = Utils::GetAllBitboards(bitboards, BOTH);
 	const uint64_t occupied = allPieces;
 	const uint64_t empty = ~occupied;
 
@@ -364,47 +365,56 @@ bool Board::CanMovePawn(const Move move) const{
 	if (turn == WHITE_TURN) {
 		const uint64_t oneStep = fromBB << 8;
 		const uint64_t twoSteps = fromBB << 16;
-		const uint64_t captures = (fromBB << 7 & ~FILE_H_MASK) | (fromBB << 9 & ~FILE_A_MASK);
+		const uint64_t captures =
+			((fromBB & ~FILE_H_MASK) << 7) |
+			((fromBB & ~FILE_A_MASK) << 9);
 
-		if ((toBB & oneStep) && (toBB & empty)) {
+		if ((to == (from + NORTH)) && Utils::GetBitboardValueOnIndex(allPieces, to) != 1) {
+			/*std::cout << "DEBUG: \n";
+			Utils::DebugBitboard(allPieces);
+
+			std::cout << "\n \n";
+			*/
 			return true;
 		}
-
-		if ((toBB & twoSteps) && (fromBB & RANK_2_MASK) &&
+		else if ((toBB & twoSteps) && (fromBB & RANK_2_MASK) &&
 			((oneStep & empty) && (toBB & empty))) {
 			return true;
 		}
-
-		if ((toBB & captures) && Utils::IsBlackPieceAt(*this, to)) {
+		else if ((fromBB & ~FILE_H_MASK) && (to == from + NORTH_EAST) && Utils::IsBlackPieceAt(*this, to)) {
+			return true;
+		}
+		else if ((fromBB & ~FILE_A_MASK) && (to == from + NORTH_WEST) && Utils::IsBlackPieceAt(*this, to)) {
 			return true;
 		}
 
-		if ((to == enPassantSquare) &&
-			((from + NORTH_EAST == to) || (from + NORTH_WEST == to))) {
+		else if ((to == enPassantSquare) &&
+			((from + NORTH_EAST == to) || (from + NORTH_WEST == to)) && to > 32) {
 			return true;
 		}
 	}
-
 	else { // BLACK_TURN
 		const uint64_t oneStep = fromBB >> 8;
 		const uint64_t twoSteps = fromBB >> 16;
-		const uint64_t captures = (fromBB >> 7 & ~FILE_A_MASK) | (fromBB >> 9 & ~FILE_H_MASK);
+		const uint64_t captures =
+			((fromBB & ~FILE_H_MASK) >> 7) |
+			((fromBB & ~FILE_A_MASK) >> 9);
 
-		if ((toBB & oneStep) && (toBB & empty)) {
+		if ((to == (from + SOUTH)) && Utils::GetBitboardValueOnIndex(allPieces, to) != 1) {
 			return true;
 		}
-
-		if ((toBB & twoSteps) && (fromBB & RANK_7_MASK) &&
+		else if ((toBB & twoSteps) && (fromBB & RANK_7_MASK) &&
 			((oneStep & empty) && (toBB & empty))) {
 			return true;
 		}
-
-		if ((toBB & captures) && Utils::IsWhitePieceAt(*this, to)) {
+		else if ((fromBB & ~FILE_H_MASK) && (to == from + SOUTH_EAST) && Utils::IsBlackPieceAt(*this, to)) {
 			return true;
 		}
-
-		if ((to == enPassantSquare) &&
-			((from + SOUTH_EAST == to) || (from + SOUTH_WEST == to))) {
+		else if ((fromBB & ~FILE_A_MASK) && (to == from + SOUTH_WEST) && Utils::IsBlackPieceAt(*this, to)) {
+			return true;
+		}
+		else if ((to == enPassantSquare) &&
+			((from + SOUTH_EAST == to) || (from + SOUTH_WEST == to)) && to < 32) {
 			return true;
 		}
 	}
@@ -412,52 +422,90 @@ bool Board::CanMovePawn(const Move move) const{
 	return false;
 }
 
+
 void Board::MovePawn(const Move move) {
+	if (!CanMovePawn(move))
+		return;
+
+	const Bitboard allPieces = Utils::GetAllBitboards(bitboards, BOTH);
+	const uint64_t occupied = allPieces;
+	const uint64_t empty = ~occupied;
+
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
-	
+
 	const uint64_t fromBB = 1ULL << from;
 	const uint64_t toBB = 1ULL << to;
 
-	enPassantSquare = 255;
-
 	if (turn == WHITE_TURN) {
-		if ((fromBB << 16) & toBB && (fromBB & RANK_2_MASK)) {
-			enPassantSquare = to - 8;
+		const uint64_t oneStep = fromBB << 8;
+		const uint64_t twoSteps = fromBB << 16;
+		const uint64_t captures =
+			((fromBB & ~FILE_H_MASK) << 7) |
+			((fromBB & ~FILE_A_MASK) << 9);
+
+		if ((to == (from + NORTH)) && Utils::GetBitboardValueOnIndex(allPieces, to) != 1) {
+			MoveWithoutComprobe(from, to);
+			enPassantSquare = 255;
 		}
 
-		if (to == enPassantSquare &&
-			(from + NORTH_EAST == to || from + NORTH_WEST == to)) {
-			ClearBitInAllBitboards(enPassantSquare + SOUTH);
+		else if ((toBB & twoSteps) && (fromBB & RANK_2_MASK) &&
+			((oneStep & empty) && (toBB & empty))) {
+			MoveWithoutComprobe(from, to);
+			enPassantSquare = from+NORTH;
 		}
 
-		if (Utils::IsBlackPieceAt(*this, to)) {
-			ClearBitInAllBitboards(to);
+		else if (((to == from + NORTH_EAST || to == from + NORTH_WEST)) &&
+			Utils::IsBlackPieceAt(*this, to)) {
+			MoveWithoutComprobe(from, to);
+			enPassantSquare = 255;
 		}
 
-		MoveWithoutComprobe(from, to);
+		else if ((to == enPassantSquare) &&
+			((from + NORTH_EAST == to) || (from + NORTH_WEST == to))) {
+
+			MoveWithoutComprobe(from, to);
+			enPassantSquare = 255;
+		}
 	}
 
 	else { // BLACK_TURN
-		if ((fromBB >> 16) & toBB && (fromBB & RANK_7_MASK)) {
-			enPassantSquare = to + 8;
+		const uint64_t oneStep = fromBB >> 8;
+		const uint64_t twoSteps = fromBB >> 16;
+		const uint64_t captures =
+			((fromBB & ~FILE_H_MASK) >> 7) |
+			((fromBB & ~FILE_A_MASK) >> 9);
+
+		if ((to == (from + SOUTH)) && Utils::GetBitboardValueOnIndex(allPieces, to) != 1) {
+			MoveWithoutComprobe(from, to);
+			enPassantSquare = 255;
 		}
 
-		if (to == enPassantSquare &&
-			(from + SOUTH_EAST == to || from + SOUTH_WEST == to)) {
-			ClearBitInAllBitboards(enPassantSquare - 8);
+		else if ((toBB & twoSteps) && (fromBB & RANK_7_MASK) &&
+			((oneStep & empty) && (toBB & empty))) {
+
+			MoveWithoutComprobe(from, to);
+			enPassantSquare = from + SOUTH;
 		}
 
-		if (Utils::IsWhitePieceAt(*this, to)) {
-			ClearBitInAllBitboards(to);
+		else if (((to == from + SOUTH_EAST || to == from + SOUTH_WEST)) &&
+			Utils::IsWhitePieceAt(*this, to)) {
+			MoveWithoutComprobe(from, to);
+			enPassantSquare = 255;
 		}
 
-		MoveWithoutComprobe(from, to);
+		else if ((to == enPassantSquare) &&
+			((from + SOUTH_EAST == to) || (from + SOUTH_WEST == to))) {
+
+			MoveWithoutComprobe(from, to);
+			enPassantSquare = 255;
+		}
 	}
 }
 
 void Board::UndoMove(const UndoInfo& undo) {
-	// std::cout << "FEN 0:" << Utils::ConvertToFEN(*this) << "\n";
+	//std::cout << "DEBUG UNDO MOVE" << "\n";
+	//Utils::PrintBoard(*this);
 
 	Move reverseMove(undo.move.to, undo.move.from);
 
@@ -467,10 +515,10 @@ void Board::UndoMove(const UndoInfo& undo) {
 		SetBitboardBit(undo.capturedPiece, undo.move.to);
 	}
 
-	if (undo.promotedPiece != 255) {
-		ClearBitInAllBitboards(undo.move.to);
-		SetBitboardBit((undo.turn == WHITE_TURN? 0 : 6), undo.move.from);
-	}
+	//if (undo.promotedPiece != 255) {
+	//	ClearBitInAllBitboards(undo.move.to);
+	//	SetBitboardBit((undo.turn == WHITE_TURN ? 0 : 6), undo.move.from);		TOD0: solve bug in this part.
+	//}
 
 	wCastlingKing = undo.wCastlingKing;
 	wCastlingQueen = undo.wCastlingQueen;

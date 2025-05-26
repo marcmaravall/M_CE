@@ -42,7 +42,7 @@ public:
 
 	static bool IsEnemyPieceAt(const Board& board, uint8_t position);
 
-	static Bitboard RayAttacks(uint8_t from, uint8_t dir, Bitboard occupancy);
+	static Bitboard RayAttacks(uint8_t from, int dir, Bitboard occupancy);
 
 	static Bitboard GenerateBishopAttacks(int square, Bitboard occupancy);
 	static Bitboard GenerateRookAttacks(int square, Bitboard occupancy);
@@ -50,4 +50,6 @@ public:
 	static UndoInfo CreateUndoInfo(const Board& board, const Move& move);
 
 	static void DebugMove(const Move& move);
+
+	static void DebugBitboard(Bitboard bitboard);
 };

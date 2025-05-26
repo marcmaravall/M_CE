@@ -2,7 +2,7 @@
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Users/marcm/Source/Repos/M_CE/out/install/x64-debug")
+  set(CMAKE_INSTALL_PREFIX "C:/Users/marcm/source/repos/M_CE/out/install/x64-debug")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

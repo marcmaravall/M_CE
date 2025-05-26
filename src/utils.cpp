@@ -195,6 +195,18 @@ Bitboard Utils::GetAllBitboards(const Bitboard b[12], PIECE_COLORS colors)
 	return res;
 }
 
+void Utils::DebugBitboard(Bitboard bitboard)
+{
+	for (int square = 0; square < 64; ++square) {
+		if (square % 8 == 0) std::cout << "\n";
+		
+		if (Utils::GetBitboardValueOnIndex(bitboard, square)) {
+			std::cout << "1";
+		}
+		else std::cout << "_";
+	}
+}
+
 Bitboard Utils::GetRankMask(uint8_t rank)
 {
 	Bitboard mask = 0;
@@ -293,7 +305,7 @@ bool Utils::IsEnemyPieceAt(const Board& board, uint8_t position)
 	return (board.turn == WHITE_TURN ? Utils::IsBlackPieceAt(board, position) : IsWhitePieceAt(board, position));
 }
 
-Bitboard Utils::RayAttacks(uint8_t from, uint8_t dir, Bitboard occupancy) {
+Bitboard Utils::RayAttacks(uint8_t from, int dir, Bitboard occupancy) {
 	Bitboard attacks = 0ULL;
 	int to = from;
 
@@ -330,6 +342,7 @@ Bitboard Utils::GenerateRookAttacks(int square, Bitboard occupancy) {
 	attacks |= RayAttacks(square, 8, occupancy);
 	attacks |= RayAttacks(square, -1, occupancy);
 	attacks |= RayAttacks(square, 1, occupancy); 
+	
 	return attacks;
 }
 

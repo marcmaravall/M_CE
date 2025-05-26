@@ -19,7 +19,7 @@ private:
 private:
 	Board currentBoard;
 
-	const int maxSearchDepth = 1;
+	const int maxSearchDepth = 3;
 
 	void ManageInput();
 public:
