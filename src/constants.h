@@ -18,7 +18,7 @@ inline constexpr int STATIC_PIECE_VALUE[12] = {
 	-100, -300, -330, -500, -900, 0,
 };
 
-inline constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+inline constexpr const char* START_FEN = "rnbqkbnr/pppp1ppp/8/4p3/4P3/P7/1PPP1PPP/RNBQKBNR b KQkq - 0 1";
 inline constexpr const char* TEST_FEN = "r1b5/pppp1Q1p/3k2p1/8/6P1/2N5/PPP2P1P/R1B1KB1R w KQ - 0 1";
 // r2q3r/pp1k1pb1/2np3p/5b2/3N2p1/3P4/PP1QNPPP/R3KB1R b KQ - 0 1
 

@@ -305,24 +305,25 @@ bool Utils::IsEnemyPieceAt(const Board& board, uint8_t position)
 	return (board.turn == WHITE_TURN ? Utils::IsBlackPieceAt(board, position) : IsWhitePieceAt(board, position));
 }
 
+bool isOnFileA(uint8_t pos) { return pos % 8 == 0;  }
+bool isOnFileH(uint8_t pos) { return pos % 8 == 7;  }
+
 Bitboard Utils::RayAttacks(uint8_t from, int dir, Bitboard occupancy) {
 	Bitboard attacks = 0ULL;
 	int to = from;
 
 	while (true) {
+		if ((dir == -9 || dir == -1 || dir == 7) && isOnFileA(to)) break;
+		if ((dir == -7 || dir == 1 || dir == 9) && isOnFileH(to)) break;
+
 		to += dir;
-
 		if (to < 0 || to >= 64) break;
-
-		if (abs((to % 8) - (from % 8)) > 1 && (dir == -9 || dir == -1 || dir == 7 || dir == 1 || dir == 9)) break;
 
 		Bitboard toBB = 1ULL << to;
 		attacks |= toBB;
-
 		if (occupancy & toBB) break;
-
-		from = to;
 	}
+
 
 	return attacks;
 }

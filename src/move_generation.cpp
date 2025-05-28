@@ -301,11 +301,12 @@ std::vector<Move> GenerateLegalMoves(Board& board)
 	std::vector<Move> legalMoves;
 	for (const Move& move : pseudoLegalMoves)
 	{
-		UndoInfo info = Utils::CreateUndoInfo(board, move);
+		// UndoInfo info = Utils::CreateUndoInfo(board, move);
+		Board copy = board;
 
 		if (board.MovePiece(move)) {
 			legalMoves.push_back(move);
-			board.UndoMove(info);
+			board = copy; //.UndoMove(info);
 		}
 		else
 		{

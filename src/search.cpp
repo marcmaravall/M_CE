@@ -175,12 +175,13 @@ void Divide(Board& pos, int depth) {
 	uint64_t total = 0;
 
 	for (const Move& move : moves) {
-		UndoInfo undo = Utils::CreateUndoInfo(pos, move);
+		// UndoInfo undo = Utils::CreateUndoInfo(pos, move);
+		Board copy = pos;
 		pos.MovePiece(move);
 
 		uint64_t nodes = Perft(pos, depth - 1);
 
-		pos.UndoMove(undo);
+		pos = copy;// pos.UndoMove(undo);
 
 		std::cout << Utils::ConvertToBoardPosition(move.from) << " "
 			<< Utils::ConvertToBoardPosition(move.to) << ": "
@@ -200,12 +201,14 @@ uint64_t Perft(Board& position, int depth) {
 	std::vector<Move> moves = GenerateLegalMoves(position);
 
 	for (const Move& move : moves) {
-		UndoInfo undo = Utils::CreateUndoInfo(position, move);
-		position.MovePiece(move);
+		//UndoInfo undo = Utils::CreateUndoInfo(position, move);
+		Board copy = position;
+
+		copy.MovePiece(move);
 
 		nodes += Perft(position, depth - 1);
 
-		position.UndoMove(undo);
+		// position.UndoMove(undo);
 	}
 
 	return nodes;

@@ -21,6 +21,9 @@
 23/05/2025: Searching why don't works perft tests, and solved a bug.
 24/05/2025: Nothing.
 25/05/2025: Solved bugs of pawns and masks, PERFT(3) works perftectly, but perft(4) is very bad. 
+26/05/2025: Triying to solve a bug with UndoMove, it's not corrected.
+27/05/2025: Added debugging to some parts, it's more easy to find what is the problem.
+28/05/2025: Solved a common bug with masks into GenerateRayAtacks, now some tests are good.
 */
 
 

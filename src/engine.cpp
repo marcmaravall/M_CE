@@ -38,7 +38,7 @@ void Engine::RunTest()
 void Engine::ManageInput()
 {
     std::string input;
-    std::cin >> input;
+    std::getline(std::cin, input);
 
     Move current = {
         .from = 255, .to = 255, .castling = false, .mode = 0, .check = false, .checkmate = false,
@@ -80,6 +80,15 @@ void Engine::ManageInput()
     else if (input == "p1") {
 
         Divide(currentBoard, 1);
+    }
+
+    if (input.rfind("fen ", 0) == 0)
+    {
+        std::string fen = input.substr(4);
+        std::cout << "Loaded fen: " << fen << "\n";
+        currentBoard = Board(fen.c_str());
+        Utils::PrintBoard(currentBoard);
+        return;
     }
 
     if (input.length() != 4 && input.length() != 5) {

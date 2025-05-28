@@ -507,6 +507,15 @@ void Board::UndoMove(const UndoInfo& undo) {
 	//std::cout << "DEBUG UNDO MOVE" << "\n";
 	//Utils::PrintBoard(*this);
 
+	bool debug = false;
+
+	std::cout << "FEN START: " << Utils::ConvertToFEN(*this) << "\n";
+
+	if (Utils::ConvertToFEN(*this) == "rnbPk1nr/ppppbppp/8/4p3/4P3/P7/1PPP1PPP/RNBQKBNR w KQkq - 0 1") {
+		debug = true;
+		std::cout << "DEBUGGING POSITION WITH ERROR -------------------------\n";
+	}
+
 	Move reverseMove(undo.move.to, undo.move.from);
 
 	MoveWithoutComprobe(reverseMove.from, reverseMove.to);
@@ -528,7 +537,7 @@ void Board::UndoMove(const UndoInfo& undo) {
 	turn = undo.turn;
 	turns = undo.turns;
 
-	// std::cout << "FEN 1:" << Utils::ConvertToFEN(*this) << "\n";
+	std::cout << "FEN REVERSED MOVE:" << Utils::ConvertToFEN(*this) << "\n";
 }
 
 bool Board::CanMoveKnight(const Move move) const{
