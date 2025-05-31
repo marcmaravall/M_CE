@@ -124,7 +124,7 @@ std::string Utils::ConvertToFEN(const Board& board)
 }
 
 std::string Utils::ConvertToBoardPosition(uint8_t squareIndex) {
-	return squareIndex < 64 ? (std::string)BOARD_STRINGS[squareIndex] : "null";
+	return squareIndex < 64 ? Utils::ToLower((std::string)BOARD_STRINGS[squareIndex]) : "null";
 }
 
 int Utils::ConvertToIndexPosition(std::string& squarePosition) {
@@ -371,4 +371,25 @@ void Utils::DebugMove(const Move& move)
 		<< "\nMOVE\n"
 		<< "from: " << move.from << "\n"
 		<< "to: " << move.to << "\n";
+}
+
+std::string Utils::ToLower(std::string str) {
+	for (size_t i = 0; i < str.length(); i++) {
+		str[i] = tolower(str[i]);
+	}
+	return str;
+}
+
+char Utils::ToLower(const char str) {
+	return tolower(str);
+}
+
+uint8_t Utils::GetPromotionPiece(char letter, bool isWhite) {
+	switch (tolower(letter)) {
+	case 'q': return isWhite ? W_QUEEN	: B_QUEEN;
+	case 'r': return isWhite ? W_ROOK	: B_ROOK;
+	case 'b': return isWhite ? W_BISHOP : B_BISHOP;
+	case 'n': return isWhite ? W_KNIGHT : B_KNIGHT;
+	default: return 255;
+	}
 }

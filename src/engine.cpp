@@ -1,5 +1,5 @@
 #include "engine.h"
-#include "board.h"
+#include "search.h"
 
 Engine::Engine()
 {
@@ -63,7 +63,7 @@ void Engine::ManageInput()
 
     else if (input == "p4") {
 
-        Divide(currentBoard, 4);
+        Divide(currentBoard, 5);
     }
 
     else if (input == "p3") {
@@ -124,10 +124,10 @@ void Engine::ManageInput()
 	}
 
     Utils::PrintBoard(currentBoard);
-    std::cout << "Evaluation: " << Evaluation::Evaluate(currentBoard) << "\n";
+    // std::cout << "Evaluation: " << Evaluation::Evaluate(currentBoard) << "\n";
     // std::cout << "TEST: " << currentBoard.IsCheck(currentBoard.turn == !WHITE_TURN? currentBoard.GetWhiteKingPosition() : currentBoard.GetBlackKingPosition()) << "\n";
-	// MoveEval bestMove = Minimax(currentBoard, 0, currentBoard.turn == WHITE_TURN);
-	// std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
+	MoveEval bestMove = Search(5);
+	std::cout << "Evaluation: " << bestMove.eval << "\n";
 }
 
 void Engine::PlayAgainistItself()
@@ -146,7 +146,7 @@ void Engine::PlayAgainistItself()
         ALPHA_BETA_PRUNINGS = 0;
         Divide(currentBoard, 4);
 
-        /*MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
+        MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
         std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
         currentBoard.MovePiece(bestMove.move);
         Utils::PrintBoard(currentBoard);
@@ -156,7 +156,7 @@ void Engine::PlayAgainistItself()
 		std::cout   << "Elapsed time: " << elapsed.count() << " seconds\n"
 		            << "Nodes searched: " << NODES << "\n" 
                     << "NPS: " << NODES / elapsed.count() << "\n" 
-                    << "Prunings: " << ALPHA_BETA_PRUNINGS << "\n";*/
+                    << "Prunings: " << ALPHA_BETA_PRUNINGS << "\n";
 
         i++;
     }
@@ -194,7 +194,7 @@ void Engine::PlayAgainistHuman()
         if (currentBoard.turn == WHITE_TURN)
         {
             std::string input;
-            std::cout << "Move: ";
+            // std::cout << "Move: ";
             std::cin >> input;
 
             Move current = {
@@ -291,7 +291,6 @@ std::vector<UndoInfo> Engine::undoStack;
 
 void Engine::GenerateZobristHash(const int seed)
 {
-	// generate 64 bit randoms
 	std::mt19937_64 rng(seed);
 	for (int piece = 0; piece < 12; ++piece)
 	{
@@ -333,4 +332,125 @@ void Engine::InitKingMasks() {
     }
 }
 
+void Engine::StartPos()
+{
+	currentBoard = Board(START_FEN);
+}
 
+void Engine::SetPosition(const char* fen)
+{
+	currentBoard = Board(fen);
+}
+
+#include <chrono>
+
+MoveEval Engine::SearchTime(int time_ms)
+{
+    MoveEval currentMove;
+
+    int depth = 1;
+    const int maxDepth = 10000;
+
+    using namespace std::chrono;
+    auto start = high_resolution_clock::now();
+    auto elapsed = duration_cast<milliseconds>(high_resolution_clock::now() - start).count();
+
+    while (elapsed < time_ms && depth <= maxDepth)
+    {
+        auto iteration_start = high_resolution_clock::now();
+
+        currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
+
+        depth++;
+        auto iteration_end = high_resolution_clock::now();
+        auto iteration_duration = duration_cast<milliseconds>(iteration_end - iteration_start).count();
+        elapsed = duration_cast<milliseconds>(high_resolution_clock::now() - start).count();
+
+        if (elapsed + iteration_duration > time_ms)
+        {
+            break;
+        }
+    }
+
+    return currentMove;
+}
+
+
+MoveEval Engine::Search(int depth)
+{
+	MoveEval currentMove;
+	currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
+
+	return currentMove;
+}
+
+void Engine::MovePiece(const char* moveStr)
+{
+	std::string input(moveStr);
+    if (input.length() >= 4)
+    {
+        Move current = {
+            .from = 255, .to = 255,.castling = false, .mode = 0, .check = false, .checkmate = false,
+        };
+        current.promotion = 255;
+
+        uint8_t from = 0, to = 0;
+
+        std::string fromStr = input.substr(0, 2);
+        std::string toStr = input.substr(2, 4);
+
+        current.from = Utils::ConvertToIndexPosition(fromStr);
+        current.to = Utils::ConvertToIndexPosition(toStr);
+
+		if (input.length() == 5) {
+            uint8_t promotionPiece = 255;
+
+			promotionPiece = input.substr(4, 1)[0];
+            current.promotion = Utils::GetPromotionPiece(promotionPiece, currentBoard.turn == WHITE_TURN);
+
+			std::cerr << "promotion: " << promotionPiece << "\n";
+			std::cerr << input << "\n";
+		}
+
+		currentBoard.MovePiece(current);
+    }
+}
+
+void Engine::PrintBoard()
+{
+	const Board& board = currentBoard;
+
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        std::cout << "+---+---+---+---+---+---+---+---+\n";
+        for (int file = 0; file < 8; file++)
+        {
+            int square = rank * 8 + file;
+            bool found = false;
+
+            for (size_t pieceIndex = 0; pieceIndex < 12; pieceIndex++)
+            {
+                if (board.bitboards[pieceIndex] & (1ULL << square))
+                {
+                    std::cout << "| " << PIECE_CHAR[pieceIndex] << " ";
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                std::cout << "|   ";
+            }
+        }
+		std::cout << "| " << rank+1 << "\n";
+    }
+	std::cout << "+---+---+---+---+---+---+---+---+\n"
+		      << "  a   b   c   d   e   f   g   h\n";
+
+	std::cout << "\nFen: " << Utils::ConvertToFEN(currentBoard) << "\n";
+}
+
+void Engine::DivideTest(uint8_t depth)
+{
+	Divide(currentBoard, depth);
+}

@@ -1,1 +1,2 @@
 rnbPk1nr/ppppbppp/8/4p3/4P3/P7/1PPP1PPP/RNBQKBNR w KQkq - 0 1
+position fen 8/4K3/2P5/8/5pk1/8/8/8 w - - 0 1 moves c6c7 g4g3 c7c8q g3g2

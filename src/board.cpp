@@ -136,7 +136,8 @@ Board::~Board()
 // TODO: refatorize for struct Move				//doing it... I hate C++		did it
 bool Board::MovePiece(const Move move)
 {
-	UndoInfo undo;
+	const Board buffer = *this;
+	/*UndoInfo undo;
 	undo.wCastlingKing = wCastlingKing;
 	undo.wCastlingQueen = wCastlingQueen;
 	undo.bCastlingKing = bCastlingKing;
@@ -146,7 +147,7 @@ bool Board::MovePiece(const Move move)
 	undo.turns = turns;
 	undo.move = move;
 	undo.capturedPiece = Utils::GetPieceType(*this, move.to);
-	undo.promotedPiece = (move.promotion != 255 ? move.promotion : 255);
+	undo.promotedPiece = (move.promotion != 255 ? move.promotion : 255);*/
 
 	uint8_t from = move.from;
 	uint8_t to = move.to;
@@ -181,6 +182,7 @@ bool Board::MovePiece(const Move move)
 
 	if (move.promotion < 12) {
 		Promotion(move);
+		return true;
 	}
 
 	switch (pieceType)
@@ -292,7 +294,8 @@ bool Board::MovePiece(const Move move)
 
 	if (turn == WHITE_TURN ? IsCheck(GetBlackKingPosition()) : IsCheck(GetWhiteKingPosition())) {
 		// std::cerr << "ERROR: move puts king in check.\n";
-		UndoMove(undo);
+		// UndoMove(undo);
+		*this = buffer;
 		return false;
 	}
 
@@ -304,7 +307,7 @@ bool Board::Promotion(const Move move)
 	int from = move.from;
 	int position = move.to;
 	int promotion = move.promotion;
-	// std::cout << from << " " << position << " " << promotion << "\n";
+	// std::cerr << "PROMOTION ----" << from << " " << position << " " << promotion << "\n";
 
 	int pieceType = 255;
 	for (int i = 0; i < 12; i++) {
@@ -313,7 +316,7 @@ bool Board::Promotion(const Move move)
 		}
 	}
 
-	std::cout << promotion;
+	// std::cout << promotion;
 
 	if (promotion == 0 || promotion == 5 || promotion == 6 || promotion == 11) {
 		std::cerr << "ERROR: cannot promove to pawn or king.\n";
@@ -321,7 +324,7 @@ bool Board::Promotion(const Move move)
 	}
 
 	if (turn == WHITE_TURN && pieceType != W_PAWN_I) {
-		std::cerr << "ERROR: only pawns can promote.\n";
+		std::cerr << "ERROR: only pawns can promote." << pieceType << "\n";
 		return false;
 	}
 	if (turn == !WHITE_TURN && pieceType != B_PAWN_I) {
@@ -348,6 +351,8 @@ bool Board::Promotion(const Move move)
 	ClearBitInAllBitboards(position);
 
 	SetBitboardBit(promotion, position);
+
+	// std::cerr << "Board representation: \n";
 	return true;
 }
 
@@ -389,7 +394,7 @@ bool Board::CanMovePawn(const Move move) const {
 		}
 
 		else if ((to == enPassantSquare) &&
-			((from + NORTH_EAST == to) || (from + NORTH_WEST == to)) && to > 32) {
+			((from + NORTH_EAST == to) || (from + NORTH_WEST == to)) && to > 32 && (fromBB & ~FILE_H_MASK) && (fromBB & ~FILE_A_MASK)) {
 			return true;
 		}
 	}
@@ -407,14 +412,14 @@ bool Board::CanMovePawn(const Move move) const {
 			((oneStep & empty) && (toBB & empty))) {
 			return true;
 		}
-		else if ((fromBB & ~FILE_H_MASK) && (to == from + SOUTH_EAST) && Utils::IsBlackPieceAt(*this, to)) {
+		else if ((fromBB & ~FILE_H_MASK) && (to == from + SOUTH_EAST) && Utils::IsWhitePieceAt(*this, to)) {
 			return true;
 		}
-		else if ((fromBB & ~FILE_A_MASK) && (to == from + SOUTH_WEST) && Utils::IsBlackPieceAt(*this, to)) {
+		else if ((fromBB & ~FILE_A_MASK) && (to == from + SOUTH_WEST) && Utils::IsWhitePieceAt(*this, to)) {
 			return true;
 		}
 		else if ((to == enPassantSquare) &&
-			((from + SOUTH_EAST == to) || (from + SOUTH_WEST == to)) && to < 32) {
+			((from + SOUTH_EAST == to) || (from + SOUTH_WEST == to)) && to < 32 && (fromBB & ~FILE_H_MASK) && (fromBB & ~FILE_A_MASK)) {
 			return true;
 		}
 	}
@@ -509,7 +514,7 @@ void Board::UndoMove(const UndoInfo& undo) {
 
 	bool debug = false;
 
-	std::cout << "FEN START: " << Utils::ConvertToFEN(*this) << "\n";
+	// std::cout << "FEN START: " << Utils::ConvertToFEN(*this) << "\n";
 
 	if (Utils::ConvertToFEN(*this) == "rnbPk1nr/ppppbppp/8/4p3/4P3/P7/1PPP1PPP/RNBQKBNR w KQkq - 0 1") {
 		debug = true;
@@ -537,7 +542,7 @@ void Board::UndoMove(const UndoInfo& undo) {
 	turn = undo.turn;
 	turns = undo.turns;
 
-	std::cout << "FEN REVERSED MOVE:" << Utils::ConvertToFEN(*this) << "\n";
+	// std::cout << "FEN REVERSED MOVE:" << Utils::ConvertToFEN(*this) << "\n";
 }
 
 bool Board::CanMoveKnight(const Move move) const{

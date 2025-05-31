@@ -1,0 +1,19 @@
+[Event "Play vs Bot"]
+[Site "Chess.com"]
+[Date "2025.05.31"]
+[Round "?"]
+[White "Martin-BOT"]
+[Black "marcmaravall"]
+[Result "0-1"]
+[TimeControl "-"]
+[WhiteElo "250"]
+[BlackElo "792"]
+[Termination "marcmaravall ha ganado por jaque mate"]
+[ECO "A40"]
+[EndDate "2025.05.31"]
+[Link "https://www.chess.com/game/computer/296838132?move=0"]
+
+1. d4 Nc6 2. e3 Nf6 3. Nf3 e6 4. h4 Ne4 5. a4 Qf6 6. Rh3 d5 7. Qd2 Nxd2 8. Nbxd2
+e5 9. Ra2 Bxh3 10. g3 Bxf1 11. Nh2 exd4 12. g4 dxe3 13. Ndf3 exf2+ 14. Kxf1 Nb4
+15. g5 Qa6+ 16. Kg2 Nxa2 17. Ng1 fxg1=Q+ 18. Kxg1 Nxc1 19. Kf2 Qe2+ 20. Kg3 Bd6+
+21. Kh3 Qe3+ 22. Kg2 Qg3+ 23. Kf1 Qxh2 24. b3 Bc5 25. a5 Qf2# 0-1

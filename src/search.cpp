@@ -1,4 +1,5 @@
 #include "search.h"
+#include "search.h"
 
 int NODES = 0;
 int ALPHA_BETA_PRUNINGS = 0;
@@ -94,10 +95,11 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		bestMove.eval = -1000000;
 		for (const Move& move : moves)
 		{
-			UndoInfo undo = Utils::CreateUndoInfo(position, move);
-			Engine::undoStack.push_back(undo);
+			// UndoInfo undo = Utils::CreateUndoInfo(position, move);
+			// Engine::undoStack.push_back(undo);
 			
 			// newPosition.MovePiece(move);
+			Board buffer = position;
 			position.MovePiece(move);
 
 			MoveEval result = AlphaBeta(position, depth - 1, alpha, beta, false);
@@ -108,8 +110,9 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			}
 			alpha = std::max(alpha, bestMove.eval);
 			
-			position.UndoMove(undo);
-			Engine::undoStack.pop_back();
+			// position.UndoMove(undo);
+			position = buffer;
+			// Engine::undoStack.pop_back();
 
 			if (beta <= alpha)
 			{
@@ -165,7 +168,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 }
 
 void Divide(Board& pos, int depth) {
-	const std::string debugFilePath = "C:\\Users\\marcm\\source\\repos\\M_CE\\debug.txt";
+	const std::string debugFilePath = "C:\\Users\\Marc\\source\\repos\\M_CE\\debug.txt";
 	std::ofstream debugFile(debugFilePath, std::ios::app);
 	if (!debugFile.is_open()) {
 		throw std::runtime_error("No se pudo abrir el archivo de debug.");
@@ -181,13 +184,12 @@ void Divide(Board& pos, int depth) {
 
 		uint64_t nodes = Perft(pos, depth - 1);
 
-		pos = copy;// pos.UndoMove(undo);
-
 		std::cout << Utils::ConvertToBoardPosition(move.from) << " "
 			<< Utils::ConvertToBoardPosition(move.to) << ": "
 			<< nodes << "\n";
 
 		total += nodes;
+		pos = copy;// pos.UndoMove(undo);
 	}
 
 	std::cout << "Total nodes: " << total << "\n\n";
@@ -206,11 +208,10 @@ uint64_t Perft(Board& position, int depth) {
 
 		copy.MovePiece(move);
 
-		nodes += Perft(position, depth - 1);
+		nodes += Perft(copy, depth - 1);
 
 		// position.UndoMove(undo);
 	}
 
 	return nodes;
 }
-

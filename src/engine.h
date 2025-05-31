@@ -5,10 +5,11 @@
 #include "board.h"
 #include "constants.h"
 #include "evaluation.h"
-#include "search.h"
 #include <chrono>
 #include <random>
 #include <fstream>
+
+struct MoveEval;
 
 class Engine
 {
@@ -19,7 +20,7 @@ private:
 private:
 	Board currentBoard;
 
-	const int maxSearchDepth = 3;
+	const int maxSearchDepth = 5;
 
 	void ManageInput();
 public:
@@ -37,6 +38,17 @@ public:
 	void RunTest();
 	void PlayAgainistItself();
 	void PlayAgainistHuman();
+
+	void StartPos();
+	void SetPosition(const char* fen);
+
+	MoveEval SearchTime(int time);
+	MoveEval Search(int depth);
+	void DivideTest(uint8_t depth);
+
+	void MovePiece(const char* moveStr);
+
+	void PrintBoard();
 
 public:
 	static Bitboard knightMasks[64];

@@ -52,4 +52,9 @@ public:
 	static void DebugMove(const Move& move);
 
 	static void DebugBitboard(Bitboard bitboard);
+
+	static std::string ToLower(std::string str);
+	char ToLower(const char str);
+
+	static uint8_t GetPromotionPiece(char letter, bool isWhite);
 };

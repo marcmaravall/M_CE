@@ -17,6 +17,6 @@ class Evaluation
 
 
 public:
-	static int SimpleEvaluation(const Board board);
+	static int SimpleEvaluation(const Board& board);
 	static int Evaluate(const Board& board);
 };

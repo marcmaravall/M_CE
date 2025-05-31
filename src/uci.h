@@ -1,5 +1,8 @@
 #define M_CE_UCI
 #include "engine.h"
+#include <iostream>
+#include <unordered_map>
+#include <functional>
 
 class Engine;
 class UCI
@@ -11,6 +14,8 @@ private:
 	Engine engine;
 
 public:
+	UCI();
+
 	void uci();
 	void isready();
 	void setoption(const char* name, const char* value);
@@ -21,4 +26,8 @@ public:
 	void stop();
 	void ponderhit();
 	void quit();
+	void perft(int depth);
+	void draw();
+
+	void ManageInput(const char* input);
 };

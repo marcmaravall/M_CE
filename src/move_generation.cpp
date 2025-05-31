@@ -33,14 +33,29 @@ std::vector<Move> GeneratePawnMoves(const Board& board, const uint8_t from) {
 		positionsComprobe[3] = from + SOUTH_WEST;
 	}
 
+	uint8_t promoOptions[4];
+
+	if (isWhite) {
+		promoOptions[0] = W_QUEEN_I;
+		promoOptions[1] = W_ROOK_I;
+		promoOptions[2] = W_BISHOP_I;
+		promoOptions[3] = W_KNIGHT_I;
+	}
+	else {
+		promoOptions[0] = B_QUEEN_I;
+		promoOptions[1] = B_ROOK_I;
+		promoOptions[2] = B_BISHOP_I;
+		promoOptions[3] = B_KNIGHT_I;
+	}
+
 	for (size_t i = 0; i < 4; i++)
 	{
 		currentMove.to = positionsComprobe[i];
 
 		if (canPromote) {
-			for (size_t j = 0; j < 12; j++)
+			for (size_t j = 0; j < 4; j++)
 			{
-				currentMove.promotion = j;
+				currentMove.promotion = promoOptions[j];
 				if (board.CanMovePawn(currentMove)) {
 					if (Utils::GetPieceType(board, currentMove.to) < 12) {
 						currentMove.capture = true;
@@ -51,6 +66,7 @@ std::vector<Move> GeneratePawnMoves(const Board& board, const uint8_t from) {
 
 					moves.push_back(currentMove);
 				}
+				currentMove.promotion = 255;
 			}
 		}
 		else

@@ -24,16 +24,28 @@
 26/05/2025: Triying to solve a bug with UndoMove, it's not corrected.
 27/05/2025: Added debugging to some parts, it's more easy to find what is the problem.
 28/05/2025: Solved a common bug with masks into GenerateRayAtacks, now some tests are good.
+29/05/2025: Solved a bug with black pawns captures, perft(4) is working better.
+30/05/2025: Solved a bug with white pawn en passant, perft(4) is perftectly working, perft(5) is not working, added some uci commands (with bugs...).
+31/05/2025: UCI protocol is working, with bugs, but working.
 */
 
 
 #include <iostream>
 #include "engine.h"
+#include "uci.h"
 
 int main()
 {
-	Engine engine;
-	engine.RunTest();
-	engine.PlayAgainistItself();
+	UCI uci;
+	while (true)
+	{
+		std::string input;
+		std::getline(std::cin, input);
+		uci.ManageInput(input.c_str());
+	}
+
+	/*Engine engine;
+	engine.RunTest();*/
+	// engine.PlayAgainistItself();
 	return 0;
 }
