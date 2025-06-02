@@ -307,14 +307,18 @@ bool Board::MovePiece(const Move move)
 		break;
 	}
 
-	if (IsCheck((start.turn == WHITE_TURN)? WHITE : BLACK)) {
-		std::cerr << "ERROR: move puts king in check.\n";
+	if (IsCheck((start.turn == WHITE_TURN) ? WHITE : BLACK, false)) {
+		// std::cerr << "ERROR: move puts king in check.\n";
+		// std::cerr << ((turn == WHITE_TURN) ? "WHITE":"BLACK") << "\n";
 		// UndoMove(undo);
 		*this = buffer;
 		return false;
 	}
+	else
+	{
 
-	turn = !turn;
+	}
+
 	return true;
 }
 
@@ -372,7 +376,7 @@ bool Board::Promotion(const Move move)
 	return true;
 }
 
-bool Board::CanMovePawn(const Move move) const {
+bool Board::CanMovePawn(const Move move, const bool _turn) const {
 	const Bitboard allPieces = Utils::GetAllBitboards(bitboards, BOTH);
 	const uint64_t occupied = allPieces;
 	const uint64_t empty = ~occupied;
@@ -383,7 +387,7 @@ bool Board::CanMovePawn(const Move move) const {
 	const uint64_t fromBB = 1ULL << from;
 	const uint64_t toBB = 1ULL << to;
 
-	if (turn == WHITE_TURN) {
+	if (_turn == WHITE_TURN) {
 		const uint64_t oneStep = fromBB << 8;
 		const uint64_t twoSteps = fromBB << 16;
 		const uint64_t captures =
@@ -441,6 +445,30 @@ bool Board::CanMovePawn(const Move move) const {
 	}
 
 	return false;
+}
+
+bool Board::CanMovePawn(const Move move) const {
+	return CanMovePawn(move, this->turn);
+}
+
+bool Board::CanMoveKnight(const Move move) const {
+	return CanMoveKnight(move, this->turn);
+}
+
+bool Board::CanMoveBishop(const Move move) const {
+	return CanMoveBishop(move, this->turn);
+}
+
+bool Board::CanMoveQueen(const Move move) const {
+	return CanMoveQueen(move, this->turn);
+}
+
+bool Board::CanMoveRook(const Move move) const {
+	return CanMoveRook(move, this->turn);
+}
+
+bool Board::CanMoveKing(const Move move) const {
+	return CanMoveKing(move, this->turn);
 }
 
 
@@ -561,20 +589,20 @@ void Board::UndoMove(const UndoInfo& undo) {
 	// std::cout << "FEN REVERSED MOVE:" << Utils::ConvertToFEN(*this) << "\n";
 }
 
-bool Board::CanMoveKnight(const Move move) const{
+bool Board::CanMoveKnight(const Move move, const bool _turn) const{
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
 
 	if (!((Engine::knightMasks[from] >> to) & 1ULL))
 		return false;
 
-	if (turn == WHITE_TURN)
+	if (_turn == WHITE_TURN)
 		return !Utils::IsWhitePieceAt(*this, to);
 	else
 		return !Utils::IsBlackPieceAt(*this, to);
 }
 
-bool Board::CanMoveBishop(const Move move) const{
+bool Board::CanMoveBishop(const Move move, const bool _turn) const{
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
 
@@ -584,7 +612,7 @@ bool Board::CanMoveBishop(const Move move) const{
 	const Bitboard fromBB = 1ULL << from;
 	const Bitboard toBB = 1ULL << to;
 
-	if (turn == WHITE_TURN) {
+	if (_turn == WHITE_TURN) {
 		if (Utils::IsWhitePieceAt(*this, to))
 			return false;
 	}
@@ -627,7 +655,7 @@ bool Board::IsOccupied(uint8_t square) const{
 	return false;
 }
 
-bool Board::CanMoveRook(const Move move) const{
+bool Board::CanMoveRook(const Move move, const bool _turn) const{
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
 
@@ -639,7 +667,7 @@ bool Board::CanMoveRook(const Move move) const{
 	const int toFile = to % 8;
 	const int toRank = to / 8;
 
-	if (turn == WHITE_TURN) {
+	if (_turn == WHITE_TURN) {
 		if (Utils::IsWhitePieceAt(*this, to))
 			return false;
 	}
@@ -677,11 +705,11 @@ bool Board::CanMoveRook(const Move move) const{
 }
 
 
-bool Board::CanMoveQueen(const Move move) const{
-	return CanMoveRook(move) || CanMoveBishop(move);
+bool Board::CanMoveQueen(const Move move, const bool _turn) const{
+	return CanMoveRook(move, _turn) || CanMoveBishop(move, _turn);
 }
 
-bool Board::CanMoveKing(const Move move) const {
+bool Board::CanMoveKing(const Move move, const bool _turn) const {
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
 
@@ -691,7 +719,7 @@ bool Board::CanMoveKing(const Move move) const {
 	if (!(Engine::kingMasks[from] & (1ULL << to)))
 		return false;
 
-	if (turn == WHITE_TURN) {
+	if (_turn == WHITE_TURN) {
 		if (Utils::IsWhitePieceAt(*this, to))
 			return false;
 	}
@@ -819,8 +847,6 @@ Bitboard Board::GetKingAttacks(uint8_t square) {
 
 bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug) {
 	const bool attackingColor = attackerColor;
-	const bool startTurn = turn;
-	turn = !turn;
 
 	for (size_t i = 0; i < 12; i++) {
 		if ((attackingColor == WHITE_TURN && i < 6) ||
@@ -833,21 +859,21 @@ bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square,
 				continue;
 			}
 
-			switch (i < 6? i:i-6) {
-			case 0: if (CanMovePawn		(Move{ j, square })) {return true; break;}
-			case 1: if (CanMoveKnight	(Move{ j, square })) {return true; break;}
-			case 2: if (CanMoveBishop	(Move{ j, square })) {return true; break;}
-			case 3: if (CanMoveRook		(Move{ j, square })) {return true; break;}
-			case 4: if (CanMoveQueen	(Move{ j, square })) {return true; break;}
-			case 5: if (CanMoveKing		(Move{ j, square })) {return true; break;}
+			switch (i%6) {
+			case 0: if (CanMovePawn		(Move{ j, square }, !attackerColor)) {return true; } break;
+			case 1: if (CanMoveKnight	(Move{ j, square }, !attackerColor)) {return true; } break;
+			case 2: if (CanMoveBishop	(Move{ j, square }, !attackerColor)) {return true; } break;
+			case 3: if (CanMoveRook		(Move{ j, square }, !attackerColor)) {return true; } break;
+			case 4: if (CanMoveQueen	(Move{ j, square }, !attackerColor)) {return true; } break;
+			case 5: if (CanMoveKing		(Move{ j, square }, !attackerColor)) {return true; } break;
 			}
 		}
 	}
 
 	if (debug)
 	{
-		std::cerr << "DEBUG: \n"
-			<< "Square checked: " << square << "\n";
+		//std::cerr << "DEBUG: \n"
+		//	<< "Square checked: " << square << "\n";
 	}
 
 	return false;
@@ -855,10 +881,10 @@ bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square,
 
 bool Board::IsCheck(const PIECE_COLORS king, const bool debug) {
 	const int kingSquare = (king == WHITE)
-		? GetWhiteKingPosition(debug)
-		: GetBlackKingPosition(debug);
+		? GetWhiteKingPosition()
+		: GetBlackKingPosition();
 
-	if (debug) std::cerr << "DEBUG: " << kingSquare << "\n";
+	if (debug) std::cerr << ((king == WHITE) ? "WHITE " : "BLACK ") << kingSquare << "\n";
 
 	return IsSquareAttacked( king==WHITE? BLACK:WHITE, kingSquare, debug);
 }

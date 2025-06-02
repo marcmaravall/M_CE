@@ -97,7 +97,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 	if (moves.empty())
 	{
 		// std::cout << "MOVES.EMPTY\n";
-		if (position.IsCheck((position.turn == WHITE_TURN) ? WHITE : BLACK)) {
+		if (position.IsCheck(position.turn == WHITE_TURN ? WHITE : BLACK)) {
 			int mateScore = MATE_SCORE - (ply -depth);		// 1000000 - max - depth
 			std::cout << "MATE: " << mateScore << " " << max << "\n";
 			return { Move(), max ? -mateScore : mateScore };
@@ -106,7 +106,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			// Utils::PrintBoard(position);
 			std::cerr << "No moves available, returning 0 evaluation.\n";
 			Utils::PrintBoard(position);
-			std::cerr << "DEBUG: Is Check " << position.IsCheck((max) ? WHITE : BLACK, true) << "\n";
+			//std::cerr << "DEBUG: Is Check " << position.IsCheck((max) ? WHITE : BLACK, true) << "\n";
 			return { Move(), 0 };
 		}
 	}

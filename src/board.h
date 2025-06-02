@@ -56,6 +56,13 @@ public:
 	bool CanMoveQueen	(const Move move) const;
 	bool CanMoveKing	(const Move move) const;
 
+	bool CanMovePawn	(const Move move, const bool _turn) const;
+	bool CanMoveKnight	(const Move move, const bool _turn) const;
+	bool CanMoveBishop	(const Move move, const bool _turn) const;
+	bool CanMoveRook	(const Move move, const bool _turn) const;
+	bool CanMoveQueen	(const Move move, const bool _turn) const;
+	bool CanMoveKing	(const Move move, const bool _turn) const;
+
 	void Castle(const Move move);
 	bool CanCastle(const Move move);
 	void DoCastleMove(const Move move);
