@@ -1,6 +1,8 @@
 #include "engine.h"
 #include "search.h"
 
+const int Engine::maxSearchDepth;
+
 Engine::Engine()
 {
 	// currentBoard = Board(START_FEN);
@@ -43,6 +45,7 @@ void Engine::ManageInput()
     Move current = {
         .from = 255, .to = 255, .castling = false, .mode = 0, .check = false, .checkmate = false,
     };
+	current.promotion = 255;
 
     if (input == "0-0")
     {
@@ -82,6 +85,11 @@ void Engine::ManageInput()
         Divide(currentBoard, 1);
     }
 
+    else if (input == "c")
+    {
+		std::cout << "IsCheck: " << currentBoard.IsCheck(currentBoard.turn == WHITE_TURN? WHITE : BLACK, true) << "\n";
+    }
+
     if (input.rfind("fen ", 0) == 0)
     {
         std::string fen = input.substr(4);
@@ -101,8 +109,6 @@ void Engine::ManageInput()
 
     current.from =  Utils::ConvertToIndexPosition(fromStr);
     current.to =    Utils::ConvertToIndexPosition(toStr);
-
-    current.promotion = -1;
 
     if (input.length() == 5) {
         for (int i = 0; i < 12; i++) {
@@ -126,8 +132,8 @@ void Engine::ManageInput()
     Utils::PrintBoard(currentBoard);
     // std::cout << "Evaluation: " << Evaluation::Evaluate(currentBoard) << "\n";
     // std::cout << "TEST: " << currentBoard.IsCheck(currentBoard.turn == !WHITE_TURN? currentBoard.GetWhiteKingPosition() : currentBoard.GetBlackKingPosition()) << "\n";
-	MoveEval bestMove = Search(5);
-	std::cout << "Evaluation: " << bestMove.eval << "\n";
+	// MoveEval bestMove = Search(5);
+	// std::cout << "Evaluation: " << bestMove.eval << "\n";
 }
 
 void Engine::PlayAgainistItself()
@@ -146,7 +152,7 @@ void Engine::PlayAgainistItself()
         ALPHA_BETA_PRUNINGS = 0;
         Divide(currentBoard, 4);
 
-        MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
+        MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, maxSearchDepth);
         std::cout << "Best move: " << Utils::ConvertToBoardPosition(bestMove.move.from) << Utils::ConvertToBoardPosition(bestMove.move.to) << "\n";
         currentBoard.MovePiece(bestMove.move);
         Utils::PrintBoard(currentBoard);
@@ -263,7 +269,7 @@ void Engine::PlayAgainistHuman()
             std::cout << "Engine thnking..." << std::endl;
 
             NODES = 0;
-            MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, false);
+            MoveEval bestMove = AlphaBeta(currentBoard, maxSearchDepth, -1000000, 1000000, false, maxSearchDepth);
 
             if (bestMove.move.from == 255 || bestMove.move.to == 255)
             {
@@ -359,7 +365,7 @@ MoveEval Engine::SearchTime(int time_ms)
     {
         auto iteration_start = high_resolution_clock::now();
 
-        currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
+        currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, maxSearchDepth);
 
         depth++;
         auto iteration_end = high_resolution_clock::now();
@@ -379,7 +385,7 @@ MoveEval Engine::SearchTime(int time_ms)
 MoveEval Engine::Search(int depth)
 {
 	MoveEval currentMove;
-	currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN);
+	currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, depth);
 
 	return currentMove;
 }
@@ -397,10 +403,31 @@ void Engine::MovePiece(const char* moveStr)
         uint8_t from = 0, to = 0;
 
         std::string fromStr = input.substr(0, 2);
-        std::string toStr = input.substr(2, 4);
+        std::string toStr = input.substr(2, 2);
 
         current.from = Utils::ConvertToIndexPosition(fromStr);
         current.to = Utils::ConvertToIndexPosition(toStr);
+
+        if (currentBoard.GetTurn() == WHITE_TURN) {
+            if (currentBoard.GetWhiteKingPosition() == 4 && current.to == 6 && currentBoard.wCastlingKing) {
+                current.castling = true;
+                current.mode = 1;
+            } 
+            else if (currentBoard.GetWhiteKingPosition() == 4 && current.to == 2 && currentBoard.wCastlingQueen) {
+                 current.castling = true;
+                 current.mode = 0;
+            }
+        }
+        else if (currentBoard.GetTurn() == BLACK_TURN) {
+            if (currentBoard.GetBlackKingPosition() == 60 && current.to == 62 && currentBoard.bCastlingKing) {
+                current.castling = true;
+                current.mode = 1;
+            }
+            else if (currentBoard.GetBlackKingPosition() == 60 && current.to == 58 && currentBoard.bCastlingQueen) {
+                current.castling = true;
+                current.mode = 0;
+            }
+        }
 
 		if (input.length() == 5) {
             uint8_t promotionPiece = 255;
@@ -408,8 +435,9 @@ void Engine::MovePiece(const char* moveStr)
 			promotionPiece = input.substr(4, 1)[0];
             current.promotion = Utils::GetPromotionPiece(promotionPiece, currentBoard.turn == WHITE_TURN);
 
-			std::cerr << "promotion: " << promotionPiece << "\n";
-			std::cerr << input << "\n";
+			std::cerr << "promotion: " << current.promotion << "\n";
+            // std::cerr << "to: " << toStr << "\n";
+			// std::cerr << input << "\n";
 		}
 
 		currentBoard.MovePiece(current);

@@ -29,8 +29,8 @@ public:
 	int turns;
 
 
-	uint8_t GetWhiteKingPosition();
-	uint8_t GetBlackKingPosition();
+	uint8_t GetWhiteKingPosition(const bool debug = false);
+	uint8_t GetBlackKingPosition(const bool debug = false);
 
 	Board(const char* fen);
 	Board();
@@ -60,10 +60,10 @@ public:
 	bool CanCastle(const Move move);
 	void DoCastleMove(const Move move);
 
-	bool IsSquareAttacked(const int square);
+	bool IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug = false);
 
 	bool IsOccupied(uint8_t indexPosition) const;
-	bool IsCheck(uint8_t indexPosition);
+	bool IsCheck(const PIECE_COLORS color, const bool debug = false);
 
 	void UndoMove(const UndoInfo& undo);
 

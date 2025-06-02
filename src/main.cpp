@@ -27,6 +27,7 @@
 29/05/2025: Solved a bug with black pawns captures, perft(4) is working better.
 30/05/2025: Solved a bug with white pawn en passant, perft(4) is perftectly working, perft(5) is not working, added some uci commands (with bugs...).
 31/05/2025: UCI protocol is working, with bugs, but working.
+01/06/2025: Solved promotion bugs and added castling to UCI, solving some problems with checkmate evaluation.
 */
 
 
@@ -44,8 +45,9 @@ int main()
 		uci.ManageInput(input.c_str());
 	}
 
-	/*Engine engine;
-	engine.RunTest();*/
+	Engine engine;
+	engine.RunTest();
 	// engine.PlayAgainistItself();
 	return 0;
 }
+

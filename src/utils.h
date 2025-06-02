@@ -57,4 +57,6 @@ public:
 	char ToLower(const char str);
 
 	static uint8_t GetPromotionPiece(char letter, bool isWhite);
+
+	static std::string MoveToStr(const Move& move);
 };

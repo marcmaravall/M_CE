@@ -147,6 +147,8 @@ void UCI::ManageInput(const char* input)
 			int depth = std::stoi(tokens[index]);
 			MoveEval moveEval = engine.Search(depth);
 
+			std::cerr << moveEval.move.from << " " << moveEval.move.to << "\n";
+
 			char promotion = (moveEval.move.promotion != 255) ? tolower(PIECE_CHAR[moveEval.move.promotion]) : ' ';
 			std::cout << "bestmove " << Utils::ConvertToBoardPosition(moveEval.move.from) 
 					  << Utils::ConvertToBoardPosition(moveEval.move.to) 

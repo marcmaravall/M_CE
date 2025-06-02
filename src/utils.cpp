@@ -386,10 +386,19 @@ char Utils::ToLower(const char str) {
 
 uint8_t Utils::GetPromotionPiece(char letter, bool isWhite) {
 	switch (tolower(letter)) {
-	case 'q': return isWhite ? W_QUEEN	: B_QUEEN;
-	case 'r': return isWhite ? W_ROOK	: B_ROOK;
-	case 'b': return isWhite ? W_BISHOP : B_BISHOP;
-	case 'n': return isWhite ? W_KNIGHT : B_KNIGHT;
+	case 'q': return isWhite ? W_QUEEN_I	: B_QUEEN_I;
+	case 'r': return isWhite ? W_ROOK_I		: B_ROOK_I;
+	case 'b': return isWhite ? W_BISHOP_I	: B_BISHOP_I;
+	case 'n': return isWhite ? W_KNIGHT_I	: B_KNIGHT_I;
 	default: return 255;
 	}
+}
+
+std::string Utils::MoveToStr(const Move& move)
+{
+	std::string res = "";
+
+	res += Utils::ConvertToBoardPosition(move.from) + Utils::ConvertToBoardPosition(move.to) + ((move.promotion != 255) ? (char)move.promotion/*static_cast<char>(PIECE_CHAR[move.promotion])*/ : ' ');
+
+	return res;
 }

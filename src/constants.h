@@ -260,3 +260,4 @@ struct UndoInfo {
 	uint8_t promotedPiece;
 };
 
+const int MATE_SCORE = 100000;

@@ -320,9 +320,10 @@ std::vector<Move> GenerateLegalMoves(Board& board)
 		// UndoInfo info = Utils::CreateUndoInfo(board, move);
 		Board copy = board;
 
-		if (board.MovePiece(move)) {
+		if (copy.MovePiece(move)) {
 			legalMoves.push_back(move);
-			board = copy; //.UndoMove(info);
+			
+			//.UndoMove(info);
 		}
 		else
 		{

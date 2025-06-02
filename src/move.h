@@ -12,7 +12,7 @@ struct Move
 	bool castling;
 	bool mode;
 
-	uint8_t promotion = 255;
+	int promotion = 255;
 	bool capture;
 	uint8_t capturedPiece;
 

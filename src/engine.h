@@ -20,12 +20,12 @@ private:
 private:
 	Board currentBoard;
 
-	const int maxSearchDepth = 5;
-
 	void ManageInput();
 public:
 	Engine();
 	~Engine();
+
+	static const int maxSearchDepth = 5;
 
 	void init();
 	void start();

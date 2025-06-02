@@ -36,6 +36,6 @@ struct TTEntry
 extern TTEntry TranspositionTable[TT_SIZE];
 
 MoveEval Minimax(Board& position, uint8_t depth, bool max);
-MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max);
+MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max, int ply);
 uint64_t Perft(Board& position, int depth);
 void Divide(Board& pos, int position);
