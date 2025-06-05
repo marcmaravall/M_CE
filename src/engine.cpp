@@ -18,6 +18,7 @@ void Engine::init()
 	GenerateZobristHash(rand());
 	InitKnightMasks();
     InitKingMasks();
+    polyglotSettings = generatePolyglotSettings();
 
     std::ofstream debugFile("C:\\Users\\Marc\\source\\repos\\M_CE\\tests", std::ios::app);
     debugFile.clear();
@@ -481,4 +482,45 @@ void Engine::PrintBoard()
 void Engine::DivideTest(uint8_t depth)
 {
 	Divide(currentBoard, depth);
+}
+
+uint32_t Engine::polyglotSeed = 0x9D81F9B8;;
+
+uint32_t Engine::getRandomU32() {
+    uint32_t x = polyglotSeed;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    polyglotSeed = x;
+    return x;
+}
+
+uint64_t Engine::getRandomU64() {
+    uint64_t high = getRandomU32();
+    uint64_t low =  getRandomU32();
+    return (high << 32) | low;
+}
+
+ZobristHashSettings Engine::polyglotSettings;
+
+ZobristHashSettings Engine::generatePolyglotSettings() {
+    ZobristHashSettings settings;
+
+    for (int piece = 0; piece < 12; ++piece) {
+        for (int square = 0; square < 64; ++square) {
+            settings.zobristPieces[piece][square] = getRandomU64();
+        }
+    }
+
+    for (int i = 0; i < 4; ++i) {
+        settings.zobristCastling[i] = getRandomU64();
+    }
+
+    for (int i = 0; i < 8; ++i) {
+        settings.zobristEnPassant[i] = getRandomU64();
+    }
+
+    settings.zobristTurn = getRandomU64();
+
+    return settings;
 }

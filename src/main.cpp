@@ -28,6 +28,8 @@
 30/05/2025: Solved a bug with white pawn en passant, perft(4) is perftectly working, perft(5) is not working, added some uci commands (with bugs...).
 31/05/2025: UCI protocol is working, with bugs, but working.
 01/06/2025: Solved promotion bugs and added castling to UCI, solving some problems with checkmate evaluation.
+02/06/2025: Solved a problem with checkmate evaluation.
+03/06/2025: Tested the engine with other engines and humans.
 */
 
 

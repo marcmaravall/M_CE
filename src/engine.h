@@ -16,6 +16,13 @@ class Engine
 private:
 
 	void GenerateZobristHash(int seed);
+	static uint32_t polyglotSeed;
+
+	uint32_t getRandomU32();
+	uint64_t getRandomU64();
+
+	static ZobristHashSettings polyglotSettings;
+	ZobristHashSettings generatePolyglotSettings();
 
 private:
 	Board currentBoard;

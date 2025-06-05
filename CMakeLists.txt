@@ -15,7 +15,7 @@ add_executable(M_CE
     "src/board.cpp"
     "src/search.cpp"
     "src/evaluation.cpp"
-    "src/move_generation.cpp")
+    "src/move_generation.cpp" "src/book.h")
 
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
