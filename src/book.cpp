@@ -1,4 +1,5 @@
 #include "book.h"
+#include "search.h"
 
 template<typename T>
 T swapEndian(T value) {
@@ -31,17 +32,19 @@ uint64_t extractBits(T value, int start, int count) {
     return (value >> start) & ((1ULL << count) - 1);
 }
 
-Move ConvertPolyglotToMove(const uint16_t& move) {
-    Move current;
-    current.from = 255;
-    current.to = 255;
-    current.promotion = 255;
-    current.castling = false;
-    current.mode = false;
+MoveEval ConvertPolyglotToMove(const uint16_t& move) {
+    MoveEval current;
+    current.move.from = 255;
+    current.move.to = 255;
+    current.move.promotion = 255;
+    current.move.castling = false;
+    current.move.mode = false;
 
-    current.from = extractBits(move, 6, 6);
-    current.to = extractBits(move, 0, 6);
-    current.promotion = extractBits(move, 12, 3);
+    current.move.from = extractBits(move, 6, 6);
+    current.move.to = extractBits(move, 0, 6);
+    current.move.promotion = extractBits(move, 12, 3);
+
+	current.weight = extractBits(move, 0, 16);
 
     return current;
 }
@@ -96,9 +99,9 @@ std::pair<size_t, size_t> Book::FindRange(uint64_t key) const {
             static_cast<size_t>(upper - entries.begin()) };
 }
 
-std::vector<Move> Book::GetMoves(uint64_t key) const {
+std::vector<MoveEval> Book::GetMoves(uint64_t key) const {
     auto [start, end] = FindRange(key);
-    std::vector<Move> result;
+    std::vector<MoveEval> result;
     result.reserve(end - start);
 
     for (size_t i = start; i < end; ++i) {

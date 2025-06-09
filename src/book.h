@@ -9,6 +9,8 @@
 #include <algorithm>
 #include "move.h"
 
+struct MoveEval;
+
 struct PolyglotEntry
 {
     uint64_t key;
@@ -24,7 +26,7 @@ struct PolyglotEntry
 
 template <typename T>
 uint64_t extractBits(T value, int start, int count);
-Move ConvertPolyglotToMove(const uint16_t& move);
+MoveEval ConvertPolyglotToMove(const uint16_t& move);
 
 struct Book
 {
@@ -34,7 +36,7 @@ public:
     Book();
     Book(const std::string& path);
     std::pair<size_t, size_t> FindRange(uint64_t key) const;
-    std::vector <Move> GetMoves(uint64_t key) const;
+    std::vector <MoveEval> GetMoves(uint64_t key) const;
     std::vector<PolyglotEntry> entries;
 };
 

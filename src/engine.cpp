@@ -21,7 +21,7 @@ void Engine::init()
 	InitKnightMasks();
     InitKingMasks();
     polyglotSettings = generatePolyglotSettings();
-    book = Book("C:\\Users\\marcm\\Source\\Repos\\M_CE\\books\\komodo.bin");
+    book = Book("C:\\Users\\Marc\\source\\repos\\M_CE\\books\\komodo.bin");
 
     std::ofstream debugFile("C:\\Users\\Marc\\source\\repos\\M_CE\\tests", std::ios::app);
     debugFile.clear();
@@ -389,11 +389,10 @@ MoveEval Engine::SearchTime(int time_ms)
 MoveEval Engine::Search(int depth)
 {
 	MoveEval currentMove;
-
-    std::cerr << "started test: \n";
+    currentMove.move.promotion = 255;
     uint64_t hash = Utils::GetZobristHash(currentBoard, Engine::polyglotSettings);
 
-    std::cerr << std::hex << hash << "\n";
+    // std::cerr << std::hex << hash << "\n";
 
     auto it = std::find_if(book.entries.begin(), book.entries.end(),
         [hash](const PolyglotEntry& entry) {
@@ -403,9 +402,26 @@ MoveEval Engine::Search(int depth)
 
     if (it != book.entries.end())
     {
-        std::cout << "TEST PASSED\n";
-        const std::vector<Move>& moves = book.GetMoves(hash);
-        std::cout << "TEST PASSED\n";
+        const std::vector<MoveEval>& moves = book.GetMoves(hash);
+
+		int totalWeight = 0;
+		for (const MoveEval& move : moves) {
+			totalWeight += move.weight;
+		}
+
+		int random = rand() % totalWeight;
+        int cumulative = 0;
+
+        std::cout << random << "\n";
+
+        for (MoveEval move : moves) {
+            cumulative += move.weight;
+            if (random < cumulative) {
+                std::cout << cumulative << "\n";
+                return move;
+            }
+        }
+
         return MoveEval(moves[0]);
     }
 
@@ -413,6 +429,7 @@ MoveEval Engine::Search(int depth)
 
 	return currentMove;
 }
+
 
 void Engine::MovePiece(const char* moveStr)
 {
@@ -532,9 +549,24 @@ ZobristHashSettings Engine::generatePolyglotSettings() {
     ZobristHashSettings settings;
     int index = 0;
 
+    const int orderToPolyglot[12] = {
+        6,
+        0,
+        7,
+        1,
+        8,
+        2,
+        9,
+        3,
+        10,
+        4,
+        11,
+        5
+    };
+
     for (int piece = 0; piece < 12; ++piece) {
         for (int square = 0; square < 64; ++square) {
-            settings.zobristPieces[piece][square] = Random64[index++];
+            settings.zobristPieces[orderToPolyglot[piece]][square] = Random64[index++];
         }
     }
 
@@ -558,13 +590,8 @@ void Engine::RunBookTest()
 
     SetPosition(START_FEN);
 
-    for (int i = 0; i < 782; i++) { 
-        std::cout << std::dec << i << ". ";
-        std::cout << std::hex << Random64[i] << "\n"; // valor exacto
-    }
-
     this->PrintBoard();
-    std::vector<Move> moves = book.GetMoves(Utils::GetZobristHash(currentBoard, Engine::polyglotSettings));
+    std::vector<MoveEval> moves = book.GetMoves(Utils::GetZobristHash(currentBoard, Engine::polyglotSettings));
 
     if (moves.empty()) {
         std::cout << Utils::GetZobristHash(currentBoard, Engine::polyglotSettings) << "\n";

@@ -19,6 +19,8 @@ struct MoveEval
 	Move move;
 	int eval;
 	int priority;
+
+	int weight;	// for polyglot
 };
 
 enum BoundType

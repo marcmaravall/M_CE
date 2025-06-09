@@ -33,7 +33,9 @@
 04/06/2025: Tested the engine playing against it.
 05/06/2025: Started to implement polyglot books.
 06/06/2025: Added book class and .bin loading (it doesn't work very well).
-07/06/2025: 
+07/06/2025: Tried to solve a bug with book loading, but I don't know how to solve it.
+08/06/2025: I solved a bug, but is not working for other bug...
+09/06/2025: I solved the bug, it was a problem with the index of the book, now is working.
 */
 
 
@@ -43,16 +45,19 @@
 
 int main()
 {
-	/*UCI uci;
+	srand(static_cast<unsigned int>(time(nullptr)));
+
+
+	UCI uci;
 	while (true)
 	{
 		std::string input;
 		std::getline(std::cin, input);
 		uci.ManageInput(input.c_str());
-	}*/
+	}
 
-	Engine engine;
-	engine.RunBookTest();
+	/*Engine engine;
+	engine.RunBookTest();*/
 	// engine.PlayAgainistItself();
 	return 0;
 }

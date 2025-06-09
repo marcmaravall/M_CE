@@ -268,54 +268,38 @@ ZobristHash Utils::GetZobristHash(const Board& board, const ZobristHashSettings&
 {
 	ZobristHash hash = 0;
 
-	std::cout << "\n DEBUG \n \n";
-
-	const int orderToPolyglot[12] = {
-		0,  
-		2,  
-		3,  
-		1,  
-		4,  
-		5,  
-		6,  
-		8,  
-		9,  
-		7,  
-		10, 
-		11  
-	};
-
 	for (int i = 0; i < 12; i++)
 	{
-		uint64_t bitboard = board.bitboards[orderToPolyglot[i]];
+		uint8_t piece = i;
+		uint64_t bitboard = board.bitboards[piece];
 		while (bitboard)
 		{
 			int square = PopLSB(bitboard);
-			hash ^= settings.zobristPieces[orderToPolyglot[i]][square];
-			std::cout << "XORed " << settings.zobristPieces[orderToPolyglot[i]][square] << " SQUARE: " << Utils::ConvertToBoardPosition(square) << " PIECE: " << orderToPolyglot[i] << "\n";
+			hash ^= settings.zobristPieces[piece][square];
+			// std::cout << "XORed " << settings.zobristPieces[piece][square] << " SQUARE: " << Utils::ConvertToBoardPosition(square) << " PIECE: " << square << "\n";
 		}
 	}
 
 	if (board.wCastlingKing) {
 		hash ^= settings.zobristCastling[0];
-		std::cout << "XORed wcastking\n";
+		// std::cout << "XORed wcastking\n";
 	}
 	if (board.wCastlingQueen) {
 		hash ^= settings.zobristCastling[1];
-		std::cout << "XORed wcastkingqueen\n";
+		// std::cout << "XORed wcastkingqueen\n";
 	}
 	if (board.bCastlingKing) {
-		std::cout << "XORed bcastking\n";
+		// std::cout << "XORed bcastking\n";
 		hash ^= settings.zobristCastling[2];
 	}
 	if (board.bCastlingQueen) {
 		hash ^= settings.zobristCastling[3];
-		std::cout << "XORed bcastkingqueen\n";
+		// std::cout << "XORed bcastkingqueen\n";
 	}
 
 	if (board.enPassantSquare != 255)
 	{
-		std::cout << "Adding en passant \n";
+		// std::cout << "Adding en passant \n";
 
 		int rank = board.enPassantSquare / 8;
 		int file = board.enPassantSquare % 8;
@@ -340,7 +324,7 @@ ZobristHash Utils::GetZobristHash(const Board& board, const ZobristHashSettings&
 
 
 	if (board.turn == WHITE_TURN) {
-		std::cout << "adding turn \n";
+		// std::cout << "adding turn \n";
 		hash ^= settings.zobristTurn;
 	}
 
