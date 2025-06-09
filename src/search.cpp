@@ -111,7 +111,6 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		}
 	}
 
-
 	int alphaOrig = alpha;
 
 	MoveEval bestMove;
@@ -194,11 +193,11 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 }
 
 void Divide(Board& pos, int depth) {
-	const std::string debugFilePath = "C:\\Users\\Marc\\source\\repos\\M_CE\\debug.txt";
-	std::ofstream debugFile(debugFilePath, std::ios::app);
-	if (!debugFile.is_open()) {
-		throw std::runtime_error("No se pudo abrir el archivo de debug.");
-	}
+	// const std::string debugFilePath = "C:\\Users\\Marc\\source\\repos\\M_CE\\debug.txt";
+	// std::ofstream debugFile(debugFilePath, std::ios::app);
+	// if (!debugFile.is_open()) {
+	// 	throw std::runtime_error("No se pudo abrir el archivo de debug.");
+	// }
 
 	auto moves = GenerateLegalMoves(pos);
 	uint64_t total = 0;
@@ -219,7 +218,7 @@ void Divide(Board& pos, int depth) {
 	}
 
 	std::cout << "Total nodes: " << total << "\n\n";
-	debugFile.close();
+	// debugFile.close();
 }
 
 uint64_t Perft(Board& position, int depth) {

@@ -1,10 +1,12 @@
-#include "engine.h"
+﻿#include "engine.h"
 #include "search.h"
 
 const int Engine::maxSearchDepth;
+Book Engine::book;
 
 Engine::Engine()
 {
+    book = Book("");
 	// currentBoard = Board(START_FEN);
 }
 
@@ -19,6 +21,7 @@ void Engine::init()
 	InitKnightMasks();
     InitKingMasks();
     polyglotSettings = generatePolyglotSettings();
+    book = Book("C:\\Users\\marcm\\Source\\Repos\\M_CE\\books\\komodo.bin");
 
     std::ofstream debugFile("C:\\Users\\Marc\\source\\repos\\M_CE\\tests", std::ios::app);
     debugFile.clear();
@@ -386,6 +389,26 @@ MoveEval Engine::SearchTime(int time_ms)
 MoveEval Engine::Search(int depth)
 {
 	MoveEval currentMove;
+
+    std::cerr << "started test: \n";
+    uint64_t hash = Utils::GetZobristHash(currentBoard, Engine::polyglotSettings);
+
+    std::cerr << std::hex << hash << "\n";
+
+    auto it = std::find_if(book.entries.begin(), book.entries.end(),
+        [hash](const PolyglotEntry& entry) {
+            // std::cerr << "polygot entry founded\n" << (entry.key == hash);
+            return entry.key == hash;
+        });
+
+    if (it != book.entries.end())
+    {
+        std::cout << "TEST PASSED\n";
+        const std::vector<Move>& moves = book.GetMoves(hash);
+        std::cout << "TEST PASSED\n";
+        return MoveEval(moves[0]);
+    }
+
 	currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, depth);
 
 	return currentMove;
@@ -484,43 +507,77 @@ void Engine::DivideTest(uint8_t depth)
 	Divide(currentBoard, depth);
 }
 
-uint32_t Engine::polyglotSeed = 0x9D81F9B8;;
+/*
+uint32_t Engine::polyglotSeed = 0x9D81F9B8;                     ADDED TABLE PRECOMPUTED IN BOOK.H
 
 uint32_t Engine::getRandomU32() {
     uint32_t x = polyglotSeed;
-    x ^= x << 13;
-    x ^= x >> 17;
-    x ^= x << 5;
+    x ^= (x << 13);
+    x ^= (x >> 17);
+    x ^= (x << 5);
     polyglotSeed = x;
     return x;
 }
 
 uint64_t Engine::getRandomU64() {
-    uint64_t high = getRandomU32();
-    uint64_t low =  getRandomU32();
-    return (high << 32) | low;
-}
+    uint64_t low = static_cast<uint64_t>(getRandomU32());
+    uint64_t high = static_cast<uint64_t>(getRandomU32());
+
+    return low | (high << 32);
+}*/
 
 ZobristHashSettings Engine::polyglotSettings;
 
 ZobristHashSettings Engine::generatePolyglotSettings() {
     ZobristHashSettings settings;
+    int index = 0;
 
     for (int piece = 0; piece < 12; ++piece) {
         for (int square = 0; square < 64; ++square) {
-            settings.zobristPieces[piece][square] = getRandomU64();
+            settings.zobristPieces[piece][square] = Random64[index++];
         }
     }
 
     for (int i = 0; i < 4; ++i) {
-        settings.zobristCastling[i] = getRandomU64();
+        settings.zobristCastling[i] = Random64[index++];
     }
 
     for (int i = 0; i < 8; ++i) {
-        settings.zobristEnPassant[i] = getRandomU64();
+        settings.zobristEnPassant[i] = Random64[index++];
     }
 
-    settings.zobristTurn = getRandomU64();
+    settings.zobristTurn = Random64[index++];
 
     return settings;
 }
+
+void Engine::RunBookTest()
+{
+    init();
+    // book = Book("C:\\Users\\marcm\\Source\\Repos\\M_CE\\books\\komodo.bin");
+
+    SetPosition(START_FEN);
+
+    for (int i = 0; i < 782; i++) { 
+        std::cout << std::dec << i << ". ";
+        std::cout << std::hex << Random64[i] << "\n"; // valor exacto
+    }
+
+    this->PrintBoard();
+    std::vector<Move> moves = book.GetMoves(Utils::GetZobristHash(currentBoard, Engine::polyglotSettings));
+
+    if (moves.empty()) {
+        std::cout << Utils::GetZobristHash(currentBoard, Engine::polyglotSettings) << "\n";
+        std::cout << "ERROR: 'moves' is empty\n";
+    }
+    else
+    {
+        std::cout << Utils::GetZobristHash(currentBoard, Engine::polyglotSettings) << "\n";
+
+        std::cout << "MOVES NOT EMPTY\n";
+        std::cout << moves.size();
+    }
+
+    // std::cout << Utils::MoveToStr(moves);
+}
+

@@ -3,8 +3,10 @@
 #include <iostream>
 #include "utils.h"
 #include "board.h"
+#include "book.h"
 #include "constants.h"
 #include "evaluation.h"
+#include "move.h"
 #include <chrono>
 #include <random>
 #include <fstream>
@@ -21,7 +23,6 @@ private:
 	uint32_t getRandomU32();
 	uint64_t getRandomU64();
 
-	static ZobristHashSettings polyglotSettings;
 	ZobristHashSettings generatePolyglotSettings();
 
 private:
@@ -43,6 +44,8 @@ public:
 	void InitKingMasks();
 
 	void RunTest();
+	void RunBookTest();
+
 	void PlayAgainistItself();
 	void PlayAgainistHuman();
 
@@ -65,6 +68,9 @@ public:
 
 
 	static ZobristHashSettings hashSettings;
+	static ZobristHashSettings polyglotSettings;
+
+	static Book book;
 
 };
 

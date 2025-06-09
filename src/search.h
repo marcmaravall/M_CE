@@ -4,9 +4,12 @@
 #include "board.h"
 #include "move.h"
 #include "move_generation.h"
+#include "book.h"
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <algorithm>
+#include <random>
 
 extern int NODES;
 extern int ALPHA_BETA_PRUNINGS;

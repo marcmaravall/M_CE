@@ -124,6 +124,7 @@ void UCI::ManageInput(const char* input)
 		{
 			index++;
 			int depth = std::stoi(tokens[index]);
+
 			perft(depth);
 		}
 		else if (tokens[index] == "searchmoves") {

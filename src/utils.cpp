@@ -1,4 +1,4 @@
-#include "utils.h"
+﻿#include "utils.h"
 #include "board.h"
 
 void Utils::PrintBoard(const Board& board)
@@ -267,35 +267,82 @@ int Utils::PopLSB(uint64_t& bb) {
 ZobristHash Utils::GetZobristHash(const Board& board, const ZobristHashSettings& settings)
 {
 	ZobristHash hash = 0;
-	
+
+	std::cout << "\n DEBUG \n \n";
+
+	const int orderToPolyglot[12] = {
+		0,  
+		2,  
+		3,  
+		1,  
+		4,  
+		5,  
+		6,  
+		8,  
+		9,  
+		7,  
+		10, 
+		11  
+	};
+
 	for (int i = 0; i < 12; i++)
 	{
-		uint64_t bitboard = board.bitboards[i];
+		uint64_t bitboard = board.bitboards[orderToPolyglot[i]];
 		while (bitboard)
 		{
 			int square = PopLSB(bitboard);
-			hash ^= settings.zobristPieces[i][square];
+			hash ^= settings.zobristPieces[orderToPolyglot[i]][square];
+			std::cout << "XORed " << settings.zobristPieces[orderToPolyglot[i]][square] << " SQUARE: " << Utils::ConvertToBoardPosition(square) << " PIECE: " << orderToPolyglot[i] << "\n";
 		}
 	}
 
-	if (board.wCastlingKing)
+	if (board.wCastlingKing) {
 		hash ^= settings.zobristCastling[0];
-	if (board.wCastlingQueen)
+		std::cout << "XORed wcastking\n";
+	}
+	if (board.wCastlingQueen) {
 		hash ^= settings.zobristCastling[1];
-	if (board.bCastlingKing)
+		std::cout << "XORed wcastkingqueen\n";
+	}
+	if (board.bCastlingKing) {
+		std::cout << "XORed bcastking\n";
 		hash ^= settings.zobristCastling[2];
-	if (board.bCastlingQueen)
+	}
+	if (board.bCastlingQueen) {
 		hash ^= settings.zobristCastling[3];
-
-
-	if (board.enPassantSquare != (uint8_t)-1)
-	{
-		int file = board.enPassantSquare % 8;
-		hash ^= settings.zobristEnPassant[file];
+		std::cout << "XORed bcastkingqueen\n";
 	}
 
-	if (board.turn == BLACK_TURN)
+	if (board.enPassantSquare != 255)
+	{
+		std::cout << "Adding en passant \n";
+
+		int rank = board.enPassantSquare / 8;
+		int file = board.enPassantSquare % 8;
+
+		if (board.turn == WHITE_TURN && rank == 5)
+		{
+			if ((file > 0 && board.bitboards[6] & (1ULL << (board.enPassantSquare - 1))) || 
+				(file < 7 && board.bitboards[6] & (1ULL << (board.enPassantSquare + 1))))   
+			{
+				hash ^= settings.zobristEnPassant[file];
+			}
+		}
+		else if (board.turn == BLACK_TURN && rank == 2)
+		{
+			if ((file > 0 && board.bitboards[0] & (1ULL << (board.enPassantSquare - 1))) ||
+				(file < 7 && board.bitboards[0] & (1ULL << (board.enPassantSquare + 1))))
+			{
+				hash ^= settings.zobristEnPassant[file];
+			}
+		}
+	}
+
+
+	if (board.turn == WHITE_TURN) {
+		std::cout << "adding turn \n";
 		hash ^= settings.zobristTurn;
+	}
 
 	return hash;
 }

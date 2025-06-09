@@ -30,6 +30,10 @@
 01/06/2025: Solved promotion bugs and added castling to UCI, solving some problems with checkmate evaluation.
 02/06/2025: Solved a problem with checkmate evaluation.
 03/06/2025: Tested the engine with other engines and humans.
+04/06/2025: Tested the engine playing against it.
+05/06/2025: Started to implement polyglot books.
+06/06/2025: Added book class and .bin loading (it doesn't work very well).
+07/06/2025: 
 */
 
 
@@ -39,16 +43,16 @@
 
 int main()
 {
-	UCI uci;
+	/*UCI uci;
 	while (true)
 	{
 		std::string input;
 		std::getline(std::cin, input);
 		uci.ManageInput(input.c_str());
-	}
+	}*/
 
 	Engine engine;
-	engine.RunTest();
+	engine.RunBookTest();
 	// engine.PlayAgainistItself();
 	return 0;
 }
