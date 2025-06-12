@@ -10,11 +10,18 @@
 #include <chrono>
 #include <random>
 #include <fstream>
+#include <filesystem>
 
+namespace fs = std::filesystem;
 struct MoveEval;
 
 class Engine
 {
+private:
+	const std::string programName = "M_CE";
+	std::string programDir;
+	fs::path getProjectDirectory();
+
 private:
 
 	void GenerateZobristHash(int seed);

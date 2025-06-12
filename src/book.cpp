@@ -46,6 +46,37 @@ MoveEval ConvertPolyglotToMove(const uint16_t& move) {
 
 	current.weight = extractBits(move, 0, 16);
 
+    // castling checking
+
+    if (current.move.from == 4)
+    {
+        std::cerr << "MOVING KING...\n";
+        if (current.move.to == 0)
+        {
+            current.move.castling = true;
+            current.move.mode = true;
+        }
+        else if (current.move.to == 7)
+        {
+            current.move.castling = true;
+            current.move.mode = false;
+        }
+    }
+    else if (current.move.from == 60)
+    {
+        std::cerr << "MOVING KING...\n";
+        if (current.move.to == 63)
+        {
+            current.move.castling = true;
+            current.move.mode = true;
+        }
+        else if (current.move.to == 56)
+        {
+            current.move.castling = true;
+            current.move.mode = false;
+        }
+    }
+
     return current;
 }
 

@@ -151,9 +151,10 @@ void UCI::ManageInput(const char* input)
 			// std::cerr << moveEval.move.from << " " << moveEval.move.to << "\n";
 
 			char promotion = (moveEval.move.promotion < 12) ? tolower(PIECE_CHAR[moveEval.move.promotion]) : ' ';
-			std::cout << "bestmove " << Utils::ConvertToBoardPosition(moveEval.move.from) 
+			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
+						/* "bestmove " << Utils::ConvertToBoardPosition(moveEval.move.from) 
 					  << Utils::ConvertToBoardPosition(moveEval.move.to) 
-					  << promotion << "\n";
+					  << promotion << "\n";*/
 		}
 		else if (tokens[index] == "movetime")
 		{

@@ -6,24 +6,26 @@ Book Engine::book;
 
 Engine::Engine()
 {
-    book = Book("");
+    init();
 	// currentBoard = Board(START_FEN);
 }
 
 Engine::~Engine()
 {
-
 }
 
 void Engine::init()
 {
+    programDir = getProjectDirectory().string();
+
 	GenerateZobristHash(rand());
 	InitKnightMasks();
     InitKingMasks();
     polyglotSettings = generatePolyglotSettings();
-    book = Book("C:\\Users\\Marc\\source\\repos\\M_CE\\books\\komodo.bin");
+    book = Book(programDir+"\\books\\komodo.bin");
 
-    std::ofstream debugFile("C:\\Users\\Marc\\source\\repos\\M_CE\\tests", std::ios::app);
+    std::ofstream debugFile(programDir+"\\tests", std::ios::app);
+
     debugFile.clear();
 }
 
@@ -403,7 +405,11 @@ MoveEval Engine::Search(int depth)
     if (it != book.entries.end())
     {
         const std::vector<MoveEval>& moves = book.GetMoves(hash);
+        
 
+        return MoveEval(moves[0]);
+
+        
 		int totalWeight = 0;
 		for (const MoveEval& move : moves) {
 			totalWeight += move.weight;
@@ -607,4 +613,24 @@ void Engine::RunBookTest()
 
     // std::cout << Utils::MoveToStr(moves);
 }
+
+// code copied from my nes emulator :) --------
+
+fs::path Engine::getProjectDirectory() {
+    fs::path exe = fs::current_path();
+    while (!exe.empty() && exe.filename() != "M_CE") {
+        exe = exe.parent_path();
+        // std::cout << "Checking: " << exe << std::endl;
+    }
+
+    if (exe.empty()) {
+        std::cerr << "ERROR: directory not found." << std::endl;
+        return "";
+    }
+
+    return exe;
+}
+// -------------------------------------------
+
+
 

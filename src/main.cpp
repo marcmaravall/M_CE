@@ -36,6 +36,9 @@
 07/06/2025: Tried to solve a bug with book loading, but I don't know how to solve it.
 08/06/2025: I solved a bug, but is not working for other bug...
 09/06/2025: I solved the bug, it was a problem with the index of the book, now is working.
+10/06/2025: Added weight for polyglot books for doing multiple moves.
+11/06/2025: Added functions for getting the path of the program.
+12/06/2025: ...
 */
 
 

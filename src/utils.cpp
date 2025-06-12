@@ -429,7 +429,34 @@ std::string Utils::MoveToStr(const Move& move)
 {
 	std::string res = "";
 
-	res += Utils::ConvertToBoardPosition(move.from) + Utils::ConvertToBoardPosition(move.to) + ((move.promotion != 255) ? (char)move.promotion/*static_cast<char>(PIECE_CHAR[move.promotion])*/ : ' ');
+	if (!move.castling)
+		res += Utils::ConvertToBoardPosition(move.from) + Utils::ConvertToBoardPosition(move.to) + ((move.promotion != 255 && move.promotion != 0) ? (char)move.promotion/*static_cast<char>(PIECE_CHAR[move.promotion])*/ : ' ');
+	else
+	{
+		if (move.from == 4)
+		{
+			if (move.to == 7)
+			{
+				res += "e1g1";
+			}
+			else if (move.to == 0)
+			{
+				res += "e1c1";
+			}
+		}
+		else if (move.from == 60)
+		{
+			if (move.to == 63)
+			{
+				res += "e8g8";
+			}
+			else if (move.to == 56)
+			{
+				res += "e8c8";
+			}
+		}
+	}
 
 	return res;
 }
+

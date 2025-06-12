@@ -10,7 +10,7 @@ struct Move
 	int to;
 
 	bool castling;
-	bool mode;
+	bool mode;				// true: short		false: long
 
 	int promotion = 255;
 	bool capture;
