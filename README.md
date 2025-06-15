@@ -3,6 +3,9 @@
 M_CE is my own chess engine (Marc's Chess Engine), written in C++ with no external libraries.  
 It uses a minimax algorithm with alpha-beta pruning, move ordering, and transposition tables for search, along with a simple evaluation function.
 
+# Discord:
+Link: https://discord.gg/GjPHXuyzmD
+
 # Features:
 - Bitboards for move generation and board representation.
 - Minimax with alpha-beta pruning.
