@@ -24,6 +24,8 @@ void Engine::init()
     polyglotSettings = generatePolyglotSettings();
     book = Book(programDir+"\\books\\komodo.bin");
 
+	currentBoard = Board(START_FEN);    
+
     std::ofstream debugFile(programDir+"\\tests", std::ios::app);
 
     debugFile.clear();
@@ -406,10 +408,6 @@ MoveEval Engine::Search(int depth)
     {
         const std::vector<MoveEval>& moves = book.GetMoves(hash);
         
-
-        return MoveEval(moves[0]);
-
-        
 		int totalWeight = 0;
 		for (const MoveEval& move : moves) {
 			totalWeight += move.weight;
@@ -431,8 +429,13 @@ MoveEval Engine::Search(int depth)
         return MoveEval(moves[0]);
     }
 
-	currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, depth);
 
+    // real search
+	// UCI::IsSearching = true;
+	
+    currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, depth);
+
+	// UCI::IsSearching = false;
 	return currentMove;
 }
 

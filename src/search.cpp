@@ -127,6 +127,9 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			position.MovePiece(move);
 
 			MoveEval result = AlphaBeta(position, depth - 1, alpha, beta, false, ply);
+			
+			// if (!UCI::IsSearching)
+			
 			if (result.eval > bestMove.eval)
 			{
 				bestMove.eval = result.eval;
@@ -237,8 +240,5 @@ uint64_t Perft(Board& position, int depth) {
 
 		// position.UndoMove(undo);
 	}
-
-	if (nodes == 0)
-		std::cerr << "ERROR DETECTED\n";
 	return nodes;
 }

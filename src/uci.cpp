@@ -2,9 +2,11 @@
 #include "engine.h"
 #include "search.h"
 
+// bool UCI::IsSearching = false;
+
 UCI::UCI()
 {
-	engine.init();
+	// engine.init();
 }
 
 void UCI::uci()
@@ -156,7 +158,7 @@ void UCI::ManageInput(const char* input)
 					  << Utils::ConvertToBoardPosition(moveEval.move.to) 
 					  << promotion << "\n";*/
 		}
-		else if (tokens[index] == "movetime")
+		else if (tokens[index] == "movetime")	// TODO: Implement move time
 		{
 			index++;
 			int time = std::stoi(tokens[index]);

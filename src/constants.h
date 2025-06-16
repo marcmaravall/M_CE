@@ -123,6 +123,17 @@ inline constexpr const int W_KING_BITMAP_MIDGAME[64] = {
 	 20, 30, 10,  0,  0, 10, 30, 20
 };
 
+inline constexpr const int W_KING_BITMAP_ENDGAME[64] = {
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+};
+
 inline constexpr const int W_QUEEN_BITMAP[64] = {
 	-20,-10,-10, -5, -5,-10,-10,-20,
 	-10,  0,  0,  0,  0,  0,  0,-10,

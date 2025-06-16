@@ -1,0 +1,26 @@
+[Event "Computer chess game"]
+[Site "DESKTOP-RLO4H1D"]
+[Date "2025.06.15"]
+[Round "?"]
+[White "Marc"]
+[Black "M_CE [001]"]
+[Result "0-1"]
+[BlackElo "1500"]
+[ECO "B50"]
+[Opening "Sicilian"]
+[Time "13:40:41"]
+[Variation "2.Nf3 d6 3.Nc3 Nf6"]
+[WhiteElo "1500"]
+[Termination "normal"]
+[PlyCount "78"]
+[WhiteType "human"]
+[BlackType "program"]
+
+1. e4 c5 2. Nc3 d6 3. Nf3 Nf6 4. Bb5+ Bd7 5. Bxd7+ Qxd7 6. d3 Nc6 7. Bg5
+Qg4 8. O-O Nd7 9. h3 Qh5 10. Qd2 c4 11. dxc4 Nb6 12. b3 f5 13. exf5 Nd7 14.
+Rfe1 h6 15. Bh4 Qxf5 16. Rxe7+ Bxe7 17. Re1 g5 18. Nxg5 hxg5 19. Bxg5 Nf6
+20. Bxf6 Qxf6 21. Nd5 Qh6 22. Rxe7+ Nxe7 23. Qe2 Qc1+ 24. Kh2 Qg5 25. Nc7+
+Kd7 26. Nxa8 Rxa8 27. c5 Qxc5 28. c4 Nf5 29. Qh5 Qxf2 30. Qf7+ Kc6 31. Qd5+
+Kc7 32. Qf7+ Kb6 33. Qd5 a6 34. b4 Re8 35. c5+ dxc5 36. bxc5+ Qxc5 37. Qb3+
+Ka7 38. Qf3 Re1 39. a3 Qg1# 0-1
+

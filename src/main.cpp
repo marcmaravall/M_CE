@@ -38,7 +38,10 @@
 09/06/2025: I solved the bug, it was a problem with the index of the book, now is working.
 10/06/2025: Added weight for polyglot books for doing multiple moves.
 11/06/2025: Added functions for getting the path of the program.
-12/06/2025: ...
+12/06/2025: Nothing.
+13/06/2025: Nothing.
+14/06/2025: Added some things to README.md.
+15/06/2025: Created a discord server for the engine, you can join here: https://discord.gg/GjPHXuyzmD.
 */
 
 

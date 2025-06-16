@@ -34,6 +34,7 @@ private:
     
 public:
     Book();
+    ~Book();
     Book(const std::string& path);
     std::pair<size_t, size_t> FindRange(uint64_t key) const;
     std::vector <MoveEval> GetMoves(uint64_t key) const;

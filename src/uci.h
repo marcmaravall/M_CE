@@ -22,7 +22,7 @@ public:
 	void register_uci();
 	void ucinewgame();
 	void position(const char* fen);
-	void go();
+	// void go();
 	void stop();
 	void ponderhit();
 	void quit();
@@ -30,4 +30,6 @@ public:
 	void draw();
 
 	void ManageInput(const char* input);
+
+	// static bool IsSearching;
 };

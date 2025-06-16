@@ -146,3 +146,8 @@ Book::Book()
 {
 
 }
+
+Book::~Book()
+{
+	entries.clear();
+}
