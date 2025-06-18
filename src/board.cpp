@@ -47,10 +47,7 @@ Board::Board(const char* fen)
     }
 
 	// some other things
-
-    while (index < fenString.size() && fenString[index] != ' ') {
-        index++;
-    }
+	goto index_space_plus;
 
 	index++;
 
@@ -59,9 +56,7 @@ Board::Board(const char* fen)
         index++;
     }
 
-    while (index < fenString.size() && fenString[index] == ' ') {
-        index++;
-    }
+	goto index_space_plus;
 
 	while (	fenString[index] == 'K' ||
 			fenString[index] == 'Q' ||
@@ -88,9 +83,7 @@ Board::Board(const char* fen)
 		index++;
 	}
 
-	while (index < fenString.size() && fenString[index] == ' ') {
-		index++;
-	}
+	goto index_space_plus;
 
 	enPassantSquare = -1;
 	if (index < fenString.size()) {
@@ -110,6 +103,42 @@ Board::Board(const char* fen)
 			}
 			index += 2;
 		}
+	}
+
+	halfMoves = 0;
+	if (index < fenString.size()) {
+		
+		std::string halfMoveStr = "";
+		while (index < fenString.size() && isdigit(fenString[index])) {
+			halfMoveStr += fenString[index];
+			index++;
+		}
+		if (!halfMoveStr.empty()) {
+			std::cout << "half moves: " << halfMoveStr << "\n";
+			halfMoves = std::stoi(halfMoveStr);
+		}
+	}
+
+	while (index < fenString.size() && fenString[index] == ' ') {
+		index++;
+	}
+
+	turns = 1; 
+	if (index < fenString.size()) {
+		std::string turnStr = "";
+		while (index < fenString.size() && isdigit(fenString[index])) {
+			turnStr += fenString[index];
+			index++;
+		}
+		if (!turnStr.empty()) {
+			std::cout << "moves: " << turnStr << "\n";
+			turns = std::stoi(turnStr);
+		}
+	}
+	
+index_space_plus:
+	while (index < fenString.size() && fenString[index] == ' ') {
+		index++;
 	}
 }
 
@@ -133,7 +162,7 @@ Board::~Board()
 	return squareIndex < 64 ? (std::string)BOARD_STRINGS[squareIndex] : "null";
 }*/
 
-// TODO: refatorize for struct Move				//doing it... I hate C++		did it
+// TODO: refatorize for struct Move				
 bool Board::MovePiece(const Move move)
 {
 	const Board buffer = *this;
@@ -149,10 +178,10 @@ bool Board::MovePiece(const Move move)
 	undo.capturedPiece = Utils::GetPieceType(*this, move.to);
 	undo.promotedPiece = (move.promotion != 255 ? move.promotion : 255);*/
 
-	uint8_t from = move.from;
-	uint8_t to = move.to;
+	const uint8_t from = move.from;
+	const uint8_t to = move.to;
 
-	Board start = *this;
+	const Board start = *this;
 
 	int pieceType = 255;
 	for (int i = 0; i < 12; i++) {
@@ -314,10 +343,11 @@ bool Board::MovePiece(const Move move)
 		*this = buffer;
 		return false;
 	}
-	else
-	{
 
-	}
+	if (start.turn == BLACK_TURN)
+		turns++;
+
+	halfMoves++;
 
 	return true;
 }

@@ -26,8 +26,9 @@ public:
 	uint8_t enPassantSquare = -1;
 
 	bool turn;	// true = white, false = black
-	int turns;
 
+	int halfMoves = 0;
+	int turns = 0;
 
 	uint8_t GetWhiteKingPosition(const bool debug = false);
 	uint8_t GetBlackKingPosition(const bool debug = false);

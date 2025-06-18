@@ -42,6 +42,9 @@
 13/06/2025: Nothing.
 14/06/2025: Added some things to README.md.
 15/06/2025: Created a discord server for the engine, you can join here: https://discord.gg/GjPHXuyzmD.
+16/06/2025: Played some games.
+17/06/2025: Nothing.
+18/06/2026: Added half moves counter and move counter for board.											
 */
 
 
