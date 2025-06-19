@@ -4,117 +4,103 @@
 
 Board::Board(const char* fen)
 {
-	//std::cout << Utils::IsBlackPieceAt(*this, 7) << std::endl;
 	ClearCurrentBitboard();
 
-    std::string fenString(fen);
-    size_t index = 0;
+	std::string fenString(fen);
+	size_t index = 0;
 
-    for (int rank = 7; rank >= 0; rank--) {
-        int file = 0;
+	// Parse board layout
+	for (int rank = 7; rank >= 0; rank--) {
+		int file = 0;
 
-        while (file < 8 && index < fenString.size()) {
-            char c = fenString[index++];
+		while (file < 8 && index < fenString.size()) {
+			char c = fenString[index++];
 
-            if (c == '/') {
-				// break;		error solved
-				// std::cout << "jumping rank\n";
-            }
-            else if (isdigit(c)) {
-                file += (c - '0');
-				// std::cout << "Jumping " << c << " spaces\n";;
-            }
-            else {
-                bool pieceFound = false;
-                for (size_t pieceIndex = 0; pieceIndex < 12; pieceIndex++) {
-                    if (c == PIECE_CHAR[pieceIndex]) {
-                        bitboards[pieceIndex] |= (1ULL << (rank * 8 + file));
-                        pieceFound = true;
-                        break;
-                    }
-                }
+			if (c == '/') {
+				
+			}
+			else if (isdigit(c)) {
+				file += (c - '0');
+			}
+			else {
+				bool pieceFound = false;
+				for (size_t pieceIndex = 0; pieceIndex < 12; pieceIndex++) {
+					if (c == PIECE_CHAR[pieceIndex]) {
+						bitboards[pieceIndex] |= (1ULL << (rank * 8 + file));
+						pieceFound = true;
+						break;
+					}
+				}
 
-                if (pieceFound) {
-                    file++;
-					// std::cout << "piece found\n";
-                }
-                else {
-                    std::cerr << "character not found " << c << std::endl;
-                    file++;
-                }
-            }
-        }
-    }
+				if (pieceFound) {
+					file++;
+				}
+				else {
+					std::cerr << "Carácter no reconocido: " << c << std::endl;
+					file++;
+				}
+			}
+		}
+	}
 
-	// some other things
-	goto index_space_plus;
-
-	index++;
+	while (index < fenString.size() && fenString[index] == ' ') {
+		index++;
+	}
 
 	if (index < fenString.size()) {
 		turn = (fenString[index] == 'w');
-        index++;
-    }
+		index++;
+	}
 
-	goto index_space_plus;
+	while (index < fenString.size() && fenString[index] == ' ') {
+		index++;
+	}
 
-	while (	fenString[index] == 'K' ||
-			fenString[index] == 'Q' ||
-			fenString[index] == 'k' ||
-			fenString[index] == 'q')
-	{
-		switch (fenString[index])
-		{
-		case 'K':
-			wCastlingKing = true;
-			break;
-		case 'Q':
-			wCastlingQueen = true;
-			break;
-		case 'k':
-			bCastlingKing = true;
-			break;
-		case 'q':
-			bCastlingQueen = true;
-			break;
-		default:
-			break;
+	while (index < fenString.size() &&
+		(fenString[index] == 'K' || fenString[index] == 'Q' ||
+			fenString[index] == 'k' || fenString[index] == 'q')) {
+		switch (fenString[index]) {
+		case 'K': wCastlingKing = true; break;
+		case 'Q': wCastlingQueen = true; break;
+		case 'k': bCastlingKing = true; break;
+		case 'q': bCastlingQueen = true; break;
 		}
 		index++;
 	}
 
-	goto index_space_plus;
+	while (index < fenString.size() && fenString[index] == ' ') {
+		index++;
+	}
 
 	enPassantSquare = -1;
 	if (index < fenString.size()) {
 		if (fenString[index] == '-') {
 			index++;
-			// std::cout << "no en passant\n";
 		}
 		else if (index + 1 < fenString.size()) {
-			std::cout << "en passant\n";
 			char fileChar = fenString[index];
 			char rankChar = fenString[index + 1];
 			if (fileChar >= 'a' && fileChar <= 'h' && rankChar >= '1' && rankChar <= '8') {
 				int file = fileChar - 'a';
 				int rank = 8 - (rankChar - '0');
 				enPassantSquare = rank * 8 + file;
-				// std::cout << "En passant square set: " << fileChar << rankChar << " (index: " << enPassantSquare << ")\n";
 			}
 			index += 2;
 		}
 	}
 
-	halfMoves = 0;
+	while (index < fenString.size() && fenString[index] == ' ') {
+		index++;
+	}
+
+	ClearHalfMoves();
 	if (index < fenString.size()) {
-		
 		std::string halfMoveStr = "";
 		while (index < fenString.size() && isdigit(fenString[index])) {
 			halfMoveStr += fenString[index];
 			index++;
 		}
 		if (!halfMoveStr.empty()) {
-			std::cout << "half moves: " << halfMoveStr << "\n";
 			halfMoves = std::stoi(halfMoveStr);
 		}
 	}
@@ -123,7 +109,8 @@ Board::Board(const char* fen)
 		index++;
 	}
 
-	turns = 1; 
+	turns = 1;
+
 	if (index < fenString.size()) {
 		std::string turnStr = "";
 		while (index < fenString.size() && isdigit(fenString[index])) {
@@ -131,14 +118,8 @@ Board::Board(const char* fen)
 			index++;
 		}
 		if (!turnStr.empty()) {
-			std::cout << "moves: " << turnStr << "\n";
 			turns = std::stoi(turnStr);
 		}
-	}
-	
-index_space_plus:
-	while (index < fenString.size() && fenString[index] == ' ') {
-		index++;
 	}
 }
 
@@ -202,11 +183,11 @@ bool Board::MovePiece(const Move move)
 
 	if (turn == WHITE_TURN && pieceType >= 6) {
 		// std::cerr << "ERROR: trying to move a black piece.\n";
-		return false;
+		goto ret_false;
 	}
 	else if (turn == !WHITE_TURN && pieceType < 6) {
 		// std::cerr << "ERROR: trying to move a white piece.\n";
-		return false;
+		goto ret_false;
 	}
 
 	if (move.promotion < 12) {
@@ -236,6 +217,7 @@ bool Board::MovePiece(const Move move)
 		if (CanMovePawn(move))
 		{
 			MovePawn(move);
+			halfMoves--;		// this is for decrement, because at the end halfMoves++  (sorry for my bad english, I'm doing this at 3am)
 		}
 		break;
 	case 1:
@@ -287,6 +269,7 @@ bool Board::MovePiece(const Move move)
 		if (CanMovePawn(move))
 		{
 			MovePawn(move);
+			halfMoves--;
 		}
 		break;
 	case 7:
@@ -341,15 +324,23 @@ bool Board::MovePiece(const Move move)
 		// std::cerr << ((turn == WHITE_TURN) ? "WHITE":"BLACK") << "\n";
 		// UndoMove(undo);
 		*this = buffer;
-		return false;
+		goto ret_false;
 	}
 
-	if (start.turn == BLACK_TURN)
+	if (start.turn == BLACK_TURN) {
 		turns++;
+	}
 
 	halfMoves++;
 
+	goto ret_true;
+
+ret_true:
+	repetitionsHistory.push_back(Utils::GetZobristHash(start, Engine::hashSettings));
 	return true;
+
+ret_false:
+	return false;
 }
 
 bool Board::Promotion(const Move move)
@@ -515,6 +506,8 @@ void Board::MovePawn(const Move move) {
 
 	const uint64_t fromBB = 1ULL << from;
 	const uint64_t toBB = 1ULL << to;
+
+	ClearHalfMoves();
 
 	if (turn == WHITE_TURN) {
 		const uint64_t oneStep = fromBB << 8;
@@ -948,6 +941,10 @@ void Board::MoveWithoutComprobe(int from, int position) {
 		if (Utils::GetBitboardValueOnIndex(bitboards[i], from)) {
 			pieceType = i;
 		}
+
+		if (Utils::GetBitboardValueOnIndex(bitboards[i], position)) {
+			ClearHalfMoves();
+		}
 	}
 
 	ClearBitInAllBitboards(from);
@@ -987,4 +984,29 @@ uint8_t Board::GetBlackKingPosition(const bool debug)
 		Utils::PrintBoard(*this);
 	}
 	return 255;
+}
+
+bool Board::TripleRepetition()
+{
+	int repetitions = 1;
+	const ZobristHash currentHash = Utils::GetZobristHash(*this, Engine::hashSettings);
+
+	for (const auto& position : repetitionsHistory) {
+		if (position == currentHash) {
+			repetitions++;
+		}
+	}
+
+	if (repetitions >= 3) {
+		std::cerr << "Triple repetition detected.\n";
+		return true;
+	}
+
+	return false;
+}
+
+void Board::ClearHalfMoves()
+{
+	halfMoves = 0;
+	repetitionsHistory.clear();
 }

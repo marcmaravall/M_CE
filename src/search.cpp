@@ -61,7 +61,8 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 {
 	std::vector<Move> moves = MVV_LVA_Order(GenerateLegalMoves(position), position, depth);
 
-	NODES++; 
+	NODES++;
+
 	if (depth <= 0)
 	{
 		//if (GenerateLegalMoves(position).empty())									why i did that?
@@ -98,9 +99,14 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 	{
 		// std::cout << "MOVES.EMPTY\n";
 		if (position.IsCheck(position.turn == WHITE_TURN ? WHITE : BLACK)) {
-			int mateScore = MATE_SCORE - (ply -depth);		// 1000000 - max - depth
-			std::cout << "MATE: " << mateScore << " " << max << "\n";
+			int mateScore = MATE_SCORE - (ply - depth);		// 1000000 - max - depth
+			// std::cout << "MATE: " << mateScore << " " << max << "\n";
 			return { Move(), max ? -mateScore : mateScore };
+		}
+		else if (position.halfMoves >= 100 || position.TripleRepetition())
+		{
+			std::cout << "Stalemate\n";
+			return { Move(), 0 };
 		}
 		else {
 			// Utils::PrintBoard(position);
@@ -202,12 +208,12 @@ void Divide(Board& pos, int depth) {
 	// 	throw std::runtime_error("No se pudo abrir el archivo de debug.");
 	// }
 
-	auto moves = GenerateLegalMoves(pos);
+	std::vector<Move> moves = GenerateLegalMoves(pos);
 	uint64_t total = 0;
 
 	for (const Move& move : moves) {
-		// UndoInfo undo = Utils::CreateUndoInfo(pos, move);
-		Board copy = pos;
+		UndoInfo undo = Utils::CreateUndoInfo(pos, move);
+		// Board copy = pos;
 		pos.MovePiece(move);
 
 		uint64_t nodes = Perft(pos, depth - 1);
@@ -217,7 +223,7 @@ void Divide(Board& pos, int depth) {
 			<< nodes << "\n";
 
 		total += nodes;
-		pos = copy;// pos.UndoMove(undo);
+		pos.UndoMove(undo);
 	}
 
 	std::cout << "Total nodes: " << total << "\n\n";
@@ -230,15 +236,14 @@ uint64_t Perft(Board& position, int depth) {
 	uint64_t nodes = 0;
 	std::vector<Move> moves = GenerateLegalMoves(position);
 
-	for (const Move& move : moves) {
-		//UndoInfo undo = Utils::CreateUndoInfo(position, move);
-		Board copy = position;
+	for (Move& move : moves) {
+		UndoInfo undo = Utils::CreateUndoInfo(position, move);
 
-		copy.MovePiece(move);
+		position.MovePiece(move);
 
-		nodes += Perft(copy, depth - 1);
+		nodes += Perft(position, depth - 1);
 
-		// position.UndoMove(undo);
+		position.UndoMove(undo);
 	}
 	return nodes;
 }

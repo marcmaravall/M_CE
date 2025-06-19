@@ -7,6 +7,7 @@
 #include <string>
 #include "constants.h"
 #include "move.h"
+#include <vector>
 
 class Utils;
 class Engine;
@@ -16,7 +17,11 @@ struct Board
 private:
 	void MovePawn(const Move move);
 
+	void ClearHalfMoves();
+
+	std::vector<ZobristHash> repetitionsHistory;
 public:
+
 	bool wCastlingKing = false;
 	bool wCastlingQueen = false;
 
@@ -49,6 +54,8 @@ public:
 	void MoveWithoutComprobe(int from, int position);
 
 	bool Promotion(const Move move);
+
+	bool TripleRepetition();
 
 	bool CanMovePawn	(const Move move) const;
 	bool CanMoveKnight	(const Move move) const;

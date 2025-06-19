@@ -118,7 +118,7 @@ std::string Utils::ConvertToFEN(const Board& board)
 		fen += '-';
 	}
 
-	fen += (" " + std::to_string(board.turns) + " " + std::to_string(board.halfMoves));
+	fen += (" " + std::to_string(board.halfMoves) + " " + std::to_string(board.turns));
 
 	return fen;
 }

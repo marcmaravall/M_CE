@@ -1,7 +1,6 @@
 #include "move_generation.h"
 
-std::vector<Move> GeneratePawnMoves(const Board& board, const uint8_t from) {
-	std::vector<Move> moves;
+void GeneratePawnMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 
 	Move currentMove =
 	{
@@ -83,13 +82,9 @@ std::vector<Move> GeneratePawnMoves(const Board& board, const uint8_t from) {
 			}
 		}
 	}
-
-	return moves;
 }
 
-std::vector<Move> GenerateKnightMoves(const Board& board, const uint8_t from) {
-	std::vector<Move> moves;
-
+void GenerateKnightMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 	Move currentMove = {
 		.from = from,
 		.to = 0,
@@ -108,14 +103,10 @@ std::vector<Move> GenerateKnightMoves(const Board& board, const uint8_t from) {
 			}
 		}
 	}
-
-	return moves;
 }
 
 
-std::vector<Move> GenerateBishopMoves(const Board& board, const uint8_t from) {
-	std::vector<Move> moves;
-
+void GenerateBishopMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 	Move currentMove =
 	{
 		.from = 0,
@@ -137,19 +128,16 @@ std::vector<Move> GenerateBishopMoves(const Board& board, const uint8_t from) {
 			}
 		}
 	}
-
-	return moves;
 }
 
-std::vector<Move> GenerateRookMoves(const Board& board, const uint8_t from) {
-	std::vector<Move> moves;
+void GenerateRookMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 
 	Move currentMove =
 	{
-			.from = 0,
-			.to = 0,
-			.promotion = 255,
-			.capture = false,
+		.from = 0,
+		.to = 0,
+		.promotion = 255,
+		.capture = false,
 	};
 
 	currentMove.from = from;
@@ -166,32 +154,21 @@ std::vector<Move> GenerateRookMoves(const Board& board, const uint8_t from) {
 			}
 		}
 	}
-
-	return moves;
 }
 
-std::vector<Move> GenerateQueenMoves(const Board& board, const uint8_t from) {
-	std::vector<Move> moves;
-
-	std::vector<Move> bishopMoves = GenerateBishopMoves(board, from);
-	std::vector<Move> rookMoves = GenerateRookMoves(board, from);
-
-	moves.insert(moves.end(), bishopMoves.begin(), bishopMoves.end());
-	moves.insert(moves.end(), rookMoves.begin(), rookMoves.end());
-
-	return moves;
+void GenerateQueenMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
+	GenerateBishopMoves(board, from, moves);
+	GenerateRookMoves(board, from, moves);
 }
 
 
-std::vector<Move> GenerateKingMoves(const Board& board, const uint8_t from) {
-	std::vector<Move> moves;
-
+void GenerateKingMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 	Move currentMove =
 	{
-			.from = 0,
-			.to = 0,
-			.promotion = 255,
-			.capture = false,
+		.from = 0,
+		.to = 0,
+		.promotion = 255,
+		.capture = false,
 	};
 
 	currentMove.from = from;
@@ -215,14 +192,10 @@ std::vector<Move> GenerateKingMoves(const Board& board, const uint8_t from) {
 			moves.push_back(currentMove);
 		}
 	}
-
-	return moves;
 }
 
-std::vector<Move> GenerateCastlingMoves(const Board& board, const uint8_t from)
+void GenerateCastlingMoves(const Board& board, const uint8_t from, std::vector<Move>& moves)
 {
-	std::vector<Move> moves;
-
 	Move currentMove;
 
 	if (board.turn == WHITE_TURN)
@@ -256,63 +229,35 @@ std::vector<Move> GenerateCastlingMoves(const Board& board, const uint8_t from)
 			moves.push_back(currentMove);
 		}
 	}
-
-	return moves;
 }
 
-std::vector<Move> GeneratePseudoLegalMoves(const Board& board)
-{
-	std::vector<Move> moves;
+void GeneratePseudoLegalMoves(const Board& board, std::vector<Move>& moves) {
+	moves.clear();
+	moves.reserve(64);
 
-	for (size_t i = 0; i < 12; i++)
-	{
-		for (size_t j = 0; j < 64; j++)
-		{
-			if (Utils::GetBitboardValueOnIndex(board.bitboards[i], j) == 1)
-			{
-				if (i == 0 || i == 6)
-				{
-					const std::vector<Move> pawnMoves = GeneratePawnMoves(board, j);
-					moves.insert(moves.end(), pawnMoves.begin(), pawnMoves.end());
-				}
-				else if (i == 1 || i == 7)
-				{
-					std::vector<Move> knightMoves = GenerateKnightMoves(board, j);
-					moves.insert(moves.end(), knightMoves.begin(), knightMoves.end());
-				}
-				else if (i == 2 || i == 8)
-				{
-					std::vector<Move> bishopMoves = GenerateBishopMoves(board, j);
-					moves.insert(moves.end(), bishopMoves.begin(), bishopMoves.end());
-				}
-				else if (i == 3 || i == 9)
-				{
-					std::vector<Move> rookMoves = GenerateRookMoves(board, j);
-					moves.insert(moves.end(), rookMoves.begin(), rookMoves.end());
-				}
-				else if (i == 4 || i == 10)
-				{
-					std::vector<Move> queenMoves = GenerateQueenMoves(board, j);
-					moves.insert(moves.end(), queenMoves.begin(), queenMoves.end());
-				}
-				else if (i == 5 || i == 11)
-				{
-					std::vector<Move> kingMoves = GenerateKingMoves(board, j);
-					moves.insert(moves.end(), kingMoves.begin(), kingMoves.end());
-
-					std::vector<Move> castlingMoves = GenerateCastlingMoves(board, j);
-					moves.insert(moves.end(), castlingMoves.begin(), castlingMoves.end());
+	for (size_t i = 0; i < 12; i++) {
+		for (size_t j = 0; j < 64; j++) {
+			if (Utils::GetBitboardValueOnIndex(board.bitboards[i], j) == 1) {
+				switch (i) {
+				case 0: case 6: GeneratePawnMoves(board, j, moves); break;
+				case 1: case 7: GenerateKnightMoves(board, j, moves); break;
+				case 2: case 8: GenerateBishopMoves(board, j, moves); break;
+				case 3: case 9: GenerateRookMoves(board, j, moves); break;
+				case 4: case 10: GenerateQueenMoves(board, j, moves); break;
+				case 5: case 11:
+					GenerateKingMoves(board, j, moves);
+					GenerateCastlingMoves(board, j, moves);
+					break;
 				}
 			}
 		}
 	}
-
-	return moves;
 }
 
 std::vector<Move> GenerateLegalMoves(Board& board)
 {
-	std::vector<Move> pseudoLegalMoves = GeneratePseudoLegalMoves(board);
+	std::vector<Move> pseudoLegalMoves;
+	GeneratePseudoLegalMoves(board, pseudoLegalMoves);
 
 	std::vector<Move> legalMoves;
 	for (const Move& move : pseudoLegalMoves)

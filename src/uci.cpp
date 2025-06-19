@@ -148,7 +148,16 @@ void UCI::ManageInput(const char* input)
 		else if (tokens[index] == "depth") {
 			index++;
 			int depth = std::stoi(tokens[index]);
+
+			sendInfo = true; 
+			// std::future<void> infoFuture = std::async(std::launch::async, &UCI::SendInfo, this);
+
+			std::cout << "info string search started\n";
+
 			MoveEval moveEval = engine.Search(depth);
+
+			std::cout << "info string search ended\n";
+			sendInfo = false;
 
 			// std::cerr << moveEval.move.from << " " << moveEval.move.to << "\n";
 
@@ -197,5 +206,23 @@ void UCI::stop()
 void UCI::draw()
 {
 	engine.PrintBoard();
+}
+
+void UCI::SendInfo()
+{
+	while (sendInfo)
+	{
+		int actualNodes = NODES;
+
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+
+		int nps = (NODES - actualNodes);
+
+		std::string info = "info";
+		info += (" nodes " + std::to_string(NODES));
+		info += (" nps " + std::to_string(nps));
+
+		std::cout << info << std::endl;
+	}
 }
 

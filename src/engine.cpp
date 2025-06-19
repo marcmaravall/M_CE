@@ -432,7 +432,7 @@ MoveEval Engine::Search(int depth)
 
     // real search
 	// UCI::IsSearching = true;
-	
+
     currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, depth);
 
 	// UCI::IsSearching = false;

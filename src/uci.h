@@ -16,6 +16,8 @@ private:
 public:
 	UCI();
 
+	void SendInfo();
+
 	void uci();
 	void isready();
 	void setoption(const char* name, const char* value);
@@ -32,4 +34,6 @@ public:
 	void ManageInput(const char* input);
 
 	// static bool IsSearching;
+
+	bool sendInfo = true;
 };

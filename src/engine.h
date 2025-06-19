@@ -6,12 +6,14 @@
 #include "book.h"
 #include "constants.h"
 #include "evaluation.h"
+#include "search.h"
 // #include "uci.h"
 #include "move.h"
 #include <chrono>
 #include <random>
 #include <fstream>
 #include <filesystem>
+#include <future>
 
 namespace fs = std::filesystem;
 struct MoveEval;
@@ -80,6 +82,8 @@ public:
 
 	static Book book;
 
+public:
+	int timeSearching = 0;
 };
 
 #endif
