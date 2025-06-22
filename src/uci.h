@@ -1,5 +1,6 @@
 #define M_CE_UCI
 #include "engine.h"
+#include <cstdint>
 #include <iostream>
 #include <unordered_map>
 #include <functional>
@@ -9,7 +10,7 @@ class UCI
 {
 private:
 	const char* m_uciName = "M_CE";
-	const char* m_uciAuthor = "Marc Maravall Díez";
+	const char* m_uciAuthor = "Marc Maravall DÃ­ez";
 
 	Engine engine;
 

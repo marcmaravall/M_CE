@@ -3,6 +3,7 @@
 #ifndef MOVE_H
 	#define MOVE_H 
 #include <iostream>
+#include <cstdint>
 
 struct Move
 {

@@ -1,6 +1,7 @@
 #pragma once
 #define M_CE 1.0
 #include "move.h"
+#include <cstdint>
 
 enum PIECE
 {

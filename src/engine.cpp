@@ -22,12 +22,20 @@ void Engine::init()
 	InitKnightMasks();
     InitKingMasks();
     polyglotSettings = generatePolyglotSettings();
+
+#ifdef WIN32
     book = Book(programDir+"\\books\\komodo.bin");
+#elif __linux__
+    book = Book(programDir+"/books/komodo.bin");
+#endif
 
 	currentBoard = Board(START_FEN);    
 
+#ifdef _WIN32
     std::ofstream debugFile(programDir+"\\tests", std::ios::app);
-
+#elif __linux__
+    std::ofstream debugFile(programDir+"/tests", std::ios::app);
+#endif
     debugFile.clear();
 }
 

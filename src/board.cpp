@@ -36,7 +36,7 @@ Board::Board(const char* fen)
 					file++;
 				}
 				else {
-					std::cerr << "Carácter no reconocido: " << c << std::endl;
+					std::cerr << "Not found character: " << c << std::endl;
 					file++;
 				}
 			}
@@ -433,9 +433,13 @@ bool Board::CanMovePawn(const Move move, const bool _turn) const {
 		else if ((fromBB & ~FILE_A_MASK) && (to == from + NORTH_WEST) && Utils::IsBlackPieceAt(*this, to)) {
 			return true;
 		}
+		const bool isEnPassantCapture =
+			to == enPassantSquare &&
+			((from + NORTH_EAST == to && (fromBB & ~FILE_H_MASK)) || 
+			(from + NORTH_WEST == to && (fromBB & ~FILE_A_MASK)));  
 
-		else if ((to == enPassantSquare) &&
-			((from + NORTH_EAST == to) || (from + NORTH_WEST == to)) && to > 32 && (fromBB & ~FILE_H_MASK) && (fromBB & ~FILE_A_MASK)) {
+		if (isEnPassantCapture) {
+			// std::cout << "En passant move can move\n";
 			return true;
 		}
 	}
@@ -459,8 +463,12 @@ bool Board::CanMovePawn(const Move move, const bool _turn) const {
 		else if ((fromBB & ~FILE_A_MASK) && (to == from + SOUTH_WEST) && Utils::IsWhitePieceAt(*this, to)) {
 			return true;
 		}
-		else if ((to == enPassantSquare) &&
-			((from + SOUTH_EAST == to) || (from + SOUTH_WEST == to)) && to < 32 && (fromBB & ~FILE_H_MASK) && (fromBB & ~FILE_A_MASK)) {
+		
+		const bool isEnPassantCapture =
+			to == enPassantSquare &&
+			((from + SOUTH_EAST == to && (fromBB & ~FILE_H_MASK)) || 
+			(from + SOUTH_WEST == to && (fromBB & ~FILE_A_MASK)));  
+		if (isEnPassantCapture) {
 			return true;
 		}
 	}
@@ -588,7 +596,9 @@ void Board::UndoMove(const UndoInfo& undo) {
 		std::cout << "DEBUGGING POSITION WITH ERROR -------------------------\n";
 	}
 
-	Move reverseMove(undo.move.to, undo.move.from);
+	Move reverseMove; // (undo.move.to, undo.move.from);
+	reverseMove.from = undo.move.to;
+	reverseMove.to = undo.move.from;
 
 	MoveWithoutComprobe(reverseMove.from, reverseMove.to);
 
@@ -1010,3 +1020,4 @@ void Board::ClearHalfMoves()
 	halfMoves = 0;
 	repetitionsHistory.clear();
 }
+

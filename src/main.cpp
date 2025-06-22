@@ -44,7 +44,11 @@
 15/06/2025: Created a discord server for the engine, you can join here: https://discord.gg/GjPHXuyzmD.
 16/06/2025: Played some games.
 17/06/2025: Nothing.
-18/06/2026: Added half moves counter and move counter for board.											
+18/06/2025: Added half moves counter and move counter for board.
+19/06/2025: Added 50 moves rule and 3 repetitions rule.
+20/06/2025: Proving the engine in Ubuntu, it works fine, but it needs some changes.
+21/06/2025: Added changes for linux file system, now I can load books.
+22/06/2025: Solved a minor bug with en passant, now perft 5 works perfectly.
 */
 
 
@@ -54,8 +58,8 @@
 
 int main()
 {
+	// std::cout << "HELLO, WORLD!\n";
 	srand(static_cast<unsigned int>(time(nullptr)));
-
 
 	UCI uci;
 	while (true)
@@ -70,4 +74,5 @@ int main()
 	// engine.PlayAgainistItself();
 	return 0;
 }
+
 
