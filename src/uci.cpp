@@ -119,6 +119,18 @@ void UCI::ManageInput(const char* input)
 		}
 	}
 
+	else if (command == "eval")
+	{
+		std::cout << "info string eval " << Evaluation::Evaluate(engine.currentBoard) << "\n";
+	}
+
+	else if (command == "tests")
+	{
+		SpeedTest();
+		UndoMoveTest();
+		EvalTest();
+	}
+
 	else if (command == "go") {
 		index++;
 
@@ -149,7 +161,7 @@ void UCI::ManageInput(const char* input)
 			index++;
 			int depth = std::stoi(tokens[index]);
 
-			sendInfo = true; 
+			sendInfo = true;
 			// std::future<void> infoFuture = std::async(std::launch::async, &UCI::SendInfo, this);
 
 			std::cout << "info string search started\n";
@@ -157,7 +169,9 @@ void UCI::ManageInput(const char* input)
 			MoveEval moveEval = engine.Search(depth);
 
 			std::cout << "info string search ended\n";
+
 			sendInfo = false;
+			// infoFuture.get(); 
 
 			// std::cerr << moveEval.move.from << " " << moveEval.move.to << "\n";
 
@@ -226,3 +240,77 @@ void UCI::SendInfo()
 	}
 }
 
+void UCI::SpeedTest()
+{
+	using namespace std::chrono;
+
+	auto start = high_resolution_clock::now();
+	
+	std::vector<Move> moves = GenerateLegalMoves(engine.currentBoard);
+	// Divide(engine.currentBoard, 5);
+	auto end = high_resolution_clock::now();
+
+	double duration = duration_cast<microseconds>(end - start).count();
+	std::cout << "Time generating legal moves: " << duration << "us. " << duration / 1000.0f << "ms. " << duration / 1'000'000.0 << "s. \n";
+}
+
+void UCI::EvalTest()
+{
+	using namespace std::chrono;
+
+	std::vector<Move> moves = GenerateLegalMoves(engine.currentBoard);
+
+	std::vector<Board> boards;
+
+	for (const Move& move : moves)
+	{
+		Board current = engine.currentBoard;
+		current.MovePieceFast(move);
+
+		boards.push_back(current);
+	}
+
+	auto start = high_resolution_clock::now();
+
+	for (const Board& board : boards)
+	{
+		Evaluation::Evaluate(board);
+	}
+
+	auto end = high_resolution_clock::now();
+
+	double duration = duration_cast<microseconds>(end - start).count();
+	std::cout << "Time generating evaluations of " << moves.size() << " positions: " << duration << "ps. " << duration / 1'000.0f << "ms. " << duration / 1'000'000.0 << "s. \n";
+}
+
+void UCI::UndoMoveTest()
+{
+	const std::vector moves = GenerateLegalMoves(engine.currentBoard);
+
+	auto start = std::chrono::high_resolution_clock::now();
+	for (const Move& m : moves) {
+		UndoInfo info = Utils::CreateUndoInfo(engine.currentBoard, m);
+		engine.currentBoard.MovePiece(m);
+		engine.currentBoard.UndoMove(info);
+	}
+	auto end = std::chrono::high_resolution_clock::now();
+	std::cout << "Move + undo of 20 moves: "
+		<< std::chrono::duration<double, std::micro>(end - start).count() << "us\n";
+}
+
+void UCI::NPSTest()
+{
+	auto start = std::chrono::high_resolution_clock::now();
+
+	const MoveEval m = AlphaBeta(engine.currentBoard, 5, -1000000, 1000000, true, 5);
+
+	auto end = std::chrono::high_resolution_clock::now();
+
+	double duration = duration_cast<std::chrono::microseconds>(end - start).count();
+	std::cout << "Time with alphabeta" << duration << "us. " << duration / 1'000.0f << "ms. " << duration / 1'000'000.0 << "s. \n";
+}
+
+void UCI::SearchTest()
+{
+	
+}

@@ -4,10 +4,10 @@ void GeneratePawnMoves(const Board& board, const uint8_t from, std::vector<Move>
 
 	Move currentMove =
 	{
-			.from = 0,
-			.to = 0,
-			.promotion = 255,
-			.capture = false,
+		.from = 0,
+		.to = 0,
+		.promotion = 255,
+		.capture = false,
 	};
 
 	currentMove.from = from;
@@ -235,20 +235,25 @@ void GeneratePseudoLegalMoves(const Board& board, std::vector<Move>& moves) {
 	moves.clear();
 	moves.reserve(64);
 
-	for (size_t i = 0; i < 12; i++) {
-		for (size_t j = 0; j < 64; j++) {
-			if (Utils::GetBitboardValueOnIndex(board.bitboards[i], j) == 1) {
-				switch (i) {
-				case 0: case 6: GeneratePawnMoves(board, j, moves); break;
-				case 1: case 7: GenerateKnightMoves(board, j, moves); break;
-				case 2: case 8: GenerateBishopMoves(board, j, moves); break;
-				case 3: case 9: GenerateRookMoves(board, j, moves); break;
-				case 4: case 10: GenerateQueenMoves(board, j, moves); break;
-				case 5: case 11:
-					GenerateKingMoves(board, j, moves);
-					GenerateCastlingMoves(board, j, moves);
-					break;
-				}
+	bool isWhiteTurn = (board.turn == WHITE_TURN);
+	size_t start = isWhiteTurn ? 0 : 6;
+	size_t end = isWhiteTurn ? 6 : 12;
+
+	for (size_t i = start; i < end; i++) {
+		Bitboard b = board.bitboards[i];
+		while (b) {
+			size_t j = Utils::PopLSB(b);
+
+			switch (i) {
+			case 0: case 6: GeneratePawnMoves(board, j, moves); break;
+			case 1: case 7: GenerateKnightMoves(board, j, moves); break;
+			case 2: case 8: GenerateBishopMoves(board, j, moves); break;
+			case 3: case 9: GenerateRookMoves(board, j, moves); break;
+			case 4: case 10: GenerateQueenMoves(board, j, moves); break;
+			case 5: case 11:
+				GenerateKingMoves(board, j, moves);
+				GenerateCastlingMoves(board, j, moves);
+				break;
 			}
 		}
 	}
@@ -262,24 +267,20 @@ std::vector<Move> GenerateLegalMoves(Board& board)
 	std::vector<Move> legalMoves;
 	for (const Move& move : pseudoLegalMoves)
 	{
-		// UndoInfo info = Utils::CreateUndoInfo(board, move);
-		Board copy = board;
+		UndoInfo info = Utils::CreateUndoInfo(board, move);
+		// Board copy = board;
 
-		if (copy.MovePiece(move)) {
+		if (board.MovePieceFast(move)) {
 			legalMoves.push_back(move);
 			
-			//.UndoMove(info);
-		}
-		else
-		{
-			// std::cout << "ahjhsakjdj";
+			board.UndoMove(info);
 		}
 	}
 	return legalMoves;
 }
 
 
-std::vector<Move> MVV_LVA_Order(const std::vector<Move>& moves, const Board& board, uint8_t depth) {
+std::vector<Move> MVV_LVA_Order(const std::vector<Move>& moves, const Board& board) {
 	std::vector<Move> captures;
 	std::vector<Move> nonCaptures;
 	std::vector<Move> orderedMoves;

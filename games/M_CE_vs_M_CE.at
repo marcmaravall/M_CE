@@ -5,7 +5,7 @@ CurrSwissRound=0
 Rounds=10
 CurrentPair=1
 CurrentRound=1
-Level=0 5
+Level=0 7
 [Options]
 QuitAfterTournament=0
 ShutDownAfterTournament=0

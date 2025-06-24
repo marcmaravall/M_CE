@@ -406,6 +406,11 @@ MoveEval Engine::Search(int depth)
 
     // std::cerr << std::hex << hash << "\n";
 
+    currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, depth);
+
+    // UCI::IsSearching = false;
+    return currentMove;
+
     auto it = std::find_if(book.entries.begin(), book.entries.end(),
         [hash](const PolyglotEntry& entry) {
             // std::cerr << "polygot entry founded\n" << (entry.key == hash);

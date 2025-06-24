@@ -34,6 +34,12 @@ public:
 
 	void ManageInput(const char* input);
 
+	void SpeedTest();
+	void EvalTest();
+	void UndoMoveTest();
+	void NPSTest();
+	void SearchTest();
+
 	// static bool IsSearching;
 
 	bool sendInfo = true;

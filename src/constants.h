@@ -239,7 +239,7 @@ inline constexpr const int* PIECE_SQUARE_TABLES[12] = {
 };
 
 
-typedef enum
+const typedef enum
 {
 	W_PAWN_I = 0, W_KNIGHT_I = 1, W_BISHOP_I = 2, W_ROOK_I = 3, W_QUEEN_I = 4, W_KING_I = 5,
 	B_PAWN_I = 6, B_KNIGHT_I = 7, B_BISHOP_I = 8, B_ROOK_I = 9, B_QUEEN_I = 10, B_KING_I = 11,
@@ -270,8 +270,11 @@ struct UndoInfo {
 	int turns;
 
 	Move move;
+
 	uint8_t capturedPiece;
 	uint8_t promotedPiece;
+
+	uint8_t movedPiece;
 };
 
 const int MATE_SCORE = 100000;

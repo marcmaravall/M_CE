@@ -42,14 +42,14 @@ public:
 	Board();
 	~Board();
 
-	void SetAllBitboards(uint8_t indexPosition);
-	void SetBitboardBit(int pieceType, int indexPosition);
+	// void SetAllBitboards(uint8_t indexPosition);                         I'm so dumb ...
+	void SetBitboardBit(const int pieceType, const int indexPosition);
 	void ClearBitInAllBitboards(uint8_t indexPosition);
 	void ClearCurrentBitboard();
 	// std::string ConvertToBoardPosition(uint8_t squareIndex);
 
-	bool MovePiece(const Move move);
-
+	bool MovePiece(const Move& move);
+	bool MovePieceFast(const Move& move);			// this is for search
 
 	void MoveWithoutComprobe(int from, int position);
 

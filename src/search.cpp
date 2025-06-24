@@ -1,5 +1,4 @@
 #include "search.h"
-#include "search.h"
 
 int NODES = 0;
 int ALPHA_BETA_PRUNINGS = 0;
@@ -26,7 +25,7 @@ MoveEval Minimax(Board& position, uint8_t depth, bool max)
 		for (const Move& move : moves)
 		{
 			Board newPosition = position;
-			newPosition.MovePiece(move);
+			newPosition.MovePieceFast(move);
 
 			MoveEval result = Minimax(newPosition, depth - 1, false);
 			if (result.eval > bestMove.eval)
@@ -42,7 +41,7 @@ MoveEval Minimax(Board& position, uint8_t depth, bool max)
 		for (const Move& move : moves)
 		{
 			Board newPosition = position;
-			newPosition.MovePiece(move);
+			newPosition.MovePieceFast(move);
 
 			MoveEval result = Minimax(newPosition, depth - 1, true);
 			if (result.eval < bestMove.eval)
@@ -59,13 +58,17 @@ MoveEval Minimax(Board& position, uint8_t depth, bool max)
 // reduces complexity O(n^2) to O(n) by using alpha-beta pruning
 MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max, int ply)
 {
-	std::vector<Move> moves = MVV_LVA_Order(GenerateLegalMoves(position), position, depth);
+	std::vector<Move> moves = GenerateLegalMoves(position);
+	MVV_LVA_Order(moves, position);
+
+	if (ply == depth)
+		NODES = 0;
 
 	NODES++;
 
 	if (depth <= 0)
 	{
-		//if (GenerateLegalMoves(position).empty())									why i did that?
+		//if (GenerateLegalMoves(position).empty())									
 		//{
 		//	// std::cerr << "MOVES.EMPTY 0\n";
 		//	if (position.IsCheck(position.turn==WHITE_TURN? WHITE : BLACK)) {
@@ -82,7 +85,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 
 
 	// TT implementation
-	ZobristHash zobristHash = Utils::GetZobristHash(position, Engine::hashSettings);
+	/*ZobristHash zobristHash = Utils::GetZobristHash(position, Engine::hashSettings);
 	int index = zobristHash & (TT_SIZE - 1);
 	TTEntry& entry = TranspositionTable[index];
 
@@ -93,7 +96,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			return { entry.bestMove };
 		if (entry.bound == UPPERBOUND && entry.bestMove.eval <= alpha)
 			return { entry.bestMove };
-	}
+	}*/
 
 	if (moves.empty())
 	{
@@ -110,8 +113,8 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		}
 		else {
 			// Utils::PrintBoard(position);
-			std::cerr << "No moves available, returning 0 evaluation.\n";
-			Utils::PrintBoard(position);
+			// std::cerr << "No moves available, returning 0 evaluation.\n";
+			// Utils::PrintBoard(position);
 			//std::cerr << "DEBUG: Is Check " << position.IsCheck((max) ? WHITE : BLACK, true) << "\n";
 			return { Move(), 0 };
 		}
@@ -125,12 +128,12 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		bestMove.eval = -1000000;
 		for (const Move& move : moves)
 		{
-			// UndoInfo undo = Utils::CreateUndoInfo(position, move);
+			UndoInfo undo = Utils::CreateUndoInfo(position, move);
 			// Engine::undoStack.push_back(undo);
 			
 			// newPosition.MovePiece(move);
-			Board buffer = position;
-			position.MovePiece(move);
+			// Board buffer = position;
+			position.MovePieceFast(move);
 
 			MoveEval result = AlphaBeta(position, depth - 1, alpha, beta, false, ply);
 			
@@ -143,8 +146,8 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			}
 			alpha = std::max(alpha, bestMove.eval);
 			
-			// position.UndoMove(undo);
-			position = buffer;
+			position.UndoMove(undo);
+			// position = buffer;
 			// Engine::undoStack.pop_back();
 
 			if (beta <= alpha)
@@ -159,14 +162,14 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		bestMove.eval = 1000000;
 		for (const Move& move : moves)
 		{
-			// UndoInfo undo = Utils::CreateUndoInfo(position, move);
-			Board buffer = position;
+			UndoInfo undo = Utils::CreateUndoInfo(position, move);
+			// Board buffer = position;
 			// Engine::undoStack.push_back(undo);
 
 			// newPosition.MovePiece(move);
-			buffer.MovePiece(move);
+			position.MovePieceFast(move);
 
-			MoveEval result = AlphaBeta(buffer, depth - 1, alpha, beta, true, ply);
+			MoveEval result = AlphaBeta(position, depth - 1, alpha, beta, true, ply);
 			if (result.eval < bestMove.eval)
 			{
 				bestMove.eval = result.eval;
@@ -174,8 +177,8 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			}
 			beta = std::min(beta, bestMove.eval);
 
-			// position.UndoMove(undo);
-			Engine::undoStack.pop_back();
+			position.UndoMove(undo);
+			// Engine::undoStack.pop_back();
 
 			if (beta <= alpha)
 			{
@@ -186,7 +189,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 	}
 
 	// save stte into tt
-	BoundType bound;
+	/*BoundType bound;
 	if (bestMove.eval <= alphaOrig) bound = UPPERBOUND;
 	else if (bestMove.eval >= beta) bound = LOWERBOUND;
 	else bound = EXACT;
@@ -196,7 +199,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		.depth = depth,
 		.bestMove = bestMove,
 		.bound = bound
-	};
+	};*/
 
 	return bestMove;
 }

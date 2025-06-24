@@ -62,6 +62,9 @@ int main()
 	srand(static_cast<unsigned int>(time(nullptr)));
 
 	UCI uci;
+
+	uci.NPSTest();
+
 	while (true)
 	{
 		std::string input;

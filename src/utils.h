@@ -59,4 +59,6 @@ public:
 	static uint8_t GetPromotionPiece(char letter, bool isWhite);
 
 	static std::string MoveToStr(const Move& move);
+
+	static uint8_t BitScanForward(const uint64_t bb);
 };

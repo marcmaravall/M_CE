@@ -36,10 +36,12 @@ private:
 	ZobristHashSettings generatePolyglotSettings();
 
 private:
-	Board currentBoard;
+	// Board currentBoard;
 
 	void ManageInput();
 public:
+	Board currentBoard;
+
 	Engine();
 	~Engine();
 

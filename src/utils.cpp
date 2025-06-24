@@ -392,6 +392,7 @@ UndoInfo Utils::CreateUndoInfo(const Board& board, const Move& move)
 	undo.move = move;
 	undo.capturedPiece = Utils::GetPieceType(board, move.to);
 	undo.promotedPiece = (move.promotion != 255 ? move.promotion : 255);
+	undo.movedPiece = Utils::GetPieceType(board, move.from);
 
 	return undo;
 }
@@ -458,5 +459,16 @@ std::string Utils::MoveToStr(const Move& move)
 	}
 
 	return res;
+}
+
+uint8_t Utils::BitScanForward(uint64_t bb) {
+	if (bb == 0) return 64; // o 255 para invalid
+
+	uint8_t index = 0;
+	while ((bb & 1) == 0) {
+		bb >>= 1;
+		index++;
+	}
+	return index;
 }
 

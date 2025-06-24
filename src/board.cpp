@@ -144,25 +144,16 @@ Board::~Board()
 }*/
 
 // TODO: refatorize for struct Move				
-bool Board::MovePiece(const Move move)
+bool Board::MovePiece(const Move& move)
 {
-	const Board buffer = *this;
-	/*UndoInfo undo;
-	undo.wCastlingKing = wCastlingKing;
-	undo.wCastlingQueen = wCastlingQueen;
-	undo.bCastlingKing = bCastlingKing;
-	undo.bCastlingQueen = bCastlingQueen;
-	undo.enPassantSquare = enPassantSquare;
-	undo.turn = turn;
-	undo.turns = turns;
-	undo.move = move;
-	undo.capturedPiece = Utils::GetPieceType(*this, move.to);
-	undo.promotedPiece = (move.promotion != 255 ? move.promotion : 255);*/
+	// const Board buffer = *this;
+	UndoInfo undo = Utils::CreateUndoInfo(*this, move);
 
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
 
-	const Board start = *this;
+	const bool startTurn = turn;
+	const ZobristHash startHash = Utils::GetZobristHash(*this, Engine::hashSettings);
 
 	int pieceType = 255;
 	for (int i = 0; i < 12; i++) {
@@ -217,7 +208,7 @@ bool Board::MovePiece(const Move move)
 		if (CanMovePawn(move))
 		{
 			MovePawn(move);
-			halfMoves--;		// this is for decrement, because at the end halfMoves++  (sorry for my bad english, I'm doing this at 3am)
+			halfMoves--;		
 		}
 		break;
 	case 1:
@@ -319,15 +310,15 @@ bool Board::MovePiece(const Move move)
 		break;
 	}
 
-	if (IsCheck((start.turn == WHITE_TURN) ? WHITE : BLACK, false)) {
+	if (IsCheck((startTurn == WHITE_TURN) ? WHITE : BLACK, false)) {
 		// std::cerr << "ERROR: move puts king in check.\n";
 		// std::cerr << ((turn == WHITE_TURN) ? "WHITE":"BLACK") << "\n";
-		// UndoMove(undo);
-		*this = buffer;
+		UndoMove(undo);
+		// *this = buffer;
 		goto ret_false;
 	}
 
-	if (start.turn == BLACK_TURN) {
+	if (startTurn == BLACK_TURN) {
 		turns++;
 	}
 
@@ -336,11 +327,52 @@ bool Board::MovePiece(const Move move)
 	goto ret_true;
 
 ret_true:
-	repetitionsHistory.push_back(Utils::GetZobristHash(start, Engine::hashSettings));
+	repetitionsHistory.push_back(startHash);
 	return true;
 
 ret_false:
 	return false;
+}
+
+bool Board::MovePieceFast(const Move& move)		// for search
+{
+	const UndoInfo undo = Utils::CreateUndoInfo(*this, move);
+
+	const uint8_t from = move.from;
+	const uint8_t to = move.to;
+
+	int pieceType = 255;
+	for (int i = 0; i < 12; ++i) {
+		if ((bitboards[i] >> from) & 1ULL) {
+			pieceType = i;
+			break;
+		}
+	}
+	if (pieceType >= 12) return false;
+
+	for (int i = 0; i < 12; ++i)
+		bitboards[i] &= ~(1ULL << to);
+
+	bitboards[pieceType] &= ~(1ULL << from);
+	bitboards[pieceType] |= (1ULL << to);
+
+	if (move.promotion != 255) {
+		bitboards[pieceType] &= ~(1ULL << to);
+		bitboards[move.promotion] |= (1ULL << to);
+	}
+
+	if (IsCheck(turn == !WHITE_TURN ? BLACK : WHITE, false)) {
+		UndoMove(undo);
+		return false;
+	}
+
+	enPassantSquare = 255;
+	turn = !turn;
+	halfMoves++;
+	if (turn == WHITE_TURN)
+		++turns;
+
+	return true;
 }
 
 bool Board::Promotion(const Move move)
@@ -584,17 +616,17 @@ void Board::MovePawn(const Move move) {
 }
 
 void Board::UndoMove(const UndoInfo& undo) {
-	//std::cout << "DEBUG UNDO MOVE" << "\n";
-	//Utils::PrintBoard(*this);
+	// std::cout << "DEBUG UNDO MOVE" << "\n";
+	// Utils::PrintBoard(*this);
 
-	bool debug = false;
+	// const bool debug = false;
 
 	// std::cout << "FEN START: " << Utils::ConvertToFEN(*this) << "\n";
 
-	if (Utils::ConvertToFEN(*this) == "rnbPk1nr/ppppbppp/8/4p3/4P3/P7/1PPP1PPP/RNBQKBNR w KQkq - 0 1") {
+	/*if (Utils::ConvertToFEN(*this) == "rnbPk1nr/ppppbppp/8/4p3/4P3/P7/1PPP1PPP/RNBQKBNR w KQkq - 0 1") {
 		debug = true;
 		std::cout << "DEBUGGING POSITION WITH ERROR -------------------------\n";
-	}
+	}*/
 
 	Move reverseMove; // (undo.move.to, undo.move.from);
 	reverseMove.from = undo.move.to;
@@ -606,10 +638,10 @@ void Board::UndoMove(const UndoInfo& undo) {
 		SetBitboardBit(undo.capturedPiece, undo.move.to);
 	}
 
-	//if (undo.promotedPiece != 255) {
-	//	ClearBitInAllBitboards(undo.move.to);
-	//	SetBitboardBit((undo.turn == WHITE_TURN ? 0 : 6), undo.move.from);		TOD0: solve bug in this part.
-	//}
+	if (undo.promotedPiece != 255) {
+		ClearBitInAllBitboards(undo.move.to);
+		SetBitboardBit((undo.turn == WHITE_TURN ? 0 : 6), undo.move.from);		// TODO: solve bug in this part.
+	}
 
 	wCastlingKing = undo.wCastlingKing;
 	wCastlingQueen = undo.wCastlingQueen;
@@ -930,70 +962,74 @@ void Board::SetAllBitboards(uint8_t indexPosition) {
 	}
 }*/
 
-void Board::SetBitboardBit(int piece, int indexPosition) {
+void Board::SetBitboardBit(const int piece, const int indexPosition) {
 	if (piece > 12)
 		return;
 
 	this->bitboards[piece] |= (1ULL << indexPosition);
 }
 
-void Board::ClearBitInAllBitboards(uint8_t  indexPosition) {
+void Board::ClearBitInAllBitboards(uint8_t indexPosition) {
 	for (size_t i = 0; i < 12; i++) {
 		bitboards[i] &= ~(1ULL << indexPosition);
 	}
 }
 
-void Board::MoveWithoutComprobe(int from, int position) {
-	int pieceType = 255;
-
-	// std::cout << "FROM: " << from << " POSITION: " << position << "\n";
+void Board::MoveWithoutComprobe(int from, int to) {
+	// Identifica la pieza que se mueve
+	int movedPiece = 255;
 	for (int i = 0; i < 12; i++) {
-		if (Utils::GetBitboardValueOnIndex(bitboards[i], from)) {
-			pieceType = i;
-		}
-
-		if (Utils::GetBitboardValueOnIndex(bitboards[i], position)) {
-			ClearHalfMoves();
+		if ((bitboards[i] >> from) & 1) {
+			movedPiece = i;
+			break;
 		}
 	}
 
-	ClearBitInAllBitboards(from);
-	ClearBitInAllBitboards(position);
-	SetBitboardBit(pieceType, position);
+	// Captura
+	for (int i = 0; i < 12; i++) {
+		if ((bitboards[i] >> to) & 1) {
+			bitboards[i] &= ~(1ULL << to);
+			ClearHalfMoves(); // Solo si había pieza enemiga
+			break;
+		}
+	}
 
+	// Mueve la pieza
+	bitboards[movedPiece] &= ~(1ULL << from);
+	bitboards[movedPiece] |= (1ULL << to);
+
+	// Cambia turno
 	turn = !turn;
 }
 
 uint8_t Board::GetWhiteKingPosition(const bool debug)
 {
-	for (size_t i = 0; i < 64; i++)
-	{
-		if (Utils::GetBitboardValueOnIndex(bitboards[5], i)) {
-			// if (debug) std::cerr << "White king found at: " << i << std::endl;
-			return i;
-		}
+	Bitboard whiteKingBB = bitboards[5]; 
+
+	if (whiteKingBB == 0) {
+		return 255;  
 	}
-	return 255;
+
+	uint8_t pos = Utils::BitScanForward(whiteKingBB);
+
+	if (debug) std::cerr << "White king found at: " << (int)pos << std::endl;
+
+	return pos;
 }
 
 uint8_t Board::GetBlackKingPosition(const bool debug)
 {
-	for (size_t i = 0; i < 64; i++)
-	{
-		if (Utils::GetBitboardValueOnIndex(bitboards[11], i)) {
-			// std::cerr << "Black king found at " << i << "\n";
-			return i;
-		}
+	Bitboard whiteKingBB = bitboards[11];
+
+	if (whiteKingBB == 0) {
+		return 255;
 	}
 
-	if (debug) { 
-		std::cerr << "Black king not found\n";
+	uint8_t pos = Utils::BitScanForward(whiteKingBB);
 
-		// debug bitboard:
-		std::cerr << bitboards[11] << std::endl;
-		Utils::PrintBoard(*this);
-	}
-	return 255;
+	if (debug) std::cerr << "Black king found at: " << (int)pos << std::endl;
+
+	return pos;
 }
 
 bool Board::TripleRepetition()

@@ -3,8 +3,8 @@
 #include "evaluation.h"
 #include "board.h"
 #include "move.h"
-#include "move_generation.h"
 #include "book.h"
+#include "move_generation.h"
 #include <iostream>
 #include <vector>
 #include <fstream>
