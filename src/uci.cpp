@@ -161,17 +161,18 @@ void UCI::ManageInput(const char* input)
 			index++;
 			int depth = std::stoi(tokens[index]);
 
-			sendInfo = true;
-			// std::future<void> infoFuture = std::async(std::launch::async, &UCI::SendInfo, this);
+			// sendInfo = true;
 
-			std::cout << "info string search started\n";
+			NODES = 0; 
+			auto start = std::chrono::high_resolution_clock::now();
 
 			MoveEval moveEval = engine.Search(depth);
 
-			std::cout << "info string search ended\n";
+			auto end = std::chrono::high_resolution_clock::now();
+			double elapsedSeconds = std::chrono::duration<double>(end - start).count();
 
-			sendInfo = false;
-			// infoFuture.get(); 
+			std::cout << "info nodes " << NODES << "\n";
+			std::cout << "info nps " << static_cast<int>(NODES / elapsedSeconds) << "\n";
 
 			// std::cerr << moveEval.move.from << " " << moveEval.move.to << "\n";
 
@@ -280,7 +281,7 @@ void UCI::EvalTest()
 	auto end = high_resolution_clock::now();
 
 	double duration = duration_cast<microseconds>(end - start).count();
-	std::cout << "Time generating evaluations of " << moves.size() << " positions: " << duration << "ps. " << duration / 1'000.0f << "ms. " << duration / 1'000'000.0 << "s. \n";
+	std::cout << "Time generating evaluations of " << moves.size() << " positions: " << duration << "us. " << duration / 1'000.0f << "ms. " << duration / 1'000'000.0 << "s. \n";
 }
 
 void UCI::UndoMoveTest()
@@ -302,12 +303,13 @@ void UCI::NPSTest()
 {
 	auto start = std::chrono::high_resolution_clock::now();
 
-	const MoveEval m = AlphaBeta(engine.currentBoard, 5, -1000000, 1000000, true, 5);
+	NODES = 0;
+	const MoveEval m = engine.Search(2);
 
 	auto end = std::chrono::high_resolution_clock::now();
 
 	double duration = duration_cast<std::chrono::microseconds>(end - start).count();
-	std::cout << "Time with alphabeta" << duration << "us. " << duration / 1'000.0f << "ms. " << duration / 1'000'000.0 << "s. \n";
+	std::cout << "Time with alphabeta nodes " << NODES << " duration " << duration << "us. " << duration / 1'000.0f << "ms. " << duration / 1'000'000.0 << "s. \n";
 }
 
 void UCI::SearchTest()

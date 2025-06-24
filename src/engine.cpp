@@ -406,6 +406,7 @@ MoveEval Engine::Search(int depth)
 
     // std::cerr << std::hex << hash << "\n";
 
+    NODES = 0;
     currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, depth);
 
     // UCI::IsSearching = false;

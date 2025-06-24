@@ -23,7 +23,7 @@ public:
 
 	static Bitboard GetFileMask(uint8_t file);
 
-	static bool GetBitboardValueOnIndex(Bitboard bitboard, uint8_t index);
+	static bool GetBitboardValueOnIndex(const Bitboard bitboard, const uint8_t index);
 
 	static bool IsWhitePieceAt(const Board& board, uint8_t index);
 	static bool IsBlackPieceAt(const Board& board, uint8_t index);

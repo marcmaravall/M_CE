@@ -49,6 +49,8 @@
 20/06/2025: Proving the engine in Ubuntu, it works fine, but it needs some changes.
 21/06/2025: Added changes for linux file system, now I can load books.
 22/06/2025: Solved a minor bug with en passant, now perft 5 works perfectly.
+23/06/2025: Optimizing search and move generation, now the engine is x2 faster, but is very bad.
+24/06/2025: Searching why the engine is so bad, I think that is a problem with alphabeta implementation.
 */
 
 
@@ -58,12 +60,11 @@
 
 int main()
 {
-	// std::cout << "HELLO, WORLD!\n";
 	srand(static_cast<unsigned int>(time(nullptr)));
 
 	UCI uci;
 
-	uci.NPSTest();
+	// uci.NPSTest();
 
 	while (true)
 	{

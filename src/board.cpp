@@ -910,7 +910,7 @@ Bitboard Board::GetKingAttacks(uint8_t square) {
 	return attacks;
 }
 
-bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug) {
+inline bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug) {
 	const bool attackingColor = attackerColor;
 
 	for (size_t i = 0; i < 12; i++) {
@@ -919,32 +919,25 @@ bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square,
 			continue;
 		}
 
-		for (int j = 0; j < 64; j++) {
-			if (!Utils::GetBitboardValueOnIndex(bitboards[i], j)) {
-				continue;
-			}
+		Bitboard b = bitboards[i];
+		while (b) {
+			const int from = Utils::PopLSB(b);
 
-			switch (i%6) {
-			case 0: if (CanMovePawn		(Move{ j, square }, !attackerColor)) {return true; } break;
-			case 1: if (CanMoveKnight	(Move{ j, square }, !attackerColor)) {return true; } break;
-			case 2: if (CanMoveBishop	(Move{ j, square }, !attackerColor)) {return true; } break;
-			case 3: if (CanMoveRook		(Move{ j, square }, !attackerColor)) {return true; } break;
-			case 4: if (CanMoveQueen	(Move{ j, square }, !attackerColor)) {return true; } break;
-			case 5: if (CanMoveKing		(Move{ j, square }, !attackerColor)) {return true; } break;
+			switch (i % 6) {
+			case 0: if (CanMovePawn(Move{ from, square }, !attackerColor)) { return true; } break;
+			case 1: if (CanMoveKnight(Move{ from, square }, !attackerColor)) { return true; } break;
+			case 2: if (CanMoveBishop(Move{ from, square }, !attackerColor)) { return true; } break;
+			case 3: if (CanMoveRook(Move{ from, square }, !attackerColor)) { return true; } break;
+			case 4: if (CanMoveQueen(Move{ from, square }, !attackerColor)) { return true; } break;
+			case 5: if (CanMoveKing(Move{ from, square }, !attackerColor)) { return true; } break;
 			}
 		}
-	}
-
-	if (debug)
-	{
-		//std::cerr << "DEBUG: \n"
-		//	<< "Square checked: " << square << "\n";
 	}
 
 	return false;
 }
 
-bool Board::IsCheck(const PIECE_COLORS king, const bool debug) {
+inline bool Board::IsCheck(const PIECE_COLORS king, const bool debug) {
 	const int kingSquare = (king == WHITE)
 		? GetWhiteKingPosition()
 		: GetBlackKingPosition();
@@ -1010,7 +1003,7 @@ uint8_t Board::GetWhiteKingPosition(const bool debug)
 		return 255;  
 	}
 
-	uint8_t pos = Utils::BitScanForward(whiteKingBB);
+	const uint8_t pos = Utils::BitScanForward(whiteKingBB);
 
 	if (debug) std::cerr << "White king found at: " << (int)pos << std::endl;
 

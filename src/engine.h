@@ -40,7 +40,7 @@ private:
 
 	void ManageInput();
 public:
-	Board currentBoard;
+	Board currentBoard = Board(START_FEN);
 
 	Engine();
 	~Engine();

@@ -175,8 +175,8 @@ bool Utils::IsBlackPieceAt(const Board& board, uint8_t index) {
 }
 
 
-bool Utils::GetBitboardValueOnIndex(Bitboard bitboard, uint8_t index) {
-	return bitboard & (1ULL << index);
+inline bool Utils::GetBitboardValueOnIndex(const Bitboard bitboard, const uint8_t index) {
+	return (bitboard >> index) & 1;
 }
 
 std::string Utils::ToUpper(std::string str) {
@@ -249,7 +249,7 @@ uint8_t Utils::GetPieceType(const Board& board, uint8_t index) {
 }
 
 
-int Utils::PopLSB(uint64_t& bb) {
+inline int Utils::PopLSB(uint64_t& bb) {
 	int index;
 
 #if defined(_MSC_VER)

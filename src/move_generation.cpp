@@ -94,17 +94,16 @@ void GenerateKnightMoves(const Board& board, const uint8_t from, std::vector<Mov
 
 	uint64_t mask = Engine::knightMasks[from];
 
-	for (uint8_t to = 0; to < 64; ++to) {
-		if (mask & (1ULL << to)) {
-			if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
-				currentMove.to = to;
-				currentMove.capture = Utils::IsEnemyPieceAt(board, to);
-				moves.push_back(currentMove);
-			}
+	while (mask) {
+		uint8_t to = Utils::PopLSB(mask);
+
+		if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+			currentMove.to = to;
+			currentMove.capture = Utils::IsEnemyPieceAt(board, to);
+			moves.push_back(currentMove);
 		}
 	}
 }
-
 
 void GenerateBishopMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 	Move currentMove =
@@ -119,13 +118,13 @@ void GenerateBishopMoves(const Board& board, const uint8_t from, std::vector<Mov
 
 	Bitboard mask = Utils::GenerateBishopAttacks(from, Utils::GetAllBitboards(board.bitboards, BOTH));
 
-	for (uint8_t to = 0; to < 64; ++to) {
-		if (mask & (1ULL << to)) {
-			if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
-				currentMove.to = to;
-				currentMove.capture = Utils::IsEnemyPieceAt(board, to);
-				moves.push_back(currentMove);
-			}
+	while (mask) {
+		uint8_t to = Utils::PopLSB(mask);
+
+		if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+			currentMove.to = to;
+			currentMove.capture = Utils::IsEnemyPieceAt(board, to);
+			moves.push_back(currentMove);
 		}
 	}
 }
@@ -143,15 +142,13 @@ void GenerateRookMoves(const Board& board, const uint8_t from, std::vector<Move>
 	currentMove.from = from;
 
 	Bitboard mask = Utils::GenerateRookAttacks(from, Utils::GetAllBitboards(board.bitboards, BOTH));
+	while (mask) {
+		uint8_t to = Utils::PopLSB(mask);
 
-	for (uint8_t to = 0; to < 64; ++to) {
-		if (mask & (1ULL << to)) {
-			if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
-				currentMove.to = to;
-
-				currentMove.capture = Utils::IsEnemyPieceAt(board, to);
-				moves.push_back(currentMove);
-			}
+		if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+			currentMove.to = to;
+			currentMove.capture = Utils::IsEnemyPieceAt(board, to);
+			moves.push_back(currentMove);
 		}
 	}
 }
@@ -173,22 +170,14 @@ void GenerateKingMoves(const Board& board, const uint8_t from, std::vector<Move>
 
 	currentMove.from = from;
 
-	const uint8_t positionsComprobe[8] = {
-		from + NORTH, from + SOUTH, from + EAST, from + WEST,
-		from + NORTH_EAST, from + NORTH_WEST, from + SOUTH_EAST, from + SOUTH_WEST
-	};
+	Bitboard mask = Engine::kingMasks[from];
 
-	for (size_t i = 0; i < 8; i++)
-	{
-		currentMove.to = positionsComprobe[i];
+	while (mask) {
+		uint8_t to = Utils::PopLSB(mask);
 
-		if (board.CanMoveKing(currentMove)) {
-			if (Utils::GetPieceType(board, currentMove.to) < 12) {
-				currentMove.capture = true;
-				currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
-			}
-			else
-				currentMove.capture = false;
+		if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+			currentMove.to = to;
+			currentMove.capture = Utils::IsEnemyPieceAt(board, to);
 			moves.push_back(currentMove);
 		}
 	}
