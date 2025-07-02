@@ -404,14 +404,6 @@ MoveEval Engine::Search(int depth)
     currentMove.move.promotion = 255;
     uint64_t hash = Utils::GetZobristHash(currentBoard, Engine::polyglotSettings);
 
-    // std::cerr << std::hex << hash << "\n";
-
-    NODES = 0;
-    currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, depth);
-
-    // UCI::IsSearching = false;
-    return currentMove;
-
     auto it = std::find_if(book.entries.begin(), book.entries.end(),
         [hash](const PolyglotEntry& entry) {
             // std::cerr << "polygot entry founded\n" << (entry.key == hash);
@@ -430,12 +422,12 @@ MoveEval Engine::Search(int depth)
 		int random = rand() % totalWeight;
         int cumulative = 0;
 
-        std::cout << random << "\n";
+        // std::cout << random << "\n";
 
-        for (MoveEval move : moves) {
+        for (const MoveEval& move : moves) {
             cumulative += move.weight;
             if (random < cumulative) {
-                std::cout << cumulative << "\n";
+                // std::cout << cumulative << "\n";
                 return move;
             }
         }
@@ -447,7 +439,7 @@ MoveEval Engine::Search(int depth)
     // real search
 	// UCI::IsSearching = true;
 
-    currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, depth);
+    currentMove = AlphaBeta(currentBoard, depth, -1'000'000, 1'000'000, currentBoard.turn == WHITE_TURN, depth);
 
 	// UCI::IsSearching = false;
 	return currentMove;
@@ -504,7 +496,7 @@ void Engine::MovePiece(const char* moveStr)
 			// std::cerr << input << "\n";
 		}
 
-		currentBoard.MovePiece(current);
+		currentBoard.MovePieceFast(current);
     }
 }
 
@@ -648,6 +640,4 @@ fs::path Engine::getProjectDirectory() {
     return exe;
 }
 // -------------------------------------------
-
-
 

@@ -78,7 +78,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		return { Move(), Evaluation::Evaluate(position) };
 	}
 
-	/*/ TT implementation
+	// TT implementation
 	ZobristHash zobristHash = Utils::GetZobristHash(position, Engine::hashSettings);
 	int index = zobristHash & (TT_SIZE - 1);
 	TTEntry& entry = TranspositionTable[index];
@@ -90,7 +90,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			return { entry.bestMove };
 		if (entry.bound == UPPERBOUND && entry.bestMove.eval <= alpha)
 			return { entry.bestMove };
-	}*/
+	}
 
 	if (moves.empty())
 	{
@@ -112,14 +112,13 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 	MoveEval bestMove;
 	if (max)
 	{
-		bestMove.eval = -1000000;
+		bestMove.eval = -1'000'000;
 		for (const Move& move : moves)
 		{
-			// UndoInfo undo = Utils::CreateUndoInfo(position, move);
+			const UndoInfo undo = Utils::CreateUndoInfo(position, move);
 			// Engine::undoStack.push_back(undo);
 
 			// newPosition.MovePiece(move);
-			Board buffer = position;
 			position.MovePiece(move);
 
 			const MoveEval result = AlphaBeta(position, depth - 1, alpha, beta, false, ply);
@@ -130,8 +129,8 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			}
 			alpha = std::max(alpha, bestMove.eval);
 
-			// position.UndoMove(undo);
-			position = buffer;
+			position.UndoMove(undo);
+			// position = buffer;
 
 			if (beta <= alpha)
 			{
@@ -142,17 +141,18 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 	}
 	else
 	{
-		bestMove.eval = 1000000;
+		bestMove.eval = 1'000'000;
 		for (const Move& move : moves)
 		{
-			// UndoInfo undo = Utils::CreateUndoInfo(position, move);
-			Board buffer = position;
-			// Engine::undoStack.push_back(undo);
+			const UndoInfo undo = Utils::CreateUndoInfo(position, move);
 
 			// newPosition.MovePiece(move);
-			buffer.MovePiece(move);
+			if (!position.MovePieceFast(move))
+			{
+				static_assert("Move Piece Fast cannot move");
+			}
 
-			const MoveEval result = AlphaBeta(buffer, depth - 1, alpha, beta, true, ply);
+			const MoveEval result = AlphaBeta(position, depth - 1, alpha, beta, true, ply);
 			if (result.eval < bestMove.eval)
 			{
 				bestMove.eval = result.eval;
@@ -160,7 +160,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			}
 			beta = std::min(beta, bestMove.eval);
 
-			// position.UndoMove(undo);
+			position.UndoMove(undo);
 
 			if (beta <= alpha)
 			{
@@ -171,7 +171,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 	}
 
 	// save stte into tt
-	/*BoundType bound;
+	BoundType bound;
 	if (bestMove.eval <= alphaOrig) bound = UPPERBOUND;
 	else if (bestMove.eval >= beta) bound = LOWERBOUND;
 	else bound = EXACT;
@@ -181,7 +181,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		.depth = depth,
 		.bestMove = bestMove,
 		.bound = bound
-	};*/
+	};
 
 	return bestMove;
 }
@@ -190,12 +190,16 @@ void Divide(Board& pos, int depth) {
 	// const std::string debugFilePath = "C:\\Users\\Marc\\source\\repos\\M_CE\\debug.txt";
 	// std::ofstream debugFile(debugFilePath, std::ios::app);
 	// if (!debugFile.is_open()) {
-	// 	throw std::runtime_error("No se pudo abrir el archivo de debug.");
+	// 	throw std::runtime_error("Cannot read debug file.");
 	// }
+
+	NODES = 0;
 
 	std::vector<Move> moves = GenerateLegalMoves(pos);
 	uint64_t total = 0;
 
+	auto start = std::chrono::high_resolution_clock::now();
+	
 	for (const Move& move : moves) {
 		UndoInfo undo = Utils::CreateUndoInfo(pos, move);
 		// Board copy = pos;
@@ -211,12 +215,19 @@ void Divide(Board& pos, int depth) {
 		pos.UndoMove(undo);
 	}
 
-	std::cout << "Total nodes: " << total << "\n\n";
-	// debugFile.close();
+
+	auto end = std::chrono::high_resolution_clock::now();
+
+	double duration = duration_cast<std::chrono::seconds>(end - start).count(); 
+
+	std::cout << "Total nodes: " << total << " time: " << duration<< "s nps: " << std::dec << NODES / duration << "\n\n";
 }
 
 uint64_t Perft(Board& position, int depth) {
-	if (depth == 0) return 1;
+	if (depth == 0) {
+		NODES++;
+		return 1;
+	}
 
 	uint64_t nodes = 0;
 	std::vector<Move> moves = GenerateLegalMoves(position);

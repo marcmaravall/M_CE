@@ -51,6 +51,13 @@
 22/06/2025: Solved a minor bug with en passant, now perft 5 works perfectly.
 23/06/2025: Optimizing search and move generation, now the engine is x2 faster, but is very bad.
 24/06/2025: Searching why the engine is so bad, I think that is a problem with alphabeta implementation.
+25/06/2025: Optimized the engine to up 100k nps in depth 5.
+26/06/2025: Searching why the engine is so bad with the optimizations that I've made.
+27/06/2025: Added some uci options support.												--.
+28/06/2025: Nothing...																	  |
+29/06/2025: Nothing...																	  | - Relaxing
+30/06/2025: Nothing...																	  |
+01/06/2025: Nothing...																	--.
 */
 
 
@@ -73,7 +80,7 @@ int main()
 		uci.ManageInput(input.c_str());
 	}
 
-	/*Engine engine;
+	/* Engine engine;
 	engine.RunBookTest();*/
 	// engine.PlayAgainistItself();
 	return 0;

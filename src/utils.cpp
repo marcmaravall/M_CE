@@ -154,7 +154,7 @@ Bitboard Utils::GetFileMask(uint8_t file)
 	return mask;
 }
 
-bool Utils::IsWhitePieceAt(const Board& board, uint8_t index) {
+bool Utils::IsWhitePieceAt(const Board& board, const uint8_t index) {
 	return
 		(GetBitboardValueOnIndex(board.bitboards[0], index) == 1) ||
 		(GetBitboardValueOnIndex(board.bitboards[1], index) == 1) ||
@@ -164,7 +164,7 @@ bool Utils::IsWhitePieceAt(const Board& board, uint8_t index) {
 		(GetBitboardValueOnIndex(board.bitboards[5], index) == 1);
 }
 
-bool Utils::IsBlackPieceAt(const Board& board, uint8_t index) {
+bool Utils::IsBlackPieceAt(const Board& board, const uint8_t index) {
 	return
 		(GetBitboardValueOnIndex(board.bitboards[6], index) == 1) ||
 		(GetBitboardValueOnIndex(board.bitboards[7], index) == 1) ||
@@ -239,7 +239,7 @@ Bitboard Utils::GetDiagonalMask(uint8_t index)
 	return mask;
 }
 
-uint8_t Utils::GetPieceType(const Board& board, uint8_t index) {
+inline uint8_t Utils::GetPieceType(const Board& board, const uint8_t index) {
 	for (int i = 0; i < 12; i++) {
 		if (GetBitboardValueOnIndex(board.bitboards[i], index)) {
 			return i;
@@ -249,19 +249,23 @@ uint8_t Utils::GetPieceType(const Board& board, uint8_t index) {
 }
 
 
-inline int Utils::PopLSB(uint64_t& bb) {
-	int index;
+#if defined(_MSC_VER)
+__forceinline
+#else
+inline __attribute__((always_inline))
+#endif
+int Utils::PopLSB(uint64_t& bb) {
+	if(bb == 0) return -1;
 
 #if defined(_MSC_VER)
-	unsigned long idx;
-	_BitScanForward64(&idx, bb);
-	index = (int)idx;
+	unsigned long index;
+	_BitScanForward64(&index, bb);
 #else
-	index = __builtin_ctzll(bb);
+	int index = __builtin_ctzll(bb);
 #endif
 
 	bb &= bb - 1;
-	return index;
+	return static_cast<int>(index);
 }
 
 ZobristHash Utils::GetZobristHash(const Board& board, const ZobristHashSettings& settings)
@@ -270,7 +274,7 @@ ZobristHash Utils::GetZobristHash(const Board& board, const ZobristHashSettings&
 
 	for (int i = 0; i < 12; i++)
 	{
-		uint8_t piece = i;
+		const uint8_t piece = i;
 		uint64_t bitboard = board.bitboards[piece];
 		while (bitboard)
 		{
@@ -339,7 +343,7 @@ bool Utils::IsEnemyPieceAt(const Board& board, uint8_t position)
 bool isOnFileA(uint8_t pos) { return pos % 8 == 0;  }
 bool isOnFileH(uint8_t pos) { return pos % 8 == 7;  }
 
-Bitboard Utils::RayAttacks(uint8_t from, int dir, Bitboard occupancy) {
+inline Bitboard Utils::RayAttacks(uint8_t from, int dir, Bitboard occupancy) {
 	Bitboard attacks = 0ULL;
 	int to = from;
 
@@ -359,7 +363,7 @@ Bitboard Utils::RayAttacks(uint8_t from, int dir, Bitboard occupancy) {
 	return attacks;
 }
 
-Bitboard Utils::GenerateBishopAttacks(int square, Bitboard occupancy) {
+Bitboard Utils::GenerateBishopAttacks(const int square, const Bitboard occupancy) {
 	Bitboard attacks = 0;
 	attacks |= RayAttacks(square, -9, occupancy);
 	attacks |= RayAttacks(square, -7, occupancy);
@@ -368,7 +372,7 @@ Bitboard Utils::GenerateBishopAttacks(int square, Bitboard occupancy) {
 	return attacks;
 }
 
-Bitboard Utils::GenerateRookAttacks(int square, Bitboard occupancy) {
+Bitboard Utils::GenerateRookAttacks(const int square, const Bitboard occupancy) {
 	Bitboard attacks = 0;
 	attacks |= RayAttacks(square, -8, occupancy);
 	attacks |= RayAttacks(square, 8, occupancy);
@@ -380,9 +384,8 @@ Bitboard Utils::GenerateRookAttacks(int square, Bitboard occupancy) {
 
 UndoInfo Utils::CreateUndoInfo(const Board& board, const Move& move)
 {
-
 	UndoInfo undo;
-	undo.wCastlingKing = board.wCastlingKing;
+	undo.wCastlingKing =	board.wCastlingKing;
 	undo.wCastlingQueen =	board.wCastlingQueen;
 	undo.bCastlingKing =	board.bCastlingKing;
 	undo.bCastlingQueen =	board.bCastlingQueen;
@@ -391,7 +394,7 @@ UndoInfo Utils::CreateUndoInfo(const Board& board, const Move& move)
 	undo.turns =			board.turns;
 	undo.move = move;
 	undo.capturedPiece = Utils::GetPieceType(board, move.to);
-	undo.promotedPiece = (move.promotion != 255 ? move.promotion : 255);
+	undo.promotedPiece = move.promotion;
 	undo.movedPiece = Utils::GetPieceType(board, move.from);
 
 	return undo;
@@ -462,7 +465,7 @@ std::string Utils::MoveToStr(const Move& move)
 }
 
 uint8_t Utils::BitScanForward(uint64_t bb) {
-	if (bb == 0) return 64; // o 255 para invalid
+	if (bb == 0) return 255;
 
 	uint8_t index = 0;
 	while ((bb & 1) == 0) {
@@ -471,4 +474,3 @@ uint8_t Utils::BitScanForward(uint64_t bb) {
 	}
 	return index;
 }
-

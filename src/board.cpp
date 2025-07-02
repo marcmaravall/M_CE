@@ -356,7 +356,7 @@ bool Board::MovePieceFast(const Move& move)		// for search
 	bitboards[pieceType] &= ~(1ULL << from);
 	bitboards[pieceType] |= (1ULL << to);
 
-	if (move.promotion != 255) {
+	if (move.promotion < 12) {
 		bitboards[pieceType] &= ~(1ULL << to);
 		bitboards[move.promotion] |= (1ULL << to);
 	}
@@ -377,9 +377,9 @@ bool Board::MovePieceFast(const Move& move)		// for search
 
 bool Board::Promotion(const Move move)
 {
-	int from = move.from;
-	int position = move.to;
-	int promotion = move.promotion;
+	const int from = move.from;
+	const int position = move.to;
+	const int promotion = move.promotion;
 	// std::cerr << "PROMOTION ----" << from << " " << position << " " << promotion << "\n";
 
 	int pieceType = 255;
@@ -471,7 +471,6 @@ bool Board::CanMovePawn(const Move move, const bool _turn) const {
 			(from + NORTH_WEST == to && (fromBB & ~FILE_A_MASK)));  
 
 		if (isEnPassantCapture) {
-			// std::cout << "En passant move can move\n";
 			return true;
 		}
 	}
@@ -628,17 +627,28 @@ void Board::UndoMove(const UndoInfo& undo) {
 		std::cout << "DEBUGGING POSITION WITH ERROR -------------------------\n";
 	}*/
 
+	if (undo.move.castling)
+	{
+		// TODO: castling, now i'm so lazy 
+
+		if (undo.move.mode)
+		{
+			MoveWithoutComprobe(undo.turn == WHITE_TURN? 6 : 62, undo.turn == WHITE_TURN ? 4 : 60);
+			MoveWithoutComprobe(undo.turn == WHITE_TURN ? 5 : 61, undo.turn == WHITE_TURN ? 7 : 63);
+		}
+	}
+
 	Move reverseMove; // (undo.move.to, undo.move.from);
 	reverseMove.from = undo.move.to;
 	reverseMove.to = undo.move.from;
 
 	MoveWithoutComprobe(reverseMove.from, reverseMove.to);
 
-	if (undo.capturedPiece != 255) {
+	if (undo.capturedPiece < 12) {
 		SetBitboardBit(undo.capturedPiece, undo.move.to);
 	}
 
-	if (undo.promotedPiece != 255) {
+	if (undo.promotedPiece < 12) {
 		ClearBitInAllBitboards(undo.move.to);
 		SetBitboardBit((undo.turn == WHITE_TURN ? 0 : 6), undo.move.from);		// TODO: solve bug in this part.
 	}
@@ -654,7 +664,7 @@ void Board::UndoMove(const UndoInfo& undo) {
 	// std::cout << "FEN REVERSED MOVE:" << Utils::ConvertToFEN(*this) << "\n";
 }
 
-bool Board::CanMoveKnight(const Move move, const bool _turn) const{
+inline bool Board::CanMoveKnight(const Move move, const bool _turn) const{
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
 
@@ -667,7 +677,7 @@ bool Board::CanMoveKnight(const Move move, const bool _turn) const{
 		return !Utils::IsBlackPieceAt(*this, to);
 }
 
-bool Board::CanMoveBishop(const Move move, const bool _turn) const{
+inline bool Board::CanMoveBishop(const Move move, const bool _turn) const{
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
 
@@ -714,6 +724,7 @@ bool Board::CanMoveBishop(const Move move, const bool _turn) const{
 
 bool Board::IsOccupied(uint8_t square) const{
 	for (int i = 0; i < 12; i++) {
+
 		if (Utils::GetBitboardValueOnIndex(bitboards[i], square))
 			return true;
 	}
@@ -767,20 +778,20 @@ bool Board::CanMoveRook(const Move move, const bool _turn) const{
 	}
 
 	return true;
-}
-
-
-bool Board::CanMoveQueen(const Move move, const bool _turn) const{
-	return CanMoveRook(move, _turn) || CanMoveBishop(move, _turn);
-}
-
-bool Board::CanMoveKing(const Move move, const bool _turn) const {
-	const uint8_t from = move.from;
-	const uint8_t to = move.to;
-
-	if (from == to || from >= 64 || to >= 64)
-		return false;
-
+}																	
+																	
+																	
+bool Board::CanMoveQueen(const Move move, const bool _turn) const{	
+	return CanMoveRook(move, _turn) || CanMoveBishop(move, _turn);	
+}																	
+																	
+bool Board::CanMoveKing(const Move move, const bool _turn) const {	
+	const uint8_t from = move.from;									
+	const uint8_t to = move.to;										
+																	
+	if (from == to || from >= 64 || to >= 64)						
+		return false;												
+																	
 	if (!(Engine::kingMasks[from] & (1ULL << to)))
 		return false;
 
@@ -911,28 +922,28 @@ Bitboard Board::GetKingAttacks(uint8_t square) {
 }
 
 inline bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug) {
-	const bool attackingColor = attackerColor;
+	const Bitboard targetBB = 1ULL << square;
+	const Bitboard occupancy = Utils::GetAllBitboards(bitboards);
 
-	for (size_t i = 0; i < 12; i++) {
-		if ((attackingColor == WHITE_TURN && i < 6) ||
-			(attackingColor == BLACK_TURN && i >= 6)) {
-			continue;
-		}
+	const bool isWhite = (!attackerColor == WHITE);
 
-		Bitboard b = bitboards[i];
-		while (b) {
-			const int from = Utils::PopLSB(b);
+	const Bitboard pawnAttackers = bitboards[isWhite ? B_PAWN_I : W_PAWN_I];
+	const Bitboard pawnAttacks = isWhite
+		? ((targetBB & ~FILE_A_MASK) >> 9) | ((targetBB & ~FILE_H_MASK) >> 7)
+		: ((targetBB & ~FILE_H_MASK) << 9) | ((targetBB & ~FILE_A_MASK) << 7);
 
-			switch (i % 6) {
-			case 0: if (CanMovePawn(Move{ from, square }, !attackerColor)) { return true; } break;
-			case 1: if (CanMoveKnight(Move{ from, square }, !attackerColor)) { return true; } break;
-			case 2: if (CanMoveBishop(Move{ from, square }, !attackerColor)) { return true; } break;
-			case 3: if (CanMoveRook(Move{ from, square }, !attackerColor)) { return true; } break;
-			case 4: if (CanMoveQueen(Move{ from, square }, !attackerColor)) { return true; } break;
-			case 5: if (CanMoveKing(Move{ from, square }, !attackerColor)) { return true; } break;
-			}
-		}
-	}
+	if (pawnAttacks & pawnAttackers) return true;
+
+	if (Engine::knightMasks[square] & bitboards[isWhite ? B_KNIGHT_I : W_KNIGHT_I]) return true;
+
+	if (Engine::kingMasks[square] & bitboards[isWhite ? B_KING_I : W_KNIGHT_I]) return true;
+
+	const Bitboard bishopLike = bitboards[isWhite ? B_BISHOP_I : W_BISHOP_I] | bitboards[isWhite ? B_QUEEN_I : W_QUEEN_I];
+	if (Utils::GenerateBishopAttacks(square, occupancy) & bishopLike) return true;
+
+	const Bitboard rookLike = bitboards[isWhite ? B_ROOK_I : W_ROOK_I] | bitboards[isWhite ? B_QUEEN_I : W_QUEEN_I];
+	if (Utils::GenerateRookAttacks(square, occupancy) & rookLike) return true;
+
 
 	return false;
 }
@@ -968,8 +979,7 @@ void Board::ClearBitInAllBitboards(uint8_t indexPosition) {
 	}
 }
 
-void Board::MoveWithoutComprobe(int from, int to) {
-	// Identifica la pieza que se mueve
+void Board::MoveWithoutComprobe(const int from, const int to) {
 	int movedPiece = 255;
 	for (int i = 0; i < 12; i++) {
 		if ((bitboards[i] >> from) & 1) {
@@ -978,20 +988,17 @@ void Board::MoveWithoutComprobe(int from, int to) {
 		}
 	}
 
-	// Captura
 	for (int i = 0; i < 12; i++) {
 		if ((bitboards[i] >> to) & 1) {
 			bitboards[i] &= ~(1ULL << to);
-			ClearHalfMoves(); // Solo si había pieza enemiga
+			ClearHalfMoves();
 			break;
 		}
 	}
 
-	// Mueve la pieza
 	bitboards[movedPiece] &= ~(1ULL << from);
 	bitboards[movedPiece] |= (1ULL << to);
 
-	// Cambia turno
 	turn = !turn;
 }
 

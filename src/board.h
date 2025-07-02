@@ -51,7 +51,7 @@ public:
 	bool MovePiece(const Move& move);
 	bool MovePieceFast(const Move& move);			// this is for search
 
-	void MoveWithoutComprobe(int from, int position);
+	void MoveWithoutComprobe(const int from, const int position);
 
 	bool Promotion(const Move move);
 
@@ -75,7 +75,7 @@ public:
 	bool CanCastle(const Move move);
 	void DoCastleMove(const Move move);
 
-	bool IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug = false);
+	bool IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug = false) ;
 
 	bool IsOccupied(uint8_t indexPosition) const;
 	bool IsCheck(const PIECE_COLORS color, const bool debug = false);

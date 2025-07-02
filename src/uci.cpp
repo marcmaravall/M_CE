@@ -11,8 +11,15 @@ UCI::UCI()
 
 void UCI::uci()
 {
+	init_options();
+
 	std::cout << "id name " << m_uciName << "\n";
-	std::cout << "id author " << m_uciAuthor << "\n";
+	std::cout << "id author " << m_uciAuthor << "\n \n";
+
+	for (const auto& option : options) {
+		std::cout << option.second->to_uci_string() << "\n";
+	}
+
 	std::cout << "uciok\n";
 }
 
@@ -70,13 +77,6 @@ void UCI::ManageInput(const char* input)
 	std::unordered_map<std::string, std::function<void()>> command_map = {
 		{"uci", [this]() { uci(); }},
 		{"isready", [this]() { isready(); }},
-		{"setoption", [this, &tokens, &index]() {
-			index++;
-			std::string name = tokens[index];
-			index++;
-			std::string value = tokens[index];
-			setoption(name.c_str(), value.c_str());
-		}},
 		{"register",			[this]() { register_uci(); }},
 		{"d",					[this]() { draw(); }},
 		{"draw",				[this]() { draw(); }},
@@ -196,11 +196,50 @@ void UCI::ManageInput(const char* input)
 			index += 4; // Skip time and increment values
 		}
 	}
+
+	else if (command == "setoption") {
+		index++;
+		if (tokens[index] == "name") {
+			index++;
+			const std::string name = tokens[index];
+			index++;
+			if (tokens[index] == "value") {
+				index++;
+				std::string value = tokens[index];
+				setoption(name.c_str(), value.c_str());
+			}
+		}
+	}
+
+	else
+	{
+		std::cout << "ERROR: command not found: " << input << "\n \n";
+	}
 }
 
 void UCI::setoption(const char* name, const char* value)
 {
-	std::cout << "Setting option: " << name << " to " << value << "\n";
+	options[name]->set_value(value);
+}
+
+void UCI::init_options()
+{
+	auto hash = std::make_unique<SpinOption>();
+	hash->name = "Hash";
+	hash->min = 1;
+	hash->max = 1024;
+	hash->value = 16;
+	options["Hash"] = std::move(hash);
+
+	auto ponder = std::make_unique<CheckOption>();
+	ponder->name = "Ponder";
+	ponder->value = true;
+	options["Ponder"] = std::move(ponder);
+
+	auto clear = std::make_unique<ButtonOption>();
+	clear->name = "Clear Hash";
+	clear->callback = []() { /* Limpiar la tabla de hash */ };
+	options["Clear Hash"] = std::move(clear);
 }
 
 void UCI::register_uci()

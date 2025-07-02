@@ -34,7 +34,7 @@ public:
 
 	static Bitboard GetRankMask(uint8_t rank);
 	static Bitboard GetDiagonalMask(uint8_t index);
-	static uint8_t GetPieceType(const Board& board, uint8_t index);
+	static uint8_t GetPieceType(const Board& board, const uint8_t index);
 
 	static ZobristHash GetZobristHash(const Board& board, const ZobristHashSettings& settings);
 
@@ -44,8 +44,8 @@ public:
 
 	static Bitboard RayAttacks(uint8_t from, int dir, Bitboard occupancy);
 
-	static Bitboard GenerateBishopAttacks(int square, Bitboard occupancy);
-	static Bitboard GenerateRookAttacks(int square, Bitboard occupancy);
+	static Bitboard GenerateBishopAttacks(const int square, const Bitboard occupancy);
+	static Bitboard GenerateRookAttacks(const int square, const Bitboard occupancy);
 
 	static UndoInfo CreateUndoInfo(const Board& board, const Move& move);
 

@@ -277,11 +277,9 @@ std::vector<Move> MVV_LVA_Order(const std::vector<Move>& moves, const Board& boa
 	for (const Move& move : moves) {
 		if (move.capture) {
 			captures.push_back(move);
-			// std::cout << "Capture move\n";
 		}
 		else {
 			nonCaptures.push_back(move);
-			// std::cout << "Non capture move\n";
 		}
 	}
 
@@ -297,11 +295,6 @@ std::vector<Move> MVV_LVA_Order(const std::vector<Move>& moves, const Board& boa
 		});
 	orderedMoves.assign(captures.begin(), captures.end());
 	orderedMoves.insert(orderedMoves.end(), nonCaptures.begin(), nonCaptures.end());
-
-	if (captures.size() > 0) {
-		//Utils::PrintBoard(board);
-		//std::cout << "CAPTURE 0: " << Utils::ConvertToBoardPosition(captures[0].from) << Utils::ConvertToBoardPosition(captures[0].to) << std::endl;
-	}
 
 	return orderedMoves;
 }

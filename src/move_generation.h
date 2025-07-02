@@ -17,5 +17,4 @@ void GenerateKingMoves			(const Board& board, const uint8_t from, std::vector<Mo
 void GenerateCastlingMoves		(const Board& board, const uint8_t from, std::vector<Move>& moves);
 std::vector<Move> GenerateLegalMoves			(Board& board);
 void GeneratePseudoLegalMoves	(const Board& board, std::vector<Move>& moves);
-std::vector<Move> MVV_LVA_Order				(const std::vector<Move>& moves, const Board& board);
-
+std::vector<Move> MVV_LVA_Order(const std::vector<Move>& moves, const Board& board);
