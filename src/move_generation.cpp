@@ -4,18 +4,16 @@ void GeneratePawnMoves(const Board& board, const uint8_t from, std::vector<Move>
 
 	Move currentMove =
 	{
-		.from = 0,
+		.from = from,
 		.to = 0,
 		.promotion = 255,
 		.capture = false,
 	};
 
-	currentMove.from = from;
+	const bool isWhite = Utils::IsWhitePieceAt(board, from);
+	const uint8_t rank = from / 8;
 
-	bool isWhite = Utils::IsWhitePieceAt(board, from);
-	uint8_t rank = from / 8;
-
-	bool canPromote = (isWhite && rank == 6) || (!isWhite && rank == 1);
+	const bool canPromote = (isWhite && rank == 6) || (!isWhite && rank == 1);
 
 	uint8_t positionsComprobe[4];
 
@@ -185,6 +183,8 @@ void GenerateKingMoves(const Board& board, const uint8_t from, std::vector<Move>
 
 void GenerateCastlingMoves(const Board& board, const uint8_t from, std::vector<Move>& moves)
 {
+	return;
+
 	Move currentMove;
 
 	if (board.turn == WHITE_TURN)

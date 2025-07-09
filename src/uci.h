@@ -144,6 +144,7 @@ public:
 	void UndoMoveTest();
 	void NPSTest();
 	void SearchTest();
+	void InsertCommand(const char* command);
 
 	// static bool IsSearching;
 

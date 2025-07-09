@@ -80,7 +80,7 @@ public:
 	bool IsOccupied(uint8_t indexPosition) const;
 	bool IsCheck(const PIECE_COLORS color, const bool debug = false);
 
-	void UndoMove(const UndoInfo& undo);
+	void UndoMove(const UndoInfo& undo, const bool debug = false);
 
 	Bitboard GetKingAttacks(uint8_t square);
 

@@ -7,6 +7,11 @@ endif()
 
 project ("M_CE")
 
+
+#target_include_directories(M_CE PUBLIC
+#    ${CMAKE_CURRENT_SOURCE_DIR}/tools
+#)
+
 add_executable(M_CE
     "src/main.cpp"
     "src/utils.cpp"

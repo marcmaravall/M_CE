@@ -277,4 +277,4 @@ struct UndoInfo {
 	uint8_t movedPiece;
 };
 
-const int MATE_SCORE = 100000;
+inline const int MATE_SCORE = 1'000'000'000;

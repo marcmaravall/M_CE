@@ -108,7 +108,7 @@ void UCI::ManageInput(const char* input)
 			engine.SetPosition(s.c_str());
 		}
 
-		if (tokens[index] == "moves") {
+		if ((tokens.size() > index) && tokens[index] == "moves") {
 			index++;
 			// std::cerr << "Moves: ";
 			while (index < tokens.size()) {
@@ -354,4 +354,9 @@ void UCI::NPSTest()
 void UCI::SearchTest()
 {
 	
+}
+
+void UCI::InsertCommand(const char* command)
+{
+	ManageInput(command);
 }

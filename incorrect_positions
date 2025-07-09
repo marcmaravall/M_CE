@@ -1,6 +1,9 @@
-
+# Positions to improve:
 
 position startpos moves e2e4 c7c6 d2d4 d7d5 e4d5 c6d5 b1c3 g8f6 c1g5 b8c6 g1f3 f6e4 c3e4 d5e4 f3d2 c6d4 d2e4 d8d5 f2f3 c8f5 h2h4 e7e6 f1d3 f8e7 e1g1 d4c6 g5e7 e8e7 c2c3 e6e5 d1d2 h7h6 g2g4 f5g6 h4h5
+
+#generates 1 extra node
+position startpos moves e2e4 c7c6 g1f3 d7d5 e4d5 c6d5 d2d4 b8c6 b1c3 c8g4 c1e3 d8a5 h2h3 g4f3 d1f3 e7e5 d4e5
 
 # incorrect move
 position startpos moves e2e4 c7c6 d2d4 d7d5 e4d5 c6d5 b1c3 g8f6 c1g5 b8c6 g1f3 f6e4 c3e4 d5e4 f3d2 c6d4 d2e4 d8d5 f2f3 c8f5 h2h4 e7e6 f1d3 f8e7 e1g1 d4c6 g5e7 e8e7 c2c3 e6e5 d1d2 h7h6 g2g4 f5g6 h4h5 g6h7 f3f4 h7e4 d3e4 d5d2 f4e5 f7f6 e5f6 g7f6 e4c6 b7c6 a1b1 d2e3 g1h1 e3e4 h1h2 e4b1 f1b1

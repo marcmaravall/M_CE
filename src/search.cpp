@@ -220,7 +220,7 @@ void Divide(Board& pos, int depth) {
 
 	double duration = duration_cast<std::chrono::seconds>(end - start).count(); 
 
-	std::cout << "Total nodes: " << total << " time: " << duration<< "s nps: " << std::dec << NODES / duration << "\n\n";
+	std::cout << "Nodes Searched: " << total << " time: " << duration<< "s nps: " << std::dec << NODES / duration << "\n\n";
 }
 
 uint64_t Perft(Board& position, int depth) {

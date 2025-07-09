@@ -50,16 +50,22 @@
 21/06/2025: Added changes for linux file system, now I can load books.
 22/06/2025: Solved a minor bug with en passant, now perft 5 works perfectly.
 23/06/2025: Optimizing search and move generation, now the engine is x2 faster, but is very bad.
-24/06/2025: Searching why the engine is so bad, I think that is a problem with alphabeta implementation.
-25/06/2025: Optimized the engine to up 100k nps in depth 5.
-26/06/2025: Searching why the engine is so bad with the optimizations that I've made.
-27/06/2025: Added some uci options support.												--.
-28/06/2025: Nothing...																	  |
-29/06/2025: Nothing...																	  | - Relaxing
-30/06/2025: Nothing...																	  |
-01/06/2025: Nothing...																	--.
+24/06/2025: Searching why the engine is so bad, I think that is a problem with alphabeta implementation.					--.
+25/06/2025: Optimized the engine to up 100k nps in depth 5.																	  |
+26/06/2025: Searching why the engine is so bad with the optimizations that I've made.										  |
+27/06/2025: Added some uci options support.																					  | - Vacation
+28/06/2025: Nothing...																										  |
+29/06/2025: Nothing...																										  | 
+30/06/2025: Nothing...																										  |
+01/07/2025: Nothing...																										--.
+02/07/2025: I've solved a problem, now in perft 5 it works at 5m nps, but it hash problems with the move generation.
+03/07/2025: Solved a bug with the debug bitboard function.
+04/07/2025: Started to implement some tools for debugging.
+05/07/2025: Added perft_checker, to compare the results of the engine with the results of other engines.
+06/07/2025: Nothing, I was programming another project.
+07/07/2025: Solved two bugs with move generation, now perft 5 works fine.
+08/07/2025: Solved a little thing with MovePieceFast.
 */
-
 
 #include <iostream>
 #include "engine.h"
@@ -70,8 +76,6 @@ int main()
 	srand(static_cast<unsigned int>(time(nullptr)));
 
 	UCI uci;
-
-	// uci.NPSTest();
 
 	while (true)
 	{

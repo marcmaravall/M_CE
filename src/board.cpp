@@ -350,6 +350,12 @@ bool Board::MovePieceFast(const Move& move)		// for search
 	}
 	if (pieceType >= 12) return false;
 
+	bool pawnMove = false;
+
+	if (pieceType == W_PAWN_I || pieceType == B_PAWN_I) {
+		pawnMove = true;
+	}
+
 	for (int i = 0; i < 12; ++i)
 		bitboards[i] &= ~(1ULL << to);
 
@@ -362,13 +368,19 @@ bool Board::MovePieceFast(const Move& move)		// for search
 	}
 
 	if (IsCheck(turn == !WHITE_TURN ? BLACK : WHITE, false)) {
+		// std::cout << "\n \nIS CHECK DETECTED FOR DEBUG: \n";
+		
 		UndoMove(undo);
+
 		return false;
 	}
 
 	enPassantSquare = 255;
 	turn = !turn;
-	halfMoves++;
+	if (pawnMove)
+		ClearHalfMoves();
+	else
+		++halfMoves;
 	if (turn == WHITE_TURN)
 		++turns;
 
@@ -441,18 +453,15 @@ bool Board::CanMovePawn(const Move move, const bool _turn) const {
 	const uint64_t toBB = 1ULL << to;
 
 	if (_turn == WHITE_TURN) {
-		const uint64_t oneStep = fromBB << 8;
-		const uint64_t twoSteps = fromBB << 16;
+
+		const uint64_t oneStep = fromBB << NORTH;
+		const uint64_t twoSteps = fromBB << NORTH*2;
 		const uint64_t captures =
 			((fromBB & ~FILE_H_MASK) << 7) |
 			((fromBB & ~FILE_A_MASK) << 9);
 
-		if ((to == (from + NORTH)) && Utils::GetBitboardValueOnIndex(allPieces, to) != 1) {
-			/*std::cout << "DEBUG: \n";
-			Utils::DebugBitboard(allPieces);
+		if ((to == (from + NORTH)) && !Utils::GetBitboardValueOnIndex(allPieces, to)) {
 
-			std::cout << "\n \n";
-			*/
 			return true;
 		}
 		else if ((toBB & twoSteps) && (fromBB & RANK_2_MASK) &&
@@ -481,7 +490,7 @@ bool Board::CanMovePawn(const Move move, const bool _turn) const {
 			((fromBB & ~FILE_H_MASK) >> 7) |
 			((fromBB & ~FILE_A_MASK) >> 9);
 
-		if ((to == (from + SOUTH)) && Utils::GetBitboardValueOnIndex(allPieces, to) != 1) {
+		if ((to == (from + SOUTH)) && Utils::GetBitboardValueOnIndex(allPieces, to) < 1) {
 			return true;
 		}
 		else if ((toBB & twoSteps) && (fromBB & RANK_7_MASK) &&
@@ -614,7 +623,7 @@ void Board::MovePawn(const Move move) {
 	}
 }
 
-void Board::UndoMove(const UndoInfo& undo) {
+void Board::UndoMove(const UndoInfo& undo, const bool debug) {
 	// std::cout << "DEBUG UNDO MOVE" << "\n";
 	// Utils::PrintBoard(*this);
 
@@ -921,34 +930,101 @@ Bitboard Board::GetKingAttacks(uint8_t square) {
 	return attacks;
 }
 
-inline bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug) {
+/*inline bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug) {
+	const bool attackingColor = attackerColor;
+	for (size_t i = 0; i < 12; i++) {
+			if ((attackingColor == WHITE_TURN && i < 6) ||
+				(attackingColor == BLACK_TURN && i >= 6)) {
+				continue;
+			}
+
+			Bitboard b = bitboards[i];
+				while (b) {
+					const int from = Utils::PopLSB(b);
+
+					switch (i % 6) {
+					case 0: if (CanMovePawn(Move{ from, square }, !attackerColor)) { return true; } break;
+					case 1: if (CanMoveKnight(Move{ from, square }, !attackerColor)) { return true; } break;
+					case 2: if (CanMoveBishop(Move{ from, square }, !attackerColor)) { return true; } break;
+					case 3: if (CanMoveRook(Move{ from, square }, !attackerColor)) { return true; } break;
+					case 4: if (CanMoveQueen(Move{ from, square }, !attackerColor)) { return true; } break;
+					case 5: if (CanMoveKing(Move{ from, square }, !attackerColor)) { return true; } break;
+					}
+				}
+	}
+
+	return false;
+}*/
+
+bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug) {
 	const Bitboard targetBB = 1ULL << square;
-	const Bitboard occupancy = Utils::GetAllBitboards(bitboards);
+	const Bitboard occupancy = Utils::GetAllBitboards(bitboards, BOTH);			// why both is not the default value? I'm so dumb ...
 
 	const bool isWhite = (!attackerColor == WHITE);
 
 	const Bitboard pawnAttackers = bitboards[isWhite ? B_PAWN_I : W_PAWN_I];
 	const Bitboard pawnAttacks = isWhite
-		? ((targetBB & ~FILE_A_MASK) >> 9) | ((targetBB & ~FILE_H_MASK) >> 7)
-		: ((targetBB & ~FILE_H_MASK) << 9) | ((targetBB & ~FILE_A_MASK) << 7);
+		? ((targetBB & ~FILE_A_MASK) << 7) | ((targetBB & ~FILE_H_MASK) << 9)
+		: ((targetBB & ~FILE_A_MASK) >> 9) | ((targetBB & ~FILE_H_MASK) >> 7);
 
 	if (pawnAttacks & pawnAttackers) return true;
 
 	if (Engine::knightMasks[square] & bitboards[isWhite ? B_KNIGHT_I : W_KNIGHT_I]) return true;
 
-	if (Engine::kingMasks[square] & bitboards[isWhite ? B_KING_I : W_KNIGHT_I]) return true;
+	if (Engine::kingMasks[square] & bitboards[isWhite ? B_KING_I : W_KING_I]) return true;
 
 	const Bitboard bishopLike = bitboards[isWhite ? B_BISHOP_I : W_BISHOP_I] | bitboards[isWhite ? B_QUEEN_I : W_QUEEN_I];
-	if (Utils::GenerateBishopAttacks(square, occupancy) & bishopLike) return true;
+	Bitboard bb = bishopLike;
+	
+	while (bb) {
+		int from = Utils::PopLSB(bb);
+		// if (debug)
+		// 	std::cout << from << " from\n";
+		const Bitboard attacks = Utils::GenerateBishopAttacks(from, occupancy);
+		if ((attacks & targetBB) && ((Engine::between[from][square] & occupancy) == 0)) {
+			if (debug) {
+				/*											i'm so fucking dumb, 
+				Utils::PrintBoard(*this);
 
-	const Bitboard rookLike = bitboards[isWhite ? B_ROOK_I : W_ROOK_I] | bitboards[isWhite ? B_QUEEN_I : W_QUEEN_I];
-	if (Utils::GenerateRookAttacks(square, occupancy) & rookLike) return true;
+				std::cout << "Occupancy: \n";
+				Utils::DebugBitboard(occupancy);
 
+				std::cout << "Bishop: \n";
+				Utils::DebugBitboard(bb);
+
+				std::cout << "Attacks: \n";
+				Utils::DebugBitboard(attacks);
+			
+				std::cout << "Target: \n";
+				Utils::DebugBitboard(targetBB);
+
+				std::cout << "Attacks & Target: \n";
+				Utils::DebugBitboard(Utils::GenerateBishopAttacks(from, occupancy) & targetBB);
+
+				std::cout << "Between: \n";
+				Utils::DebugBitboard(Engine::between[from][square]);*/
+			}
+			return true;
+		}
+	}
+
+	bb = bitboards[isWhite ? B_ROOK_I : W_ROOK_I] | bitboards[isWhite ? B_QUEEN_I : W_QUEEN_I];
+	while (bb) {
+		int from = Utils::PopLSB(bb);
+		const Bitboard attacks = Utils::GenerateRookAttacks(from, occupancy);
+
+		if (debug) {
+			std::cout << "Rook from: " << from << "\n";
+			Utils::DebugBitboard(attacks);
+		}
+
+		if ((attacks & targetBB) && ((Engine::between[from][square] & occupancy) == 0)) return true;
+	}
 
 	return false;
 }
 
-inline bool Board::IsCheck(const PIECE_COLORS king, const bool debug) {
+bool Board::IsCheck(const PIECE_COLORS king, const bool debug) {
 	const int kingSquare = (king == WHITE)
 		? GetWhiteKingPosition()
 		: GetBlackKingPosition();
@@ -1056,4 +1132,3 @@ void Board::ClearHalfMoves()
 	halfMoves = 0;
 	repetitionsHistory.clear();
 }
-

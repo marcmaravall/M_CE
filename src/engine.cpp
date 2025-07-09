@@ -19,6 +19,7 @@ void Engine::init()
     programDir = getProjectDirectory().string();
 
 	GenerateZobristHash(rand());
+    InitBetweenTable();
 	InitKnightMasks();
     InitKingMasks();
     polyglotSettings = generatePolyglotSettings();
@@ -306,8 +307,9 @@ void Engine::PlayAgainistHuman()
     }
 }
 
-uint64_t Engine::knightMasks[64];
-uint64_t Engine::kingMasks[64];
+Bitboard Engine::knightMasks[64];
+Bitboard Engine::kingMasks[64];
+Bitboard Engine::between[64][64];
 ZobristHashSettings Engine::hashSettings;
 std::vector<UndoInfo> Engine::undoStack;
 
@@ -623,13 +625,53 @@ void Engine::RunBookTest()
     // std::cout << Utils::MoveToStr(moves);
 }
 
+void Engine::InitBetweenTable()
+{
+    for (int from = 0; from < 64; ++from) {
+        for (int to = 0; to < 64; ++to) {
+            if (from == to) continue;
+
+            const uint8_t from_rank = from / 8;
+            const uint8_t from_file = from % 8;
+            const uint8_t to_rank = to / 8;
+            const uint8_t to_file = to % 8;
+
+            int dir = 0;
+
+            if (from_rank == to_rank) {
+                dir = (to > from) ? 1 : -1;
+            }
+
+            else if (from_file == to_file) {
+                dir = (to > from) ? 8 : -8;
+            }
+
+            else if (to_rank - from_rank == to_file - from_file) {
+                dir = (to > from) ? 9 : -9;
+            }
+
+            else if (to_rank - from_rank == from_file - to_file) {
+                dir = (to > from) ? 7 : -7;
+            }
+            else {
+                continue;
+            }
+
+            uint8_t square = from + dir;
+            while (square != to) {
+                between[from][to] |= (1ULL << square);
+                square += dir;
+            }
+        }
+    }
+}
+
 // code copied from my nes emulator :) --------
 
 fs::path Engine::getProjectDirectory() {
     fs::path exe = fs::current_path();
     while (!exe.empty() && exe.filename() != "M_CE") {
         exe = exe.parent_path();
-        // std::cout << "Checking: " << exe << std::endl;
     }
 
     if (exe.empty()) {

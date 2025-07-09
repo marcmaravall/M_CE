@@ -127,7 +127,7 @@ std::string Utils::ConvertToBoardPosition(uint8_t squareIndex) {
 	return squareIndex < 64 ? Utils::ToLower((std::string)BOARD_STRINGS[squareIndex]) : "null";
 }
 
-int Utils::ConvertToIndexPosition(std::string& squarePosition) {
+int Utils::ConvertToIndexPosition(std::string squarePosition) {
 	int ret = 255;
 	squarePosition = ToUpper(squarePosition);
 	// std::cout << squarePosition << "\n";
@@ -197,14 +197,19 @@ Bitboard Utils::GetAllBitboards(const Bitboard b[12], PIECE_COLORS colors)
 
 void Utils::DebugBitboard(Bitboard bitboard)
 {
-	for (int square = 0; square < 64; ++square) {
-		if (square % 8 == 0) std::cout << "\n";
-		
-		if (Utils::GetBitboardValueOnIndex(bitboard, square)) {
-			std::cout << "1";
+	for (int rank = 7; rank >= 0; --rank) {
+		for (int file = 0; file < 8; ++file) {
+			int square = rank * 8 + file;
+			if (Utils::GetBitboardValueOnIndex(bitboard, square)) {
+				std::cout << "1 ";
+			}
+			else {
+				std::cout << "0 ";
+			}
 		}
-		else std::cout << "_";
+		std::cout << "\n";
 	}
+	std::cout << "\n";
 }
 
 Bitboard Utils::GetRankMask(uint8_t rank)
@@ -248,12 +253,6 @@ inline uint8_t Utils::GetPieceType(const Board& board, const uint8_t index) {
 	return 255;
 }
 
-
-#if defined(_MSC_VER)
-__forceinline
-#else
-inline __attribute__((always_inline))
-#endif
 int Utils::PopLSB(uint64_t& bb) {
 	if(bb == 0) return -1;
 
@@ -340,26 +339,35 @@ bool Utils::IsEnemyPieceAt(const Board& board, uint8_t position)
 	return (board.turn == WHITE_TURN ? Utils::IsBlackPieceAt(board, position) : IsWhitePieceAt(board, position));
 }
 
-bool isOnFileA(uint8_t pos) { return pos % 8 == 0;  }
-bool isOnFileH(uint8_t pos) { return pos % 8 == 7;  }
+inline bool isOnFileA(const uint8_t pos) { return pos % 8 == 0;  }
+inline bool isOnFileH(const uint8_t pos) { return pos % 8 == 7;  }
 
-inline Bitboard Utils::RayAttacks(uint8_t from, int dir, Bitboard occupancy) {
+Bitboard Utils::RayAttacks(uint8_t from, const int dir, const Bitboard occupancy) {
 	Bitboard attacks = 0ULL;
 	int to = from;
 
 	while (true) {
-		if ((dir == -9 || dir == -1 || dir == 7) && isOnFileA(to)) break;
-		if ((dir == -7 || dir == 1 || dir == 9) && isOnFileH(to)) break;
-
 		to += dir;
+
 		if (to < 0 || to >= 64) break;
 
-		Bitboard toBB = 1ULL << to;
+		const int fromFile = from % 8;
+		const int toFile = to % 8;
+
+		if ((dir == -9 || dir == -7 || dir == 7 || dir == 9) && abs(toFile - fromFile) > 1) {
+			break;
+		}
+		if ((dir == 1 || dir == -1) && abs(toFile - fromFile) != 1) {
+			break;
+		}
+
+		const Bitboard toBB = 1ULL << to;
 		attacks |= toBB;
+
 		if (occupancy & toBB) break;
+
+		from = to;
 	}
-
-
 	return attacks;
 }
 

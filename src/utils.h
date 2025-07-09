@@ -19,7 +19,7 @@ public:
 
 	static std::string ConvertToBoardPosition(uint8_t squareIndex);
 
-	static int ConvertToIndexPosition(std::string& squarePosition);
+	static int ConvertToIndexPosition(std::string squarePosition);
 
 	static Bitboard GetFileMask(uint8_t file);
 
@@ -42,7 +42,7 @@ public:
 
 	static bool IsEnemyPieceAt(const Board& board, uint8_t position);
 
-	static Bitboard RayAttacks(uint8_t from, int dir, Bitboard occupancy);
+	static Bitboard RayAttacks(const uint8_t from, const int dir, const Bitboard occupancy);
 
 	static Bitboard GenerateBishopAttacks(const int square, const Bitboard occupancy);
 	static Bitboard GenerateRookAttacks(const int square, const Bitboard occupancy);

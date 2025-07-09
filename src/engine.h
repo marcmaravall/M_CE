@@ -52,9 +52,12 @@ public:
 	void stop();
 	void reset();
 
+	// masks and tables
 	void InitKnightMasks();
 	void InitKingMasks();
+	void InitBetweenTable();
 
+	// tests
 	void RunTest();
 	void RunBookTest();
 
@@ -75,9 +78,9 @@ public:
 public:
 	static Bitboard knightMasks[64];
 	static Bitboard kingMasks[64];
+	static Bitboard between[64][64];
 
 	static std::vector<UndoInfo> undoStack;
-
 
 	static ZobristHashSettings hashSettings;
 	static ZobristHashSettings polyglotSettings;
