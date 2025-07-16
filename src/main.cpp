@@ -65,6 +65,14 @@
 06/07/2025: Nothing, I was programming another project.
 07/07/2025: Solved two bugs with move generation, now perft 5 works fine.
 08/07/2025: Solved a little thing with MovePieceFast.
+09/07/2025: Nothing...
+10/07/2025: Started to implement magic bitboards.
+11/07/2025: Started to implement magic numbers generation.
+12/07/2025: Nothing...
+13/07/2025: Implemented GenerateOccupancy.
+14/07/2025: Implemented debug features, added ray generation for magic bitboards.
+15/07/2025: Nothing...
+16/07/2025: Solved a problem with ray generation for magic bitboards.
 */
 
 #include <iostream>

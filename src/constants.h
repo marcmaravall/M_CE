@@ -1,6 +1,7 @@
 #pragma once
 #define M_CE 1.0
 #include "move.h"
+#include <iostream>
 #include <cstdint>
 
 enum PIECE
@@ -23,9 +24,12 @@ inline constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB
 inline constexpr const char* TEST_FEN = "r1b5/pppp1Q1p/3k2p1/8/6P1/2N5/PPP2P1P/R1B1KB1R w KQ - 0 1";
 // r2q3r/pp1k1pb1/2np3p/5b2/3N2p1/3P4/PP1QNPPP/R3KB1R b KQ - 0 1
 
+// inline constexpr const std::pair<const char*, const uint64_t> FEN_TESTS[] = {{" "}};
+
 inline constexpr const uint8_t NULL_SQUARE = 255;
 
 typedef uint64_t Bitboard;
+typedef uint64_t MagicNumber;
 typedef uint64_t ZobristHash;
 
 typedef struct ZobristHashSettings

@@ -342,6 +342,35 @@ bool Utils::IsEnemyPieceAt(const Board& board, uint8_t position)
 inline bool isOnFileA(const uint8_t pos) { return pos % 8 == 0;  }
 inline bool isOnFileH(const uint8_t pos) { return pos % 8 == 7;  }
 
+Bitboard Utils::RayAttacksForMagics(uint8_t from, const int dir, Bitboard occupancy) {
+	Bitboard attacks = 0ULL;
+	int to = from;
+
+	while (true) {
+		to += dir;
+
+		int toFile = to % 8;
+		int rank = to / 8;
+
+		if (to < 0 || to >= 64) break;
+
+		if ((dir == 1 || dir == -1) && (to / 8 != from / 8)) break;
+		if ((dir == WEST && toFile == 0) || (dir == EAST && toFile == 7) || (dir == NORTH && rank == 7) || (dir == SOUTH && toFile == 0))
+			break;
+
+		int fromFile = from % 8;
+		if (std::abs(toFile - fromFile) > 1 && (dir == -9 || dir == -7 || dir == 7 || dir == 9)) break;
+
+		Bitboard toBB = 1ULL << to;
+		attacks |= toBB;
+
+		if (occupancy & toBB) break;
+	}
+
+	return attacks;
+}
+
+
 Bitboard Utils::RayAttacks(uint8_t from, const int dir, const Bitboard occupancy) {
 	Bitboard attacks = 0ULL;
 	int to = from;
@@ -389,6 +418,26 @@ Bitboard Utils::GenerateRookAttacks(const int square, const Bitboard occupancy) 
 	
 	return attacks;
 }
+
+Bitboard Utils::GenerateBishopAttacksForMagics(const int square, const Bitboard occupancy) {
+	Bitboard attacks = 0;
+	attacks |= RayAttacksForMagics(square, -9, occupancy);
+	attacks |= RayAttacksForMagics(square, -7, occupancy);
+	attacks |= RayAttacksForMagics(square, 9, occupancy);
+	attacks |= RayAttacksForMagics(square, 7, occupancy);
+	return attacks;
+}
+
+Bitboard Utils::GenerateRookAttacksForMagics(const int square, const Bitboard occupancy) {
+	Bitboard attacks = 0;
+	attacks |= RayAttacksForMagics(square, -8, occupancy);
+	attacks |= RayAttacksForMagics(square, 8, occupancy);
+	attacks |= RayAttacksForMagics(square, -1, occupancy);
+	attacks |= RayAttacksForMagics(square, 1, occupancy);
+
+	return attacks;
+}
+
 
 UndoInfo Utils::CreateUndoInfo(const Board& board, const Move& move)
 {
@@ -481,4 +530,78 @@ uint8_t Utils::BitScanForward(uint64_t bb) {
 		index++;
 	}
 	return index;
+}
+
+int Utils::CountBits(Bitboard bb) {
+	int count = 0;
+	while (bb) {
+		bb &= bb - 1;
+		count++;
+	}
+	return count;
+}
+
+
+Bitboard Utils::SetOccupancy(const int index, const int bitsInMask, const Bitboard mask) {
+	Bitboard result = 0ULL;
+
+	int bitIndex = 0;
+	for (int square = 0; square < 64; square++) {
+		Bitboard sqBB = 1ULL << square;
+		if (mask & sqBB) {
+			if (index & (1 << bitIndex)) {
+				result |= sqBB;
+			}
+			++bitIndex;
+		}
+	}
+
+	return result;
+}
+
+bool Utils::HasRepeated(const uint64_t arr[4092])
+{
+	for (uint16_t i = 0; i < 4092; i++) {
+		for (uint16_t j = 0; j < i; j++) {
+			if (i == j)
+				break;
+
+			if (arr[i] == arr[j])
+				return true;
+			
+		}
+	}
+
+	return false;
+}
+
+uint64_t Utils::Rand64() {
+	static std::random_device rd;
+	static std::mt19937_64 gen(rd());
+	return gen();
+}
+
+Bitboard Utils::GenerateOccupancy(Bitboard mask, const int index) {
+
+	Bitboard occupancy = 0ULL;
+	Bitboard localMask = mask;  
+	int bitCount = Utils::CountBits(mask);
+
+	for (int i = 0; i < bitCount; i++) {
+		const int bitPos = Utils::PopLSB(localMask); 
+		if (index & (1 << i)) {
+			occupancy |= (1ULL << bitPos);
+		}
+	}
+
+	return occupancy;
+}
+
+std::string Utils::ToBin(const uint64_t n)
+{
+	std::string res = "";
+	for (int i = 63; i >= 0; i--) {
+		res += (Utils::GetBitboardValueOnIndex(n, i) == 1 ? "1" : "0");
+	}
+	return res;
 }

@@ -56,6 +56,10 @@ public:
 	void InitKnightMasks();
 	void InitKingMasks();
 	void InitBetweenTable();
+	void InitBishopTable();
+	void InitRookTable();
+
+	void GenerateMagicNumbers();
 
 	// tests
 	void RunTest();
@@ -75,9 +79,18 @@ public:
 
 	void PrintBoard();
 
+	void DebugTables();
+
 public:
 	static Bitboard knightMasks[64];
 	static Bitboard kingMasks[64];
+
+	static Bitboard rookAttackTable[64][4096];
+	static Bitboard bishopAttackTable[64][4096];
+
+	static uint64_t rookMagics[64];
+	static uint64_t bishopMagics[64];
+	
 	static Bitboard between[64][64];
 
 	static std::vector<UndoInfo> undoStack;

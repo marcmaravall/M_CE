@@ -22,6 +22,14 @@ void Engine::init()
     InitBetweenTable();
 	InitKnightMasks();
     InitKingMasks();
+
+    InitBishopTable();
+    InitRookTable();
+
+    GenerateMagicNumbers();
+
+    DebugTables();
+
     polyglotSettings = generatePolyglotSettings();
 
 #ifdef WIN32
@@ -307,6 +315,10 @@ void Engine::PlayAgainistHuman()
     }
 }
 
+Bitboard Engine::bishopAttackTable[64][4096];
+Bitboard Engine::rookAttackTable[64][4096];
+MagicNumber Engine::rookMagics[64];
+MagicNumber Engine::bishopMagics[64];
 Bitboard Engine::knightMasks[64];
 Bitboard Engine::kingMasks[64];
 Bitboard Engine::between[64][64];
@@ -682,4 +694,151 @@ fs::path Engine::getProjectDirectory() {
     return exe;
 }
 // -------------------------------------------
+
+void Engine::InitBishopTable()
+{
+    for (int square = 0; square < 64; square++) {
+        Bitboard mask = Utils::GenerateBishopAttacksForMagics(square, 0);
+
+        int relevantBits = Utils::CountBits(mask);
+        int occupancyVariations = 1 << relevantBits;
+
+        for (int index = 0; index < occupancyVariations; index++) {
+            Bitboard occupancy = Utils::SetOccupancy(index, relevantBits, mask);
+            Bitboard attacks = Utils::GenerateBishopAttacksForMagics(square, occupancy);
+            bishopAttackTable[square][index] = attacks;
+        }
+    }
+}
+
+void Engine::InitRookTable() {
+    for (int square = 0; square < 64; square++) {
+        Bitboard mask = Utils::GenerateRookAttacksForMagics(square, 0);
+
+        int relevantBits = Utils::CountBits(mask);
+        int occupancyVariations = 1 << relevantBits;
+
+        for (int index = 0; index < occupancyVariations; index++) {
+            Bitboard occupancy = Utils::SetOccupancy(index, relevantBits, mask);
+            Bitboard attacks = Utils::GenerateRookAttacksForMagics(square, occupancy);
+            rookAttackTable[square][index] = attacks;
+        }
+    }
+}
+
+void Engine::GenerateMagicNumbers()
+{
+    // for rooks
+    for (int square = 0; square < 64; square++) {
+        Bitboard mask = Utils::GenerateRookAttacks(square, 0);
+
+        int relevantBits = Utils::CountBits(mask);
+        int occupancyCount = 1 << relevantBits;
+        std::vector<Bitboard> occupancies(occupancyCount);
+        std::vector<Bitboard> attacks(occupancyCount);
+
+        for (int i = 0; i < occupancyCount; i++) {
+            occupancies[i] = Utils::GenerateOccupancy(mask, i);
+            attacks[i] = Utils::GenerateRookAttacks(square, occupancies[i]);
+        }
+
+        while (true) {
+            Bitboard magic = (Utils::Rand64() & Utils::Rand64() & Utils::Rand64());
+
+            std::vector<Bitboard> used(occupancyCount, 0);
+            bool fail = false;
+
+            for (int i = 0; i < occupancyCount; i++) {
+                int index = (occupancies[i] * magic) >> (64 - relevantBits);
+
+                if (used[index] == 0)
+                    used[index] = attacks[i];
+                else if (used[index] != attacks[i]) {
+                    fail = true;
+                    break;
+                }
+            }
+
+            if (!fail) {
+                rookMagics[square] = magic;
+                break;
+            }
+        }
+    }
+
+    // for bishops
+    for (int square = 0; square < 64; square++) {
+        Bitboard mask = Utils::GenerateBishopAttacks(square, 0ULL);
+
+        int relevantBits = Utils::CountBits(mask);
+        int occupancyCount = 1 << relevantBits;
+        std::vector<Bitboard> occupancies(occupancyCount);
+        std::vector<Bitboard> attacks(occupancyCount);
+
+        for (int i = 0; i < occupancyCount; i++) {
+            occupancies[i] = Utils::GenerateOccupancy(mask, i);
+            attacks[i] = Utils::GenerateBishopAttacks(square, occupancies[i]);
+        }
+
+        while (true) {
+            Bitboard magic = (Utils::Rand64() & Utils::Rand64() & Utils::Rand64());
+
+            std::vector<Bitboard> used(occupancyCount, 0);
+            bool fail = false;
+
+            for (int i = 0; i < occupancyCount; i++) {
+                int index = (occupancies[i] * magic) >> (64 - relevantBits);
+
+                if (used[index] == 0)
+                    used[index] = attacks[i];
+                else if (used[index] != attacks[i]) {
+                    fail = true;
+                    break;
+            }
+        }
+
+        if (!fail) {
+            bishopMagics[square] = magic;
+            break;
+        }
+    }
+}
+
+#ifdef M_CE_DEBUG
+    std::cout << "Generated Magic Numbers of bishops and rooks.\n";
+#endif
+}
+
+void Engine::DebugTables() {
+    std::cout << "DEBUGGING TABLES\n";
+
+    std::string debugDir = programDir + "\\debug";
+    std::filesystem::create_directories(debugDir);
+
+    std::string filePath = debugDir + "\\text.txt";
+    std::ofstream debugFile(filePath);
+
+    if (!debugFile.is_open()) {
+        std::cerr << "ERROR: cannot found path " << filePath << std::endl;
+        return;
+    }
+
+    std::cout << "Writting in: " << filePath << std::endl;
+
+    debugFile << "---------- \nROOK TABLE \n---------- \n \n";
+    for (size_t i = 0; i < 64; i++) {
+        for (size_t j = 0; j < 4096; j++) {
+            debugFile << "ROOK: "  << i << " " << j << ": " << Utils::ToBin(rookAttackTable[i][j]) << "\n";
+        }
+    }
+
+    debugFile << "---------- \nBISHOP TABLE \n---------- \n \n";
+    for (size_t i = 0; i < 64; i++) {
+        for (size_t j = 0; j < 4096; j++) {
+            debugFile << "BISHOP: " << i << " " << j << ": " << Utils::ToBin(bishopAttackTable[i][j]) << "\n";
+        }
+    }
+
+    debugFile.close();
+}
 

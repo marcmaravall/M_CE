@@ -43,9 +43,13 @@ public:
 	static bool IsEnemyPieceAt(const Board& board, uint8_t position);
 
 	static Bitboard RayAttacks(const uint8_t from, const int dir, const Bitboard occupancy);
+	static Bitboard RayAttacksForMagics(const uint8_t from, const int dir, const Bitboard occupancy);
 
 	static Bitboard GenerateBishopAttacks(const int square, const Bitboard occupancy);
+	static Bitboard GenerateBishopAttacksForMagics(const int square, const Bitboard occupancy);
+
 	static Bitboard GenerateRookAttacks(const int square, const Bitboard occupancy);
+	static Bitboard GenerateRookAttacksForMagics(const int square, const Bitboard occupancy);
 
 	static UndoInfo CreateUndoInfo(const Board& board, const Move& move);
 
@@ -61,4 +65,14 @@ public:
 	static std::string MoveToStr(const Move& move);
 
 	static uint8_t BitScanForward(const uint64_t bb);
+
+	static int CountBits(Bitboard bb);
+	static Bitboard SetOccupancy(const int index, const int bitsInMask, const Bitboard mask);
+
+	static bool HasRepeated(const uint64_t arr[4092]);
+	static Bitboard GenerateOccupancy(const Bitboard mask, const int index);
+
+	static uint64_t Rand64();
+
+	static std::string ToBin(const uint64_t n);
 };
