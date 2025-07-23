@@ -267,7 +267,7 @@ int Utils::PopLSB(uint64_t& bb) {
 	return static_cast<int>(index);
 }
 
-ZobristHash Utils::GetZobristHash(const Board& board, const ZobristHashSettings& settings)
+ZobristHash Utils::GetZobristHash(const Board& board, const ZobristHashSettings& settings) 
 {
 	ZobristHash hash = 0;
 
@@ -342,24 +342,42 @@ bool Utils::IsEnemyPieceAt(const Board& board, uint8_t position)
 inline bool isOnFileA(const uint8_t pos) { return pos % 8 == 0;  }
 inline bool isOnFileH(const uint8_t pos) { return pos % 8 == 7;  }
 
-Bitboard Utils::RayAttacksForMagics(uint8_t from, const int dir, Bitboard occupancy) {
+Bitboard Utils::RayAttacksForMagics(uint8_t from, const int dir, Bitboard occupancy) {	// TODO: optimize this shit...
 	Bitboard attacks = 0ULL;
 	int to = from;
 
 	while (true) {
+		if ((to == 56 && dir == -9) || (to == 63 && dir == -7) || (to == 0 && dir == 7) || (to == 7 && dir == 9))
+			break;
+		
+		if (isOnFileA(to))
+		{
+			if (dir == SOUTH_WEST || dir == NORTH_WEST)
+				break;
+		}
+		else if (isOnFileH(to))
+		{
+			if (dir == SOUTH_EAST || dir == NORTH_EAST)
+				break;
+		}
+
 		to += dir;
 
-		int toFile = to % 8;
-		int rank = to / 8;
+		const int fromFile = from % 8;
+		const int toFile = to % 8;
+		const int rank = to / 8;
 
 		if (to < 0 || to >= 64) break;
 
 		if ((dir == 1 || dir == -1) && (to / 8 != from / 8)) break;
-		if ((dir == WEST && toFile == 0) || (dir == EAST && toFile == 7) || (dir == NORTH && rank == 7) || (dir == SOUTH && toFile == 0))
+		if ((dir == WEST && toFile == 0) || (dir == EAST && toFile == 7) || (dir == NORTH && rank == 7) || (dir == SOUTH && rank == 0))
 			break;
 
-		int fromFile = from % 8;
-		if (std::abs(toFile - fromFile) > 1 && (dir == -9 || dir == -7 || dir == 7 || dir == 9)) break;
+		if ((dir == NORTH_EAST && toFile == 7) || (dir == NORTH_WEST && toFile == 0) ||
+			(dir == NORTH_EAST && rank == 7) || (dir == NORTH_WEST && rank == 7) ||
+			(dir == SOUTH_WEST && rank == 0) || (dir == SOUTH_EAST && rank == 0) ||
+			(dir == SOUTH_EAST && toFile == 7) || (dir == SOUTH_WEST && toFile == 0))
+			break;
 
 		Bitboard toBB = 1ULL << to;
 		attacks |= toBB;
@@ -369,7 +387,6 @@ Bitboard Utils::RayAttacksForMagics(uint8_t from, const int dir, Bitboard occupa
 
 	return attacks;
 }
-
 
 Bitboard Utils::RayAttacks(uint8_t from, const int dir, const Bitboard occupancy) {
 	Bitboard attacks = 0ULL;
@@ -438,6 +455,15 @@ Bitboard Utils::GenerateRookAttacksForMagics(const int square, const Bitboard oc
 	return attacks;
 }
 
+Bitboard Utils::GenerateBishopAttacksOptimized(const int square, const Bitboard occupancy) {
+	const int index = ((occupancy & Engine::bishopMagics[square].mask) * Engine::bishopMagics[square].magic) >> Engine::bishopMagics[square].shift;
+	return Engine::bishopAttackTable[square][index];
+}
+
+Bitboard Utils::GenerateRookAttacksOptimized(const int square, const Bitboard occupancy) {
+	const int index = ((occupancy & Engine::rookMagics[square].mask) * Engine::rookMagics[square].magic) >> Engine::rookMagics[square].shift;
+	return Engine::rookAttackTable[square][index];
+}
 
 UndoInfo Utils::CreateUndoInfo(const Board& board, const Move& move)
 {
@@ -549,7 +575,7 @@ Bitboard Utils::SetOccupancy(const int index, const int bitsInMask, const Bitboa
 	for (int square = 0; square < 64; square++) {
 		Bitboard sqBB = 1ULL << square;
 		if (mask & sqBB) {
-			if (index & (1 << bitIndex)) {
+			if (index & (1ULL << bitIndex)) {
 				result |= sqBB;
 			}
 			++bitIndex;
@@ -559,7 +585,7 @@ Bitboard Utils::SetOccupancy(const int index, const int bitsInMask, const Bitboa
 	return result;
 }
 
-bool Utils::HasRepeated(const uint64_t arr[4092])
+bool Utils::HasRepeated(Bitboard *arr)
 {
 	for (uint16_t i = 0; i < 4092; i++) {
 		for (uint16_t j = 0; j < i; j++) {
@@ -597,11 +623,25 @@ Bitboard Utils::GenerateOccupancy(Bitboard mask, const int index) {
 	return occupancy;
 }
 
-std::string Utils::ToBin(const uint64_t n)
-{
-	std::string res = "";
-	for (int i = 63; i >= 0; i--) {
-		res += (Utils::GetBitboardValueOnIndex(n, i) == 1 ? "1" : "0");
+std::string Utils::ToBin(uint64_t n) {
+	std::string res;
+	res.reserve(64 + 8);
+	res += "\n"; //this is for debugging tables
+	/*int count = 0;
+	for (int i = 63; i >= 0; --i) {
+		res += ((n >> i) & 1ULL) ? '1' : '0';
+		++count;
+		if (count % 8 == 0)
+			res += '\n';
+	}*/
+
+	for (int i = 7; i >= 0; i--) {
+		for (int j = 0; j < 8; j++) {
+			res += Utils::GetBitboardValueOnIndex(n ,(i * 8 + j))? '&' : '_';
+		}
+		res += "\n";
 	}
+
 	return res;
 }
+

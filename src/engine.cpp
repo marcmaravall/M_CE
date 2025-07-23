@@ -23,28 +23,28 @@ void Engine::init()
 	InitKnightMasks();
     InitKingMasks();
 
+    GenerateMagicNumbers();
+
     InitBishopTable();
     InitRookTable();
 
-    GenerateMagicNumbers();
+    // ValidateMagics();
 
-    DebugTables();
+    // DebugMagics();
+    // DebugTables();
 
     polyglotSettings = generatePolyglotSettings();
 
 #ifdef WIN32
     book = Book(programDir+"\\books\\komodo.bin");
+    std::ofstream debugFile(programDir + "\\tests", std::ios::app);
 #elif __linux__
     book = Book(programDir+"/books/komodo.bin");
+    std::ofstream debugFile(programDir + "/tests", std::ios::app);
 #endif
 
 	currentBoard = Board(START_FEN);    
 
-#ifdef _WIN32
-    std::ofstream debugFile(programDir+"\\tests", std::ios::app);
-#elif __linux__
-    std::ofstream debugFile(programDir+"/tests", std::ios::app);
-#endif
     debugFile.clear();
 }
 
@@ -315,10 +315,143 @@ void Engine::PlayAgainistHuman()
     }
 }
 
-Bitboard Engine::bishopAttackTable[64][4096];
+Bitboard Engine::bishopAttackTable[64][512];
 Bitboard Engine::rookAttackTable[64][4096];
-MagicNumber Engine::rookMagics[64];
-MagicNumber Engine::bishopMagics[64];
+
+Magic Engine::rookMagics[64] = {
+    { 0, 0xa8002c000108020ULL,  0},
+    { 0, 0x6c00049b0002001ULL,  0},
+    { 0, 0x100200010090040ULL,  0},
+    { 0, 0x2480041000800801ULL, 0},
+    { 0, 0x280028004000800ULL,  0},
+    { 0, 0x900410008040022ULL,  0},
+    { 0, 0x280020001001080ULL,  0},
+    { 0, 0x2880002041000080ULL, 0},
+    { 0, 0xa000800080400034ULL, 0},
+    { 0, 0x4808020004000ULL,    0},
+    { 0, 0x2290802004801000ULL, 0},
+    { 0, 0x411000d00100020ULL,  0},
+    { 0, 0x402800800040080ULL,  0},
+    { 0, 0xb000401004208ULL,    0},
+    { 0, 0x2409000100040200ULL, 0},
+    { 0, 0x1002100004082ULL,    0},
+    { 0, 0x22878001e24000ULL,   0},
+    { 0, 0x1090810021004010ULL, 0},
+    { 0, 0x801030040200012ULL,  0},
+    { 0, 0x500808008001000ULL,  0},
+    { 0, 0xa08018014000880ULL,  0},
+    { 0, 0x8000808004000200ULL, 0},
+    { 0, 0x201008080010200ULL,  0},
+    { 0, 0x801020000441091ULL,  0},
+    { 0, 0x800080204005ULL,     0},
+    { 0, 0x1040200040100048ULL, 0},
+    { 0, 0x120200402082ULL,     0},
+    { 0, 0xd14880480100080ULL,  0},
+    { 0, 0x12040280080080ULL,   0},
+    { 0, 0x100040080020080ULL,  0},
+    { 0, 0x9020010080800200ULL, 0},
+    { 0, 0x813241200148449ULL,  0},
+    { 0, 0x491604001800080ULL,  0},
+    { 0, 0x100401000402001ULL,  0},
+    { 0, 0x4820010021001040ULL, 0},
+    { 0, 0x400402202000812ULL,  0},
+    { 0, 0x209009005000802ULL,  0},
+    { 0, 0x810800601800400ULL,  0},
+    { 0, 0x4301083214000150ULL, 0},
+    { 0, 0x204026458e001401ULL, 0},
+    { 0, 0x40204000808000ULL,   0},
+    { 0, 0x8001008040010020ULL, 0},
+    { 0, 0x8410820820420010ULL, 0},
+    { 0, 0x1003001000090020ULL, 0},
+    { 0, 0x804040008008080ULL,  0},
+    { 0, 0x12000810020004ULL,   0},
+    { 0, 0x1000100200040208ULL, 0},
+    { 0, 0x430000a044020001ULL, 0},
+    { 0, 0x280009023410300ULL,  0},
+    { 0, 0xe0100040002240ULL,   0},
+    { 0, 0x200100401700ULL,     0},
+    { 0, 0x2244100408008080ULL, 0},
+    { 0, 0x8000400801980ULL,    0},
+    { 0, 0x2000810040200ULL,    0},
+    { 0, 0x8010100228810400ULL, 0},
+    { 0, 0x2000009044210200ULL, 0},
+    { 0, 0x4080008040102101ULL, 0},
+    { 0, 0x40002080411d01ULL,   0},
+    { 0, 0x2005524060000901ULL, 0},
+    { 0, 0x502001008400422ULL,  0},
+    { 0, 0x489a000810200402ULL, 0},
+    { 0, 0x1004400080a13ULL,    0},
+    { 0, 0x4000011008020084ULL, 0},
+    { 0, 0x26002114058042ULL,   0},
+};
+
+Magic Engine::bishopMagics[64] = {
+    { 0, 0x89a1121896040240ULL, 0 },
+    { 0, 0x2004844802002010ULL, 0 },
+    { 0, 0x2068080051921000ULL, 0 },
+    { 0, 0x62880a0220200808ULL, 0 },
+    { 0, 0x4042004000000ULL,    0 },
+    { 0, 0x100822020200011ULL,  0 },
+    { 0, 0xc00444222012000aULL, 0 },
+    { 0, 0x28808801216001ULL,   0 },
+    { 0, 0x400492088408100ULL,  0 },
+    { 0, 0x201c401040c0084ULL,  0 },
+    { 0, 0x840800910a0010ULL,   0 },
+    { 0, 0x82080240060ULL,      0 },
+    { 0, 0x2000840504006000ULL, 0 },
+    { 0, 0x30010c4108405004ULL, 0 },
+    { 0, 0x1008005410080802ULL, 0 },
+    { 0, 0x8144042209100900ULL, 0 },
+    { 0, 0x208081020014400ULL,  0 },
+    { 0, 0x4800201208ca00ULL,   0 },
+    { 0, 0xf18140408012008ULL,  0 },
+    { 0, 0x1004002802102001ULL, 0 },
+    { 0, 0x841000820080811ULL,  0 },
+    { 0, 0x40200200a42008ULL,   0 },
+    { 0, 0x800054042000ULL,     0 },
+    { 0, 0x88010400410c9000ULL, 0 },
+    { 0, 0x520040470104290ULL,  0 },
+    { 0, 0x1004040051500081ULL, 0 },
+    { 0, 0x2002081833080021ULL, 0 },
+    { 0, 0x400c00c010142ULL,    0 },
+    { 0, 0x941408200c002000ULL, 0 },
+    { 0, 0x658810000806011ULL,  0 },
+    { 0, 0x188071040440a00ULL,  0 },
+    { 0, 0x4800404002011c00ULL, 0 },
+    { 0, 0x104442040404200ULL,  0 },
+    { 0, 0x511080202091021ULL,  0 },
+    { 0, 0x4022401120400ULL,    0 },
+    { 0, 0x80c0040400080120ULL, 0 },
+    { 0, 0x8040010040820802ULL, 0 },
+    { 0, 0x480810700020090ULL,  0 },
+    { 0, 0x102008e00040242ULL,  0 },
+    { 0, 0x809005202050100ULL,  0 },
+    { 0, 0x8002024220104080ULL, 0 },
+    { 0, 0x431008804142000ULL,  0 },
+    { 0, 0x19001802081400ULL,   0 },
+    { 0, 0x200014208040080ULL,  0 },
+    { 0, 0x3308082008200100ULL, 0 },
+    { 0, 0x41010500040c020ULL,  0 },
+    { 0, 0x4012020c04210308ULL, 0 },
+    { 0, 0x208220a202004080ULL, 0 },
+    { 0, 0x111040120082000ULL,  0 },
+    { 0, 0x6803040141280a00ULL, 0 },
+    { 0, 0x2101004202410000ULL, 0 },
+    { 0, 0x8200000041108022ULL, 0 },
+    { 0, 0x21082088000ULL,      0 },
+    { 0, 0x2410204010040ULL,    0 },
+    { 0, 0x40100400809000ULL,   0 },
+    { 0, 0x822088220820214ULL,  0 },
+    { 0, 0x40808090012004ULL,   0 },
+    { 0, 0x910224040218c9ULL,   0 },
+    { 0, 0x402814422015008ULL,  0 },
+    { 0, 0x90014004842410ULL,   0 },
+    { 0, 0x1000042304105ULL,    0 },
+    { 0, 0x10008830412a00ULL,   0 },
+    { 0, 0x2520081090008908ULL, 0 },
+    { 0, 0x40102000a0a60140ULL, 0 }, 
+};
+
 Bitboard Engine::knightMasks[64];
 Bitboard Engine::kingMasks[64];
 Bitboard Engine::between[64][64];
@@ -545,7 +678,9 @@ void Engine::PrintBoard()
 	std::cout << "+---+---+---+---+---+---+---+---+\n"
 		      << "  a   b   c   d   e   f   g   h\n";
 
-	std::cout << "\nFen: " << Utils::ConvertToFEN(currentBoard) << "\n";
+    std::cout 
+        << "\nFen: " << Utils::ConvertToFEN(currentBoard) 
+        << "\nKey: " << Utils::GetZobristHash(currentBoard, hashSettings);
 }
 
 void Engine::DivideTest(uint8_t depth)
@@ -695,114 +830,103 @@ fs::path Engine::getProjectDirectory() {
 }
 // -------------------------------------------
 
-void Engine::InitBishopTable()
-{
-    for (int square = 0; square < 64; square++) {
-        Bitboard mask = Utils::GenerateBishopAttacksForMagics(square, 0);
-
+void Engine::InitBishopTable() {
+    for (int sq = 0; sq < 64; sq++) {
+        Bitboard mask = bishopMagics[sq].mask;
         int relevantBits = Utils::CountBits(mask);
-        int occupancyVariations = 1 << relevantBits;
+        int occCount = 1 << relevantBits;
 
-        for (int index = 0; index < occupancyVariations; index++) {
-            Bitboard occupancy = Utils::SetOccupancy(index, relevantBits, mask);
-            Bitboard attacks = Utils::GenerateBishopAttacksForMagics(square, occupancy);
-            bishopAttackTable[square][index] = attacks;
+        for (int i = 0; i < occCount; i++) {
+            Bitboard occupancy = Utils::GenerateOccupancy(mask, i);
+            int index = (occupancy * bishopMagics[sq].magic) >> bishopMagics[sq].shift;
+            bishopAttackTable[sq][index] = Utils::GenerateBishopAttacks(sq, occupancy);
         }
     }
 }
 
 void Engine::InitRookTable() {
-    for (int square = 0; square < 64; square++) {
-        Bitboard mask = Utils::GenerateRookAttacksForMagics(square, 0);
-
+    for (int sq = 0; sq < 64; sq++) {
+        Bitboard mask = rookMagics[sq].mask;
         int relevantBits = Utils::CountBits(mask);
-        int occupancyVariations = 1 << relevantBits;
+        int occCount = 1 << relevantBits;
 
-        for (int index = 0; index < occupancyVariations; index++) {
-            Bitboard occupancy = Utils::SetOccupancy(index, relevantBits, mask);
-            Bitboard attacks = Utils::GenerateRookAttacksForMagics(square, occupancy);
-            rookAttackTable[square][index] = attacks;
+        for (int i = 0; i < occCount; i++) {
+            Bitboard occupancy = Utils::GenerateOccupancy(mask, i);
+            int index = (occupancy * rookMagics[sq].magic) >> rookMagics[sq].shift;
+            rookAttackTable[sq][index] = Utils::GenerateRookAttacks(sq, occupancy);
         }
     }
 }
 
-void Engine::GenerateMagicNumbers()
+void Engine::GenerateMagicNumbers() // TODO: implement the generator (without precalculed attacks)
 {
     // for rooks
     for (int square = 0; square < 64; square++) {
-        Bitboard mask = Utils::GenerateRookAttacks(square, 0);
+        const Bitboard mask = Utils::GenerateRookAttacksForMagics(square, 0);
+        
+        const int relevantBits = Utils::CountBits(mask);
+        const int occupancyCount = 1 << relevantBits;
+        
+        rookMagics[square].mask = mask;
+        rookMagics[square].shift = 64 - relevantBits;
 
-        int relevantBits = Utils::CountBits(mask);
-        int occupancyCount = 1 << relevantBits;
-        std::vector<Bitboard> occupancies(occupancyCount);
-        std::vector<Bitboard> attacks(occupancyCount);
-
-        for (int i = 0; i < occupancyCount; i++) {
-            occupancies[i] = Utils::GenerateOccupancy(mask, i);
-            attacks[i] = Utils::GenerateRookAttacks(square, occupancies[i]);
-        }
-
-        while (true) {
-            Bitboard magic = (Utils::Rand64() & Utils::Rand64() & Utils::Rand64());
-
-            std::vector<Bitboard> used(occupancyCount, 0);
-            bool fail = false;
-
-            for (int i = 0; i < occupancyCount; i++) {
-                int index = (occupancies[i] * magic) >> (64 - relevantBits);
-
-                if (used[index] == 0)
-                    used[index] = attacks[i];
-                else if (used[index] != attacks[i]) {
-                    fail = true;
-                    break;
-                }
-            }
-
-            if (!fail) {
-                rookMagics[square] = magic;
-                break;
-            }
-        }
+        // int relevantBits = Utils::CountBits(mask);
+        // int occupancyCount = 1 << relevantBits;
+        // 
+        // uint64_t attemps = 0;
+        // 
+        // while (true) {
+        //     attemps++;
+        //     Bitboard magic = (Utils::Rand64() & Utils::Rand64() & Utils::Rand64());
+        // 
+        //     auto copy = rookAttackTable[square];
+        // 
+        //     for (size_t i = 0; i < 4096; i++) {
+        //         copy[i] *= magic;
+        //     }
+        // 
+        //     bool fail = Utils::HasRepeated(copy);
+        // 
+        //     if (!fail) {
+		// 		std::cout << "Found Magic " << square << " after " << attemps << " attempts.\n";
+        //         attemps = 0;
+        //         rookMagics[square].magic = magic;
+		// 		rookMagics[square].mask = mask;
+		// 		rookMagics[square].shift = 64 - relevantBits;
+        //         break;
+        //     }
+        // }
     }
 
     // for bishops
     for (int square = 0; square < 64; square++) {
-        Bitboard mask = Utils::GenerateBishopAttacks(square, 0ULL);
+        const Bitboard mask = Utils::GenerateBishopAttacksForMagics(square, 0ULL);
 
-        int relevantBits = Utils::CountBits(mask);
-        int occupancyCount = 1 << relevantBits;
-        std::vector<Bitboard> occupancies(occupancyCount);
-        std::vector<Bitboard> attacks(occupancyCount);
+        const int relevantBits = Utils::CountBits(mask);
+        const int occupancyCount = 1 << relevantBits;
 
-        for (int i = 0; i < occupancyCount; i++) {
-            occupancies[i] = Utils::GenerateOccupancy(mask, i);
-            attacks[i] = Utils::GenerateBishopAttacks(square, occupancies[i]);
-        }
+        bishopMagics[square].mask = mask;
+        bishopMagics[square].shift = 64 - relevantBits;
 
-        while (true) {
-            Bitboard magic = (Utils::Rand64() & Utils::Rand64() & Utils::Rand64());
-
-            std::vector<Bitboard> used(occupancyCount, 0);
-            bool fail = false;
-
-            for (int i = 0; i < occupancyCount; i++) {
-                int index = (occupancies[i] * magic) >> (64 - relevantBits);
-
-                if (used[index] == 0)
-                    used[index] = attacks[i];
-                else if (used[index] != attacks[i]) {
-                    fail = true;
-                    break;
-            }
-        }
-
-        if (!fail) {
-            bishopMagics[square] = magic;
-            break;
-        }
+        // while (true) {
+        //     Bitboard magic = (Utils::Rand64() & Utils::Rand64() & Utils::Rand64());
+        // 
+		// 	auto copy = bishopAttackTable[square];
+        // 
+        //     for (size_t i = 0; i < 512; i++) {
+        //         copy[i] *= magic;
+        //     }
+        // 
+        //     bool fail = Utils::HasRepeated(copy);
+        // 
+        //     if (!fail) {
+        //         bishopMagics[square].magic = magic;
+        //         bishopMagics[square].mask = mask;
+        //         bishopMagics[square].shift = 64 - relevantBits;
+        //         break;
+        //     }
+        // }
     }
-}
 
 #ifdef M_CE_DEBUG
     std::cout << "Generated Magic Numbers of bishops and rooks.\n";
@@ -810,7 +934,7 @@ void Engine::GenerateMagicNumbers()
 }
 
 void Engine::DebugTables() {
-    std::cout << "DEBUGGING TABLES\n";
+    // std::cout << "DEBUGGING TABLES\n";
 
     std::string debugDir = programDir + "\\debug";
     std::filesystem::create_directories(debugDir);
@@ -825,6 +949,13 @@ void Engine::DebugTables() {
 
     std::cout << "Writting in: " << filePath << std::endl;
 
+    debugFile << "---------- \nBISHOP TABLE \n---------- \n \n";
+    for (size_t i = 0; i < 64; i++) {
+        for (size_t j = 0; j < 512; j++) {
+            debugFile << "BISHOP: " << i << " " << j << ": " << Utils::ToBin(bishopAttackTable[i][j]) << "\n";
+        }
+    }
+
     debugFile << "---------- \nROOK TABLE \n---------- \n \n";
     for (size_t i = 0; i < 64; i++) {
         for (size_t j = 0; j < 4096; j++) {
@@ -832,13 +963,100 @@ void Engine::DebugTables() {
         }
     }
 
-    debugFile << "---------- \nBISHOP TABLE \n---------- \n \n";
+    debugFile.close();
+}
+
+
+void Engine::TestBishopGen()
+{
+    Bitboard bb = 0ULL;
+
+    for (uint8_t sq = 0; sq < 64; sq++) {
+		bb = Utils::GenerateBishopAttacksForMagics(sq, 0ULL);
+
+		std::cout << "BISHOP: " << int(sq) << ": \n" << Utils::ToBin(bb) << "\n";
+
+    }
+}
+
+void Engine::DebugMagics()
+{
+    std::string debugDir = programDir + "\\debug";
+    std::filesystem::create_directories(debugDir);
+
+    std::string filePath = debugDir + "\\magics.txt";
+    std::ofstream debugFile(filePath);
+
+    if (!debugFile.is_open()) {
+        std::cerr << "ERROR: cannot found path " << filePath << std::endl;
+        return;
+    }
+
+    std::cout << "Writting magics in: " << filePath << std::endl;
+
+    debugFile << "---------- \nROOK MAGICS \n---------- \n \n";
     for (size_t i = 0; i < 64; i++) {
-        for (size_t j = 0; j < 4096; j++) {
-            debugFile << "BISHOP: " << i << " " << j << ": " << Utils::ToBin(bishopAttackTable[i][j]) << "\n";
-        }
+        debugFile << "Magic " << i << ": " << rookMagics[i].magic << ". \n";
+    }
+
+    debugFile << "---------- \nBISHOP MAGICS \n---------- \n \n";
+    for (size_t i = 0; i < 64; i++) {
+        debugFile << "Magic " << i << ": " << bishopMagics[i].magic << ". \n";
     }
 
     debugFile.close();
 }
 
+
+bool Engine::ValidateMagics()
+{
+    for (int sq = 0; sq < 64; ++sq) {
+        Bitboard mask = rookMagics[sq].mask;
+        int rb = 64 - rookMagics[sq].shift;
+        int vars = 1 << rb;
+        for (int i = 0; i < vars; ++i) {
+            Bitboard occ = Utils::GenerateOccupancy(mask, i);
+            int idx = (int)((occ * rookMagics[sq].magic) >> rookMagics[sq].shift);
+            Bitboard ref = Utils::GenerateRookAttacks(sq, occ);
+            Bitboard tab = rookAttackTable[sq][idx];
+            if (ref != tab) {
+                std::cerr << "Rook magic fail sq=" << sq << " i=" << i << "\n";
+                return false;
+            }
+        }
+    }
+
+    for (int sq = 0; sq < 64; ++sq) {
+        Bitboard mask = bishopMagics[sq].mask;
+        int rb = 64 - bishopMagics[sq].shift;
+        int vars = 1 << rb;
+        for (int i = 0; i < vars; ++i) {
+            Bitboard occ = Utils::GenerateOccupancy(mask, i);
+            int idx = (int)((occ * bishopMagics[sq].magic) >> bishopMagics[sq].shift);
+            Bitboard ref = Utils::GenerateRookAttacks(sq, occ);
+            Bitboard tab = bishopAttackTable[sq][idx];
+            if (ref != tab) {
+                std::cerr << "Bishop magic fail sq=" << sq << " i=" << i << "\n";
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+void Engine::TestOccupancy()
+{
+    Bitboard mask = Utils::GenerateRookAttacks(0, 0ULL);
+
+    int bits = Utils::CountBits(mask);
+    int occCount = 1 << bits;
+
+    for (int i = 0; i < occCount; ++i) {
+        Bitboard occ = Utils::GenerateOccupancy(mask, i);
+
+        if (occ & ~mask) {
+            std::cerr << "ERROR: occ has bits outside mask. i=" << i << "\n";
+        }
+    }
+}

@@ -957,6 +957,7 @@ Bitboard Board::GetKingAttacks(uint8_t square) {
 }*/
 
 bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug) {
+
 	const Bitboard targetBB = 1ULL << square;
 	const Bitboard occupancy = Utils::GetAllBitboards(bitboards, BOTH);			// why both is not the default value? I'm so dumb ...
 
@@ -978,9 +979,7 @@ bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square,
 	
 	while (bb) {
 		int from = Utils::PopLSB(bb);
-		// if (debug)
-		// 	std::cout << from << " from\n";
-		const Bitboard attacks = Utils::GenerateBishopAttacks(from, occupancy);
+		const Bitboard attacks = Utils::GenerateBishopAttacksOptimized(from, occupancy);
 		if ((attacks & targetBB) && ((Engine::between[from][square] & occupancy) == 0)) {
 			if (debug) {
 				/*											i'm so fucking dumb, 
@@ -1011,7 +1010,7 @@ bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square,
 	bb = bitboards[isWhite ? B_ROOK_I : W_ROOK_I] | bitboards[isWhite ? B_QUEEN_I : W_QUEEN_I];
 	while (bb) {
 		int from = Utils::PopLSB(bb);
-		const Bitboard attacks = Utils::GenerateRookAttacks(from, occupancy);
+		const Bitboard attacks = Utils::GenerateRookAttacksOptimized(from, occupancy);
 
 		if (debug) {
 			std::cout << "Rook from: " << from << "\n";

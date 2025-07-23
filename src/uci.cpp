@@ -121,7 +121,16 @@ void UCI::ManageInput(const char* input)
 
 	else if (command == "eval")
 	{
-		std::cout << "info string eval " << Evaluation::Evaluate(engine.currentBoard) << "\n";
+		index++;
+
+		if (index < tokens.size()) {
+			if (tokens[index] == "simple")
+				Evaluation::PrintSimpleEvaluation(engine.currentBoard);
+		}
+		else
+			Evaluation::PrintEvaluation(engine.currentBoard);
+
+		std::cout << "info string evaluated\n\n";
 	}
 
 	else if (command == "tests")
@@ -238,7 +247,7 @@ void UCI::init_options()
 
 	auto clear = std::make_unique<ButtonOption>();
 	clear->name = "Clear Hash";
-	clear->callback = []() { /* Limpiar la tabla de hash */ };
+	clear->callback = []() { };
 	options["Clear Hash"] = std::move(clear);
 }
 

@@ -4,6 +4,7 @@
 #include "board.h"
 #include "constants.h"
 #include "utils.h"
+#include <iomanip>
 
 class Evaluation
 {
@@ -19,4 +20,11 @@ class Evaluation
 public:
 	static int SimpleEvaluation(const Board& board);
 	static int Evaluate(const Board& board);
+
+	static int EvaluatePiece(const Board& board, const uint8_t index);
+	static int EvaluatePieceSimple(const Board&, const uint8_t index);
+
+	static void PrintEvaluation(const Board& board);
+	static void PrintSimpleEvaluation(const Board& board);
 };
+

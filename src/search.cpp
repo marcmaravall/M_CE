@@ -21,7 +21,7 @@ MoveEval Minimax(Board& position, uint8_t depth, bool max)
 	MoveEval bestMove;
 	if (max)
 	{
-		bestMove.eval = -1000000;
+		bestMove.eval = -MATE_SCORE;
 		for (const Move& move : moves)
 		{
 			Board newPosition = position;
@@ -37,7 +37,7 @@ MoveEval Minimax(Board& position, uint8_t depth, bool max)
 	}
 	else
 	{
-		bestMove.eval = 1000000;
+		bestMove.eval = MATE_SCORE;
 		for (const Move& move : moves)
 		{
 			Board newPosition = position;
@@ -112,7 +112,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 	MoveEval bestMove;
 	if (max)
 	{
-		bestMove.eval = -1'000'000;
+		bestMove.eval = -MATE_SCORE;
 		for (const Move& move : moves)
 		{
 			const UndoInfo undo = Utils::CreateUndoInfo(position, move);
@@ -141,7 +141,7 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 	}
 	else
 	{
-		bestMove.eval = 1'000'000;
+		bestMove.eval = MATE_SCORE;
 		for (const Move& move : moves)
 		{
 			const UndoInfo undo = Utils::CreateUndoInfo(position, move);

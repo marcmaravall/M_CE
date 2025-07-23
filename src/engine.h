@@ -15,81 +15,91 @@
 #include <filesystem>
 #include <future>
 
+// #define M_CE_DEBUG
+
 namespace fs = std::filesystem;
 struct MoveEval;
 
 class Engine
 {
 private:
-	const std::string programName = "M_CE";
-	std::string programDir;
-	fs::path getProjectDirectory();
+    const std::string programName = "M_CE";
+    std::string programDir;
+    fs::path getProjectDirectory();
 
 private:
 
-	void GenerateZobristHash(int seed);
-	static uint32_t polyglotSeed;
+    void GenerateZobristHash(int seed);
+    static uint32_t polyglotSeed;
 
-	uint32_t getRandomU32();
-	uint64_t getRandomU64();
+    uint32_t getRandomU32();
+    uint64_t getRandomU64();
 
-	ZobristHashSettings generatePolyglotSettings();
+    ZobristHashSettings generatePolyglotSettings();
 
 private:
-	// Board currentBoard;
+    // Board currentBoard;
 
-	void ManageInput();
+    void ManageInput();
 public:
-	Board currentBoard = Board(START_FEN);
+    Board currentBoard = Board(START_FEN);
 
-	Engine();
-	~Engine();
+    Engine();
+    ~Engine();
 
-	static const int maxSearchDepth = 5;
+    static const int maxSearchDepth = 5;
 
-	void init();
-	void start();
-	void stop();
-	void reset();
+    void init();
+    void start();
+    void stop();
+    void reset();
 
-	// masks and tables
-	void InitKnightMasks();
-	void InitKingMasks();
-	void InitBetweenTable();
-	void InitBishopTable();
-	void InitRookTable();
+    // masks and tables
+    void InitKnightMasks();
+    void InitKingMasks();
+    void InitBetweenTable();
+    void InitBishopTable();
+    void InitRookTable();
 
-	void GenerateMagicNumbers();
+    void GenerateMagicNumbers();
 
-	// tests
-	void RunTest();
-	void RunBookTest();
+    // tests
+    void RunTest();
+    void RunBookTest();
 
-	void PlayAgainistItself();
-	void PlayAgainistHuman();
+    void PlayAgainistItself();
+    void PlayAgainistHuman();
 
-	void StartPos();
-	void SetPosition(const char* fen);
+    void StartPos();
+    void SetPosition(const char* fen);
 
-	MoveEval SearchTime(int time);
-	MoveEval Search(int depth);
-	void DivideTest(uint8_t depth);
+    MoveEval SearchTime(int time);
+    MoveEval Search(int depth);
+    void DivideTest(uint8_t depth);
 
-	void MovePiece(const char* moveStr);
+    void MovePiece(const char* moveStr);
 
-	void PrintBoard();
+    void PrintBoard();
 
-	void DebugTables();
+    void DebugTables();
+    void DebugMagics();
+    void TestBishopGen();
+
+    bool ValidateMagics();
+    
+    void TestOccupancy();
+    void DebugMagic(Magic magic);
 
 public:
-	static Bitboard knightMasks[64];
-	static Bitboard kingMasks[64];
+    static Bitboard knightMasks[64];
+    static Bitboard kingMasks[64];
 
-	static Bitboard rookAttackTable[64][4096];
-	static Bitboard bishopAttackTable[64][4096];
+    static Bitboard rookAttackTable[64][4096];
+    static Bitboard bishopAttackTable[64][512];
 
-	static uint64_t rookMagics[64];
-	static uint64_t bishopMagics[64];
+    static Magic rookMagics[64];
+
+	static Magic bishopMagics[64];
 	
 	static Bitboard between[64][64];
 

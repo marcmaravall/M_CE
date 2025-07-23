@@ -73,6 +73,13 @@
 14/07/2025: Implemented debug features, added ray generation for magic bitboards.
 15/07/2025: Nothing...
 16/07/2025: Solved a problem with ray generation for magic bitboards.
+17/07/2025: Solved bishop tables generation.
+18/07/2025: Solved another bug with bishop tables generation (it wasn't working). Added things for debug.
+19/07/2025: Added an ascii board evaluation, to see what adds and what removes evaluation points.
+20/07/2025: Tried to see if magic bitboards are working, it don't works...
+21/07/2025: Added precalculed magics and tried to solve some errors, it don't works...
+22/07/2025: Detected a silly bug in magics, now it's solved. Magic bitabords started to work at perft 3 and 4.
+23/07/2025: 
 */
 
 #include <iostream>
@@ -92,10 +99,6 @@ int main()
 		uci.ManageInput(input.c_str());
 	}
 
-	/* Engine engine;
-	engine.RunBookTest();*/
-	// engine.PlayAgainistItself();
+	getchar();
 	return 0;
 }
-
-

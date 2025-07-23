@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <functional>
 #include <map>
+#include <assert.h>
 
 class UciOption {
 public:
@@ -114,9 +115,10 @@ private:
 	const char* m_uciName = "M_CE";
 	const char* m_uciAuthor = "Marc Maravall Díez";
 
+public:
+
 	Engine engine;
 
-public:
 	UCI();
 
 	std::map<std::string, std::unique_ptr<UciOption>> options;

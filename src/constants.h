@@ -282,3 +282,9 @@ struct UndoInfo {
 };
 
 inline const int MATE_SCORE = 1'000'000'000;
+
+typedef struct {
+	Bitboard mask;
+	Bitboard magic;
+	uint8_t shift;
+} Magic;

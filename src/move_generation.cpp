@@ -103,9 +103,10 @@ void GenerateKnightMoves(const Board& board, const uint8_t from, std::vector<Mov
 	}
 }
 
+// #define DEBUG_MAGICS
+
 void GenerateBishopMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
-	Move currentMove =
-	{
+	Move currentMove = {
 		.from = 0,
 		.to = 0,
 		.promotion = 255,
@@ -114,7 +115,29 @@ void GenerateBishopMoves(const Board& board, const uint8_t from, std::vector<Mov
 
 	currentMove.from = from;
 
-	Bitboard mask = Utils::GenerateBishopAttacks(from, Utils::GetAllBitboards(board.bitboards, BOTH));
+#ifdef DEBUG_MAGICS
+	{
+		Bitboard occAll = Utils::GetAllBitboards(board.bitboards, BOTH);
+		Bitboard fast = Engine::bishopAttackTable[from][((occAll & Engine::bishopMagics[from].mask) * Engine::bishopMagics[from].magic) >> Engine::bishopMagics[from].shift];
+		Bitboard slow = Utils::GenerateBishopAttacks(from, occAll);
+		if (fast != slow) {
+			std::cerr << "Bishop magic mismatch from=" << int(from) << "\n";
+			std::cout << "occAll: \n";
+			Utils::DebugBitboard(occAll);
+
+			std::cout << "magic: " << uint64_t(((occAll & Engine::bishopMagics[from].mask) * Engine::bishopMagics[from].magic) >> Engine::bishopMagics[from].shift) << "\n";
+			Utils::DebugBitboard(fast);
+			
+			std::cout << "slow: \n";
+			Utils::DebugBitboard(slow);
+			abort();
+		}
+	}
+#endif
+
+	Bitboard occupancy = Utils::GetAllBitboards(board.bitboards, BOTH);
+	int index = ((occupancy & Engine::bishopMagics[from].mask) * Engine::bishopMagics[from].magic) >> Engine::bishopMagics[from].shift;
+	Bitboard mask = Engine::bishopAttackTable[from][index];
 
 	while (mask) {
 		uint8_t to = Utils::PopLSB(mask);
@@ -139,7 +162,25 @@ void GenerateRookMoves(const Board& board, const uint8_t from, std::vector<Move>
 
 	currentMove.from = from;
 
-	Bitboard mask = Utils::GenerateRookAttacks(from, Utils::GetAllBitboards(board.bitboards, BOTH));
+#ifdef DEBUG_MAGICS
+	{
+		Bitboard occAll = Utils::GetAllBitboards(board.bitboards, BOTH);
+		Bitboard fast = Engine::rookAttackTable[from][((occAll & Engine::rookMagics[from].mask) * Engine::rookMagics[from].magic) >> Engine::rookMagics[from].shift];
+		Bitboard slow = Utils::GenerateRookAttacks(from, occAll); 
+		if (fast != slow) {
+			std::cerr << "Rook magic mismatch from=" << int(from) << "\n";
+				Utils::DebugBitboard(occAll);
+				Utils::DebugBitboard(fast);
+				Utils::DebugBitboard(slow);
+			abort(); 
+		}
+	}
+#endif
+
+	const Bitboard occupancy = Utils::GetAllBitboards(board.bitboards, BOTH);
+	const int index = ((occupancy & Engine::rookMagics[from].mask) * Engine::rookMagics[from].magic) >> Engine::rookMagics[from].shift;
+	Bitboard mask = Engine::rookAttackTable[from][index];
+
 	while (mask) {
 		uint8_t to = Utils::PopLSB(mask);
 
