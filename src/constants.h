@@ -275,8 +275,8 @@ struct UndoInfo {
 
 	Move move;
 
-	uint8_t capturedPiece;
-	uint8_t promotedPiece;
+	uint8_t capturedPiece = 255;
+	uint8_t promotedPiece = 255;
 
 	uint8_t movedPiece;
 };
@@ -288,3 +288,24 @@ typedef struct {
 	Bitboard magic;
 	uint8_t shift;
 } Magic;
+
+
+typedef enum {
+	OPENING = 0,
+	MIDGAME = 1,
+	ENDGAME = 2
+
+} GAME_PHASE;
+
+// game phase value
+/*typedef enum {
+	PAWN_GP_VALUE = 1,
+	KNIGHT_GP_VALUE = 2,
+	BISHOP_GP_VALUE = 2,
+	ROOK_GP_VALUE = 3,
+	KNIGHT_GP_VALUE = 4,
+} GAME_PHASE_VALUE;*/
+
+// < 24 midgame, < 10 endgame
+inline constexpr const uint8_t MID_GAME_SCORE = 24;
+inline constexpr const uint8_t END_GAME_SCORE = 10;

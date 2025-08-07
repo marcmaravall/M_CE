@@ -18,9 +18,12 @@ private:
 	void MovePawn(const Move move);
 
 	void ClearHalfMoves();
-
-	std::vector<ZobristHash> repetitionsHistory;
 public:
+	std::vector<ZobristHash> repetitionsHistory;
+	Bitboard bitboards[12];
+
+	int halfMoves = 0;
+	int turns = 0;
 
 	bool wCastlingKing = false;
 	bool wCastlingQueen = false;
@@ -32,11 +35,9 @@ public:
 
 	bool turn;	// true = white, false = black
 
-	int halfMoves = 0;
-	int turns = 0;
-
 	uint8_t GetWhiteKingPosition(const bool debug = false);
 	uint8_t GetBlackKingPosition(const bool debug = false);
+public:
 
 	Board(const char* fen);
 	Board();
@@ -83,8 +84,6 @@ public:
 	void UndoMove(const UndoInfo& undo, const bool debug = false);
 
 	Bitboard GetKingAttacks(uint8_t square);
-
-	Bitboard bitboards[12];
 
 	bool GetTurn() const { return turn; }
 };

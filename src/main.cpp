@@ -79,7 +79,22 @@
 20/07/2025: Tried to see if magic bitboards are working, it don't works...
 21/07/2025: Added precalculed magics and tried to solve some errors, it don't works...
 22/07/2025: Detected a silly bug in magics, now it's solved. Magic bitabords started to work at perft 3 and 4.
-23/07/2025: 
+23/07/2025: Solved a bug with bishop magic generation perft 5 works. Magic bitboards implemented.
+24/07/2025: Nothing...																							-----.
+25/07/2025: Nothing...																								 |
+26/07/2025: Nothing...																								 |
+27/07/2025: Nothing...																								 | ---- Vacation
+28/07/2025: Nothing...																								 |
+29/07/2025: Nothing...																								 |
+30/07/2025: Nothing...																								 |
+31/07/2025: Nothing...																							-----.
+01/08/2025: Started to search some optimizations for the engine with vs profiler.
+02/08/2025: Started to optimize pawn move generation, basic pawn moves work well.
+03/08/2025: Added en passant to the optimized move generation function, added COPY_MODE to search and perft to compare results.
+04/08/2025: Added promotions to pawn generation optimized, and solved some bugs. Added more COPY_MODE code. Nps in perft 5 are over 5.5m.
+05/08/2025: Added an optimization in move generation, it generates pseudolegal moves and then in search is when you comprobe if the move is legal or not. 
+			The engine is faster, 800k - 1.2M nps in mid game, and 2.5M - 3.5M nps on some endgames/puzzles. Added search with time to the uci with go wtime... and movetime.
+06/08/2025: 
 */
 
 #include <iostream>
@@ -99,6 +114,5 @@ int main()
 		uci.ManageInput(input.c_str());
 	}
 
-	getchar();
 	return 0;
 }

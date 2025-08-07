@@ -130,13 +130,11 @@ std::string Utils::ConvertToBoardPosition(uint8_t squareIndex) {
 int Utils::ConvertToIndexPosition(std::string squarePosition) {
 	int ret = 255;
 	squarePosition = ToUpper(squarePosition);
-	// std::cout << squarePosition << "\n";
 	for (int i = 0; i < 64; i++)
 	{
 		if (squarePosition == BOARD_STRINGS[i]) {
 
 			ret = i;
-			// std::cout << "i equals " << ret << "\n";
 			return ret;
 		}
 	}
@@ -186,12 +184,16 @@ std::string Utils::ToUpper(std::string str) {
 	return str;
 }
 
-Bitboard Utils::GetAllBitboards(const Bitboard b[12], PIECE_COLORS colors)
+Bitboard Utils::GetAllBitboards(const Bitboard b[12], const PIECE_COLORS colors)
 {
 	Bitboard res = 0;
-	for (size_t i = (colors != BLACK ? 0 : 6); i < (colors == BOTH ? 12 : (colors == WHITE ? 6 : 12)); i++) {
+	const uint8_t startIndex = (colors != BLACK ? 0 : 6);
+	const uint8_t endIndex = (colors == BOTH ? 12 : (colors == WHITE ? 6 : 12));
+	
+	for (size_t i = startIndex; i < endIndex; i++) {
 		res |= b[i];
 	}
+
 	return res;
 }
 
@@ -245,20 +247,26 @@ Bitboard Utils::GetDiagonalMask(uint8_t index)
 }
 
 inline uint8_t Utils::GetPieceType(const Board& board, const uint8_t index) {
-	for (int i = 0; i < 12; i++) {
-		if (GetBitboardValueOnIndex(board.bitboards[i], index)) {
+	const Bitboard mask = 1ULL << index;
+	for (uint8_t i = 0; i < 12; ++i) {
+		if (board.bitboards[i] & mask) {
 			return i;
 		}
 	}
 	return 255;
 }
 
-int Utils::PopLSB(uint64_t& bb) {
-	if(bb == 0) return -1;
+inline int Utils::PopLSB(uint64_t& bb) {
+	if (bb == 0) {
+		assert("ERROR: PopLSB value returned 0");
+		return -1;
+	}
 
 #if defined(_MSC_VER)
 	unsigned long index;
-	_BitScanForward64(&index, bb);
+	//_BitScanForward64(&index, bb);
+	index = _tzcnt_u64(bb);
+
 #else
 	int index = __builtin_ctzll(bb);
 #endif
@@ -517,7 +525,7 @@ std::string Utils::MoveToStr(const Move& move)
 	std::string res = "";
 
 	if (!move.castling)
-		res += Utils::ConvertToBoardPosition(move.from) + Utils::ConvertToBoardPosition(move.to) + ((move.promotion != 255 && move.promotion != 0) ? (char)move.promotion/*static_cast<char>(PIECE_CHAR[move.promotion])*/ : ' ');
+		res += Utils::ConvertToBoardPosition(move.from) + Utils::ConvertToBoardPosition(move.to) + ((move.promotion != 255 && move.promotion != 0) ? static_cast<char>(std::tolower(PIECE_CHAR[move.promotion])) : ' ');
 	else
 	{
 		if (move.from == 4)
@@ -531,10 +539,8 @@ std::string Utils::MoveToStr(const Move& move)
 				res += "e1c1";
 			}
 		}
-		else if (move.from == 60)
-		{
-			if (move.to == 63)
-			{
+		else if (move.from == 60) {
+			if (move.to == 63) {
 				res += "e8g8";
 			}
 			else if (move.to == 56)
@@ -543,6 +549,13 @@ std::string Utils::MoveToStr(const Move& move)
 			}
 		}
 	}
+
+	if (res == "") {
+		std::cout << "DEBUG: returning null value to res.\n";
+		std::cout << "from: " << move.from << ". to: " << move.to << "\n";
+		std::cout << "castling: " << move.castling << ". mode: " << move.mode << "\n";
+	}
+
 
 	return res;
 }
@@ -644,4 +657,3 @@ std::string Utils::ToBin(uint64_t n) {
 
 	return res;
 }
-

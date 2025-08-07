@@ -129,8 +129,6 @@ void UCI::ManageInput(const char* input)
 		}
 		else
 			Evaluation::PrintEvaluation(engine.currentBoard);
-
-		std::cout << "info string evaluated\n\n";
 	}
 
 	else if (command == "tests")
@@ -146,9 +144,21 @@ void UCI::ManageInput(const char* input)
 		if (tokens[index] == "perft")
 		{
 			index++;
+
+			// if (tokens[index] == "nolegal")
+
 			int depth = std::stoi(tokens[index]);
 
 			perft(depth);
+		}
+		else if (tokens[index] == "nodes") {
+			// TODO: implement nodes search
+		}
+		else if (tokens[index] == "movetime") {
+			const int time = std::stoi(tokens[index + 1]);
+		
+			MoveEval moveEval = engine.SearchTime(time);
+			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
 		}
 		else if (tokens[index] == "searchmoves") {
 			index++;
@@ -187,22 +197,55 @@ void UCI::ManageInput(const char* input)
 
 			char promotion = (moveEval.move.promotion < 12) ? tolower(PIECE_CHAR[moveEval.move.promotion]) : ' ';
 			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
-						/* "bestmove " << Utils::ConvertToBoardPosition(moveEval.move.from) 
-					  << Utils::ConvertToBoardPosition(moveEval.move.to) 
-					  << promotion << "\n";*/
+			std::cout << "info eval " << moveEval.eval << "\n";
 		}
-		else if (tokens[index] == "movetime")	// TODO: Implement move time
+		else if (tokens[index] == "wtime")
 		{
 			index++;
-			int time = std::stoi(tokens[index]);
-			MoveEval moveEval = engine.Search(static_cast<float>(time) / 1000.0f);
-			std::cout << "bestmove " << Utils::ConvertToBoardPosition(moveEval.move.from) << Utils::ConvertToBoardPosition(moveEval.move.to) << "\n";
+			uint64_t wTime = std::stoi(tokens[index]);
+			uint64_t bTime = 0;
+			uint64_t wInc = 0;
+			uint64_t bInc = 0;
+
+			if (tokens[index] == "btime")
+			{
+				index++;
+				bTime = std::stoi(tokens[index]);
+			}
+
+			if (index < tokens.size() && tokens[index] == "winc")
+			{
+				index++;
+				wInc = std::stoi(tokens[index]);
+			}
+			if (index < tokens.size() && tokens[index] == "btime")
+			{
+				index++;
+				bInc = std::stoi(tokens[index]);
+			}
+
+			const bool engineTurn = engine.currentBoard.turn;
+			const float engineTime = (engineTurn == WHITE_TURN ? wTime : bTime);
+			
+			int time = 3000;
+
+			if (engineTime < 3000)
+				time = 500;
+			else if (engineTime < 10000)
+				time = 1000;
+			else if (engineTime < 60000)
+				time = 1500;
+
+			MoveEval moveEval = engine.SearchTime(time);
+			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
+			std::cout << "info string EVALUATION: " << moveEval.eval << "\n";
+
 		}
 		else if (tokens[index] == "ponder") {
-			// Handle ponder search
+			// TODO: ponder search
 		}
 		else if (tokens[index] == "wtime" || tokens[index] == "btime" || tokens[index] == "winc" || tokens[index] == "binc") {
-			index += 4; // Skip time and increment values
+			index += 4; 
 		}
 	}
 
@@ -295,11 +338,12 @@ void UCI::SpeedTest()
 
 	auto start = high_resolution_clock::now();
 	
-	std::vector<Move> moves = GenerateLegalMoves(engine.currentBoard);
+	std::vector<Move> moves;
+	GenerateLegalMoves(engine.currentBoard, moves);
 	// Divide(engine.currentBoard, 5);
 	auto end = high_resolution_clock::now();
 
-	double duration = duration_cast<microseconds>(end - start).count();
+	double duration = std::chrono::duration<double, std::micro>(end - start).count();
 	std::cout << "Time generating legal moves: " << duration << "us. " << duration / 1000.0f << "ms. " << duration / 1'000'000.0 << "s. \n";
 }
 
@@ -307,7 +351,8 @@ void UCI::EvalTest()
 {
 	using namespace std::chrono;
 
-	std::vector<Move> moves = GenerateLegalMoves(engine.currentBoard);
+	std::vector<Move> moves;
+	GenerateLegalMoves(engine.currentBoard, moves);
 
 	std::vector<Board> boards;
 
@@ -328,13 +373,14 @@ void UCI::EvalTest()
 
 	auto end = high_resolution_clock::now();
 
-	double duration = duration_cast<microseconds>(end - start).count();
+	double duration = std::chrono::duration<double, std::micro>(end - start).count();
 	std::cout << "Time generating evaluations of " << moves.size() << " positions: " << duration << "us. " << duration / 1'000.0f << "ms. " << duration / 1'000'000.0 << "s. \n";
 }
 
 void UCI::UndoMoveTest()
 {
-	const std::vector moves = GenerateLegalMoves(engine.currentBoard);
+	std::vector<Move> moves;
+	GenerateLegalMoves(engine.currentBoard, moves);
 
 	auto start = std::chrono::high_resolution_clock::now();
 	for (const Move& m : moves) {
@@ -356,7 +402,7 @@ void UCI::NPSTest()
 
 	auto end = std::chrono::high_resolution_clock::now();
 
-	double duration = duration_cast<std::chrono::microseconds>(end - start).count();
+	double duration = std::chrono::duration<double, std::micro>(end - start).count();
 	std::cout << "Time with alphabeta nodes " << NODES << " duration " << duration << "us. " << duration / 1'000.0f << "ms. " << duration / 1'000'000.0 << "s. \n";
 }
 

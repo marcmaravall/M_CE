@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <array>
+#include <assert.h>
+
 #include "constants.h"
 #include "engine.h"
 
@@ -28,7 +30,7 @@ public:
 	static bool IsWhitePieceAt(const Board& board, uint8_t index);
 	static bool IsBlackPieceAt(const Board& board, uint8_t index);
 
-	static Bitboard GetAllBitboards(const Bitboard b[12], PIECE_COLORS color = WHITE);
+	static Bitboard GetAllBitboards(const Bitboard b[12], const PIECE_COLORS color = WHITE);
 
 	static std::string ToUpper(std::string str);
 

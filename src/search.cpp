@@ -12,7 +12,8 @@ MoveEval Minimax(Board& position, uint8_t depth, bool max)
 		return { Move(), Evaluation::Evaluate(position) };
 	}
 
-	std::vector<Move> moves = GenerateLegalMoves(position);
+	std::vector<Move> moves;
+	GenerateLegalMoves(position, moves);
 	if (moves.empty())
 	{
 		return { Move(), Evaluation::Evaluate(position) };
@@ -55,28 +56,16 @@ MoveEval Minimax(Board& position, uint8_t depth, bool max)
 	return bestMove;
 }
 
+#define COPY_MODE
+
 // reduces complexity O(n^2) to O(n) by using alpha-beta pruning
 MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max, int ply)
 {
-	const std::vector<Move> moves = MVV_LVA_Order(GenerateLegalMoves(position), position);
+	std::vector<Move> moves;
+	GeneratePseudoLegalMoves(position, moves);
+	MVV_LVA_Order(moves, position);
 
 	NODES++;
-	if (depth <= 0)
-	{
-		//if (GenerateLegalMoves(position).empty())									why i did that?
-		//{
-		//	// std::cerr << "MOVES.EMPTY 0\n";
-		//	if (position.IsCheck(position.turn==WHITE_TURN? WHITE : BLACK)) {
-		//		std::cerr << "MATE 0\n";
-		//		int mateScore = MATE_SCORE - (ply - depth);
-		//		return { Move(), max ? -mateScore : mateScore };
-		//	}
-		//	else
-		//		return { Move(), 0 };
-		//}
-
-		return { Move(), Evaluation::Evaluate(position) };
-	}
 
 	// TT implementation
 	ZobristHash zobristHash = Utils::GetZobristHash(position, Engine::hashSettings);
@@ -92,20 +81,14 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			return { entry.bestMove };
 	}
 
-	if (moves.empty())
+
+	if (depth <= 0)
 	{
-		// std::cout << "MOVES.EMPTY\n";
-		if (position.IsCheck(position.turn == WHITE_TURN ? WHITE : BLACK)) {
-			int mateScore = MATE_SCORE - (ply - depth);		// 1000000 - max - depth
-			std::cout << "MATE: " << mateScore << " " << max << "\n";
-			return { Move(), max ? -mateScore : mateScore };
-		}
-		else {
-			std::cerr << "No moves available, returning 0 evaluation.\n";
-			Utils::PrintBoard(position);
-			return { Move(), 0 };
-		}
+		// TODO: implement quiescence search
+		return { Move(), Evaluation::Evaluate(position) };
 	}
+
+	uint8_t movesGenerated = 0;
 
 	const int alphaOrig = alpha;
 
@@ -115,22 +98,27 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		bestMove.eval = -MATE_SCORE;
 		for (const Move& move : moves)
 		{
+#ifdef COPY_MODE
+			Board newPosition = position;
+			if (!newPosition.MovePieceFast(move))
+				continue;
+			movesGenerated++;
+			const MoveEval result = AlphaBeta(newPosition, depth - 1, alpha, beta, false, ply);
+#else
 			const UndoInfo undo = Utils::CreateUndoInfo(position, move);
-			// Engine::undoStack.push_back(undo);
-
-			// newPosition.MovePiece(move);
-			position.MovePiece(move);
-
+			position.MovePieceFast(move);
 			const MoveEval result = AlphaBeta(position, depth - 1, alpha, beta, false, ply);
+#endif
+
 			if (result.eval > bestMove.eval)
 			{
 				bestMove.eval = result.eval;
 				bestMove.move = move;
 			}
 			alpha = std::max(alpha, bestMove.eval);
-
+#ifndef COPY_MODE
 			position.UndoMove(undo);
-			// position = buffer;
+#endif
 
 			if (beta <= alpha)
 			{
@@ -144,15 +132,21 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		bestMove.eval = MATE_SCORE;
 		for (const Move& move : moves)
 		{
+#ifdef COPY_MODE
+			Board newPosition = position;
+			if (!newPosition.MovePieceFast(move))
+				continue;
+			movesGenerated++;
+			const MoveEval result = AlphaBeta(newPosition, depth - 1, alpha, beta, true, ply);
+#else
 			const UndoInfo undo = Utils::CreateUndoInfo(position, move);
-
-			// newPosition.MovePiece(move);
-			if (!position.MovePieceFast(move))
-			{
-				static_assert("Move Piece Fast cannot move");
+			if (!position.MovePieceFast(move)) {
+				continue;
 			}
-
 			const MoveEval result = AlphaBeta(position, depth - 1, alpha, beta, true, ply);
+			position.UndoMove(undo);
+#endif
+
 			if (result.eval < bestMove.eval)
 			{
 				bestMove.eval = result.eval;
@@ -160,13 +154,23 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 			}
 			beta = std::min(beta, bestMove.eval);
 
-			position.UndoMove(undo);
-
 			if (beta <= alpha)
 			{
 				ALPHA_BETA_PRUNINGS++;
 				break;
 			}
+		}
+	}
+	
+	if (movesGenerated == 0)
+	{
+		if (position.IsCheck(position.turn == WHITE_TURN ? WHITE : BLACK)) {
+			int mateScore = MATE_SCORE - (ply - depth);		// mate - max - depth
+			std::cout << "MATE: " << mateScore << "\n";
+			return { Move(), max ? -mateScore : mateScore };
+		}
+		else {
+			return { Move(), 0 };
 		}
 	}
 
@@ -195,32 +199,41 @@ void Divide(Board& pos, int depth) {
 
 	NODES = 0;
 
-	std::vector<Move> moves = GenerateLegalMoves(pos);
+	std::vector<Move> moves;
+	GenerateLegalMoves(pos, moves);
 	uint64_t total = 0;
 
 	auto start = std::chrono::high_resolution_clock::now();
 	
 	for (const Move& move : moves) {
+#ifdef COPY_MODE
+		Board newPosition = pos;
+		if (!newPosition.MovePieceFast(move))
+			continue;
+
+		// if (move.to == 0)
+		// 	std::cout << "ERROR: detected an error.\n";			awesome code .__.		...
+
+		uint64_t nodes = Perft(newPosition, depth - 1);
+#else
 		UndoInfo undo = Utils::CreateUndoInfo(pos, move);
-		// Board copy = pos;
-		pos.MovePiece(move);
-
+		pos.MovePieceFast(move);
 		uint64_t nodes = Perft(pos, depth - 1);
+		pos.UndoMove(undo);
+#endif
 
-		std::cout << Utils::ConvertToBoardPosition(move.from) << " "
-			<< Utils::ConvertToBoardPosition(move.to) << ": "
+		std::cout << Utils::MoveToStr(move) << ": "
 			<< nodes << "\n";
 
 		total += nodes;
-		pos.UndoMove(undo);
 	}
 
 
 	auto end = std::chrono::high_resolution_clock::now();
 
-	double duration = duration_cast<std::chrono::seconds>(end - start).count(); 
+	std::chrono::duration<float, std::milli> duration = (end - start)/1000;
 
-	std::cout << "Nodes Searched: " << total << " time: " << duration<< "s nps: " << std::dec << NODES / duration << "\n\n";
+	std::cout << "Nodes Searched: " << total << std::fixed << std::setprecision(4) << " time: " << duration.count() << "s "<< std::setprecision(0) << "nps: " << std::dec << total / duration.count() << "\n\n";
 }
 
 uint64_t Perft(Board& position, int depth) {
@@ -230,16 +243,23 @@ uint64_t Perft(Board& position, int depth) {
 	}
 
 	uint64_t nodes = 0;
-	std::vector<Move> moves = GenerateLegalMoves(position);
+	std::vector<Move> moves;
+	GenerateLegalMoves(position, moves);
 
 	for (Move& move : moves) {
+#ifdef COPY_MODE
+		Board newPosition = position;
+		if (!newPosition.MovePieceFast(move)) {
+			continue;
+		}
+		nodes += Perft(newPosition, depth - 1);
+
+#else
 		UndoInfo undo = Utils::CreateUndoInfo(position, move);
-
-		position.MovePiece(move);
-
+		position.MovePieceFast(move);
 		nodes += Perft(position, depth - 1);
-
 		position.UndoMove(undo);
+#endif
 	}
 	return nodes;
 }

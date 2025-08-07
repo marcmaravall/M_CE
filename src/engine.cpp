@@ -22,6 +22,7 @@ void Engine::init()
     InitBetweenTable();
 	InitKnightMasks();
     InitKingMasks();
+    InitDistanceTable();
 
     GenerateMagicNumbers();
 
@@ -457,6 +458,7 @@ Bitboard Engine::kingMasks[64];
 Bitboard Engine::between[64][64];
 ZobristHashSettings Engine::hashSettings;
 std::vector<UndoInfo> Engine::undoStack;
+int Engine::distanceTable[64][64];
 
 void Engine::GenerateZobristHash(const int seed)
 {
@@ -513,7 +515,7 @@ void Engine::SetPosition(const char* fen)
 
 #include <chrono>
 
-MoveEval Engine::SearchTime(int time_ms)
+MoveEval Engine::SearchTime(const int time_ms)
 {
     MoveEval currentMove;
 
@@ -528,7 +530,7 @@ MoveEval Engine::SearchTime(int time_ms)
     {
         auto iteration_start = high_resolution_clock::now();
 
-        currentMove = AlphaBeta(currentBoard, depth, -1000000, 1000000, currentBoard.turn == WHITE_TURN, maxSearchDepth);
+        currentMove = AlphaBeta(currentBoard, depth, -MATE_SCORE, MATE_SCORE, currentBoard.turn == WHITE_TURN, depth);
 
         depth++;
         auto iteration_end = high_resolution_clock::now();
@@ -541,9 +543,11 @@ MoveEval Engine::SearchTime(int time_ms)
         }
     }
 
+    std::cout << "info depth " << depth << "\n";
     return currentMove;
 }
 
+#define USE_BOOKS
 
 MoveEval Engine::Search(int depth)
 {
@@ -551,6 +555,7 @@ MoveEval Engine::Search(int depth)
     currentMove.move.promotion = 255;
     uint64_t hash = Utils::GetZobristHash(currentBoard, Engine::polyglotSettings);
 
+#ifdef USE_BOOKS
     auto it = std::find_if(book.entries.begin(), book.entries.end(),
         [hash](const PolyglotEntry& entry) {
             // std::cerr << "polygot entry founded\n" << (entry.key == hash);
@@ -581,14 +586,10 @@ MoveEval Engine::Search(int depth)
 
         return MoveEval(moves[0]);
     }
+#endif
 
+    currentMove = AlphaBeta(currentBoard, depth, -MATE_SCORE, MATE_SCORE, currentBoard.turn == WHITE_TURN, depth);
 
-    // real search
-	// UCI::IsSearching = true;
-
-    currentMove = AlphaBeta(currentBoard, depth, -1'000'000, 1'000'000, currentBoard.turn == WHITE_TURN, depth);
-
-	// UCI::IsSearching = false;
 	return currentMove;
 }
 
@@ -612,21 +613,21 @@ void Engine::MovePiece(const char* moveStr)
         current.to = Utils::ConvertToIndexPosition(toStr);
 
         if (currentBoard.GetTurn() == WHITE_TURN) {
-            if (currentBoard.GetWhiteKingPosition() == 4 && current.to == 6 && currentBoard.wCastlingKing) {
+            if (currentBoard.GetWhiteKingPosition() == 4 && current.to == 6 && currentBoard.wCastlingKing && current.from == 4) {
                 current.castling = true;
                 current.mode = 1;
             } 
-            else if (currentBoard.GetWhiteKingPosition() == 4 && current.to == 2 && currentBoard.wCastlingQueen) {
+            else if (currentBoard.GetWhiteKingPosition() == 4 && current.to == 2 && currentBoard.wCastlingQueen && current.from == 4) {
                  current.castling = true;
                  current.mode = 0;
             }
         }
         else if (currentBoard.GetTurn() == BLACK_TURN) {
-            if (currentBoard.GetBlackKingPosition() == 60 && current.to == 62 && currentBoard.bCastlingKing) {
+            if (currentBoard.GetBlackKingPosition() == 60 && current.to == 62 && currentBoard.bCastlingKing && current.from == 60) {
                 current.castling = true;
                 current.mode = 1;
             }
-            else if (currentBoard.GetBlackKingPosition() == 60 && current.to == 58 && currentBoard.bCastlingQueen) {
+            else if (currentBoard.GetBlackKingPosition() == 60 && current.to == 58 && currentBoard.bCastlingQueen && current.from == 60) {
                 current.castling = true;
                 current.mode = 0;
             }
@@ -680,7 +681,7 @@ void Engine::PrintBoard()
 
     std::cout 
         << "\nFen: " << Utils::ConvertToFEN(currentBoard) 
-        << "\nKey: " << Utils::GetZobristHash(currentBoard, hashSettings);
+        << "\nKey: " << Utils::GetZobristHash(currentBoard, hashSettings) << "\n\n";
 }
 
 void Engine::DivideTest(uint8_t depth)
@@ -1057,6 +1058,19 @@ void Engine::TestOccupancy()
 
         if (occ & ~mask) {
             std::cerr << "ERROR: occ has bits outside mask. i=" << i << "\n";
+        }
+    }
+}
+
+void Engine::InitDistanceTable()
+{
+    // thanks to https://www.chessprogramming.org/Evaluation_Function_Draft for the code 
+    int i, j;
+
+    for (i = 0; i < 64; ++i) {
+        for (j = 0; j < 64; ++j) {
+            distanceTable[i][j] = 14 - (abs(i%8 - j%8)
+                + abs(i/8 - j/8));
         }
     }
 }

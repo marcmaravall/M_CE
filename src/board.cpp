@@ -68,11 +68,18 @@ Board::Board(const char* fen)
 		index++;
 	}
 
+	if (!wCastlingKing && !wCastlingQueen && !bCastlingKing && !bCastlingQueen)
+	{
+		if (fenString[index] == '-') {
+			index++;
+		}
+	}
+
 	while (index < fenString.size() && fenString[index] == ' ') {
 		index++;
 	}
 
-	enPassantSquare = -1;
+	enPassantSquare = 255;
 	if (index < fenString.size()) {
 		if (fenString[index] == '-') {
 			index++;
@@ -80,12 +87,13 @@ Board::Board(const char* fen)
 		else if (index + 1 < fenString.size()) {
 			char fileChar = fenString[index];
 			char rankChar = fenString[index + 1];
-			if (fileChar >= 'a' && fileChar <= 'h' && rankChar >= '1' && rankChar <= '8') {
+			if (fileChar < 'h' && fileChar >= 'a' && rankChar >= '1' && rankChar <= '8') {
 				int file = fileChar - 'a';
-				int rank = 8 - (rankChar - '0');
+				int rank = (rankChar - '0')-1;
 				enPassantSquare = rank * 8 + file;
 			}
 			index += 2;
+			std::cout << "good test .__.";
 		}
 	}
 
@@ -142,8 +150,7 @@ Board::~Board()
 /*std::string Board::ConvertToBoardPosition(uint8_t squareIndex) {
 	return squareIndex < 64 ? (std::string)BOARD_STRINGS[squareIndex] : "null";
 }*/
-
-// TODO: refatorize for struct Move				
+	
 bool Board::MovePiece(const Move& move)
 {
 	// const Board buffer = *this;
@@ -334,12 +341,75 @@ ret_false:
 	return false;
 }
 
+#define COPY_MODE
+
 bool Board::MovePieceFast(const Move& move)		// for search
 {
+#ifdef COPY_MODE
+	const Board currentBoard = *this;
+#else
 	const UndoInfo undo = Utils::CreateUndoInfo(*this, move);
+#endif
 
 	const uint8_t from = move.from;
 	const uint8_t to = move.to;
+
+	if (move.castling)
+	{
+		// std::cout << "castling move\n";
+		if (turn == WHITE_TURN)
+		{
+			bitboards[W_KING_I] &= ~(1ULL << 4);
+
+			if (move.mode)
+			{
+				bitboards[W_KING_I] |= (1ULL << 6);
+
+				bitboards[W_ROOK_I] &= ~(1ULL << 7);
+				bitboards[W_ROOK_I] |= (1ULL << 5);
+			}
+			else
+			{
+				bitboards[W_KING_I] |= (1ULL << 2);
+
+				bitboards[W_ROOK_I] &= ~(1ULL << 0);
+				bitboards[W_ROOK_I] |= (1ULL << 3);
+			}
+
+			wCastlingKing = false;
+			wCastlingKing = false;
+		}
+		else
+		{
+			bitboards[B_KING_I] &= ~(1ULL << 60);
+
+			if (move.mode)
+			{
+				bitboards[B_KING_I] |= (1ULL << 62);
+
+				bitboards[B_ROOK_I] &= ~(1ULL << 63);
+				bitboards[B_ROOK_I] |= (1ULL << 61);
+			}			
+			else		
+			{			
+				bitboards[B_KING_I] |= (1ULL << 58);
+
+				bitboards[B_ROOK_I] &= ~(1ULL << 56);
+				bitboards[B_ROOK_I] |= (1ULL << 59);
+			}
+
+			bCastlingKing = false;
+			bCastlingKing = false;
+		}
+
+		enPassantSquare = 255;
+		turn = !turn;
+
+		++halfMoves;
+		if (turn == WHITE_TURN)
+			++turns;
+		return true;
+	}
 
 	int pieceType = 255;
 	for (int i = 0; i < 12; ++i) {
@@ -350,11 +420,8 @@ bool Board::MovePieceFast(const Move& move)		// for search
 	}
 	if (pieceType >= 12) return false;
 
-	bool pawnMove = false;
-
-	if (pieceType == W_PAWN_I || pieceType == B_PAWN_I) {
-		pawnMove = true;
-	}
+	const bool pawnMove = pieceType == W_PAWN_I || pieceType == B_PAWN_I;
+	const bool isEnPassant = pawnMove && to == enPassantSquare;
 
 	for (int i = 0; i < 12; ++i)
 		bitboards[i] &= ~(1ULL << to);
@@ -368,21 +435,71 @@ bool Board::MovePieceFast(const Move& move)		// for search
 	}
 
 	if (IsCheck(turn == !WHITE_TURN ? BLACK : WHITE, false)) {
-		// std::cout << "\n \nIS CHECK DETECTED FOR DEBUG: \n";
-		
+#ifdef COPY_MODE
+		*this = currentBoard;
+#else
 		UndoMove(undo);
+#endif
 
 		return false;
 	}
 
+	// repetitionsHistory.push_back(Utils::GetZobristHash(*this, Engine::hashSettings));
+
 	enPassantSquare = 255;
 	turn = !turn;
-	if (pawnMove)
-		ClearHalfMoves();
-	else
-		++halfMoves;
+
+	if (pieceType == W_KING_I) {
+		wCastlingKing = false;
+		wCastlingQueen = false;
+	}
+	else if (pieceType == B_KING_I) {
+		bCastlingKing = false;
+		bCastlingQueen = false;
+	}
+
+
+	if (pieceType == B_ROOK_I) {
+		if (from == 56) {
+			bCastlingQueen = false;
+		}
+		else if (from == 63)
+			bCastlingKing = false;
+	}
+	else if (pieceType == W_ROOK_I) {
+		if (from == 0)
+			wCastlingQueen = false;
+		else if (from == 7)
+			wCastlingKing = false;
+	}
+
+	++halfMoves;
 	if (turn == WHITE_TURN)
 		++turns;
+
+	if (pawnMove) {
+		if (isEnPassant) {
+			if (turn == BLACK_TURN) {
+
+				bitboards[B_PAWN_I] &= ~(1ULL << to+SOUTH);
+			}
+			else {
+				bitboards[W_PAWN_I] &= ~(1ULL << to+NORTH);
+			}
+		}
+
+		// en passant
+		if (to == from + NORTH * 2)
+		{
+			enPassantSquare = from + NORTH;
+		}
+		else if (to == from + SOUTH*2)
+		{
+			enPassantSquare = from + SOUTH;
+		}
+
+		ClearHalfMoves();
+	}
 
 	return true;
 }
@@ -647,7 +764,7 @@ void Board::UndoMove(const UndoInfo& undo, const bool debug) {
 		}
 	}
 
-	Move reverseMove; // (undo.move.to, undo.move.from);
+	Move reverseMove;
 	reverseMove.from = undo.move.to;
 	reverseMove.to = undo.move.from;
 
@@ -659,7 +776,10 @@ void Board::UndoMove(const UndoInfo& undo, const bool debug) {
 
 	if (undo.promotedPiece < 12) {
 		ClearBitInAllBitboards(undo.move.to);
+		
+		//std::cout << "DEBUG: Undo promoted piece: " << undo.promotedPiece << " at square: " << undo.move.to << "\n";
 		SetBitboardBit((undo.turn == WHITE_TURN ? 0 : 6), undo.move.from);		// TODO: solve bug in this part.
+		//exit(1);
 	}
 
 	wCastlingKing = undo.wCastlingKing;
@@ -978,46 +1098,18 @@ bool Board::IsSquareAttacked(const PIECE_COLORS attackerColor, const int square,
 	Bitboard bb = bishopLike;
 	
 	while (bb) {
-		int from = Utils::PopLSB(bb);
+		const int from = Utils::PopLSB(bb);
 		const Bitboard attacks = Utils::GenerateBishopAttacksOptimized(from, occupancy);
-		if ((attacks & targetBB) && ((Engine::between[from][square] & occupancy) == 0)) {
-			if (debug) {
-				/*											i'm so fucking dumb, 
-				Utils::PrintBoard(*this);
-
-				std::cout << "Occupancy: \n";
-				Utils::DebugBitboard(occupancy);
-
-				std::cout << "Bishop: \n";
-				Utils::DebugBitboard(bb);
-
-				std::cout << "Attacks: \n";
-				Utils::DebugBitboard(attacks);
-			
-				std::cout << "Target: \n";
-				Utils::DebugBitboard(targetBB);
-
-				std::cout << "Attacks & Target: \n";
-				Utils::DebugBitboard(Utils::GenerateBishopAttacks(from, occupancy) & targetBB);
-
-				std::cout << "Between: \n";
-				Utils::DebugBitboard(Engine::between[from][square]);*/
-			}
+		if (attacks & targetBB) {
 			return true;
 		}
 	}
 
 	bb = bitboards[isWhite ? B_ROOK_I : W_ROOK_I] | bitboards[isWhite ? B_QUEEN_I : W_QUEEN_I];
 	while (bb) {
-		int from = Utils::PopLSB(bb);
+		const int from = Utils::PopLSB(bb);
 		const Bitboard attacks = Utils::GenerateRookAttacksOptimized(from, occupancy);
-
-		if (debug) {
-			std::cout << "Rook from: " << from << "\n";
-			Utils::DebugBitboard(attacks);
-		}
-
-		if ((attacks & targetBB) && ((Engine::between[from][square] & occupancy) == 0)) return true;
+		if (attacks & targetBB) return true;
 	}
 
 	return false;

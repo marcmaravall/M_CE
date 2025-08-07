@@ -1,0 +1,30 @@
+[Event "Computer chess game"]
+[Site "DESKTOP-RLO4H1D"]
+[Date "2025.08.05"]
+[Round "?"]
+[White "M_CE"]
+[Black "M_CE"]
+[Result "0-1"]
+[BlackElo "1500"]
+[ECO "A40"]
+[Opening "Queen's Pawn"]
+[Time "16:29:42"]
+[Variation "Lundin (Kevitz-Mikenas-Bogoljubow-Miles) Defence"]
+[WhiteElo "1500"]
+[Termination "rules infraction"]
+[PlyCount "124"]
+[WhiteType "program"]
+[BlackType "program"]
+
+1. d4 Nc6 2. Qd2 e6 3. a3 d5 4. Nf3 Bd6 5. Qc3 Qf6 6. e4 dxe4 7. Ne5 Nxd4
+8. Ng4 Qh4 9. Qxd4 Qxg4 10. h3 Qg6 11. Nc3 Nf6 12. Nb5 Ke7 13. Nxd6 cxd6
+14. Qc3 Nd5 15. Qd4 Bd7 16. Rb1 Bc6 17. Bd2 e5 18. Qc4 Rad8 19. Rd1 Kd7 20.
+Bc1 b5 21. Qb3 Nf4 22. Qc3 Nxg2+ 23. Bxg2 Qxg2 24. Rf1 e3 25. Qxe3 Bf3 26.
+Rd3 h6 27. c4 g6 28. b4 Bb7 29. cxb5 e4 30. Rd1 Rc8 31. Qxa7 Rb8 32. Bxh6
+Qxh3 33. Bg5 Qg2 34. Qc5 Qxf1+ 35. Kxf1 Rh1+ 36. Ke2 Rxd1 37. Qa7 Ra8 38.
+Qxa8 Bxa8 39. Kxd1 d5 40. Be3 Bb7 41. a4 Ba8 42. a5 Bb7 43. a6 Ba8 44. a7
+Bb7 45. b6 Kc6 46. Bd4 g5 47. Be3 g4 48. Bd4 Kb5 49. Bc5 f5 50. Kc1 f4 51.
+Kb1 g3 52. fxg3 fxg3 53. Bg1 g2 54. Bf2 e3 55. Bg1 e2 56. Bf2 g1=Q+ 57.
+Bxg1 e1=Q+ 58. Ka2 Qxg1 59. a8=N Bxa8 60. b7 Bxb7 61. Kb2 d4 62. Kc2 Be4
+{Arena Adjudication. Illegal move!} 0-1
+

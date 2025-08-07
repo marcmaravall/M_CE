@@ -14,7 +14,7 @@ void GenerateBishopMoves		(const Board& board, const uint8_t from, std::vector<M
 void GenerateRookMoves			(const Board& board, const uint8_t from, std::vector<Move>& moves);
 void GenerateQueenMoves			(const Board& board, const uint8_t from, std::vector<Move>& moves);
 void GenerateKingMoves			(const Board& board, const uint8_t from, std::vector<Move>& moves);
-void GenerateCastlingMoves		(const Board& board, const uint8_t from, std::vector<Move>& moves);
-std::vector<Move> GenerateLegalMoves			(Board& board);
+void GenerateCastlingMoves		(Board board, const uint8_t from, std::vector<Move>& moves);
+void GenerateLegalMoves			(Board& board, std::vector<Move>& pseudoLegalMoves);
 void GeneratePseudoLegalMoves	(const Board& board, std::vector<Move>& moves);
-std::vector<Move> MVV_LVA_Order(const std::vector<Move>& moves, const Board& board);
+void MVV_LVA_Order(std::vector<Move>& moves, const Board& board);

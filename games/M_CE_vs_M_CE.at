@@ -4,8 +4,8 @@ Type=0
 CurrSwissRound=0
 Rounds=10
 CurrentPair=1
-CurrentRound=1
-Level=0 7
+CurrentRound=10
+Level=0 3
 [Options]
 QuitAfterTournament=0
 ShutDownAfterTournament=0
@@ -66,3 +66,11 @@ OS=Windows 10 Home Home Edition (Build 9200) 64 bit
 Website=
 E-Mail=
 ArenaVersion=Arena 3.5.1
+LastGameDate=2025.08.05
+LastGameTime=12:33:23
+[PairingResults]
+M_CE ------ M_CE [001]=?
+M_CE ------ Stockfish-windows-x86-64-avx2=0000000000
+[Participants]
+Engine1=M_CE
+Engine2=Stockfish-windows-x86-64-avx2

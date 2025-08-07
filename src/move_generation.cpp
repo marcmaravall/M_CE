@@ -12,72 +12,121 @@ void GeneratePawnMoves(const Board& board, const uint8_t from, std::vector<Move>
 
 	const bool isWhite = Utils::IsWhitePieceAt(board, from);
 	const uint8_t rank = from / 8;
-
+	const uint8_t file = from % 8;
 	const bool canPromote = (isWhite && rank == 6) || (!isWhite && rank == 1);
+	const bool canEnPassant = board.enPassantSquare != 255 && (
+		isWhite ? (from + NORTH_EAST == board.enPassantSquare && (file != 7) || from + NORTH_WEST == board.enPassantSquare && (file != 0)) : 
+				  (from + SOUTH_EAST == board.enPassantSquare && (file != 7) || from + SOUTH_WEST == board.enPassantSquare && (file != 0)));
 
-	uint8_t positionsComprobe[4];
-
-	if (Utils::IsWhitePieceAt(board, from)) {
-		positionsComprobe[0] = from + NORTH;
-		positionsComprobe[1] = from + NORTH * 2;
-		positionsComprobe[2] = from + NORTH_EAST;
-		positionsComprobe[3] = from + NORTH_WEST;
-	}
-	else {
-		positionsComprobe[0] = from + SOUTH;
-		positionsComprobe[1] = from + SOUTH * 2;
-		positionsComprobe[2] = from + SOUTH_EAST;
-		positionsComprobe[3] = from + SOUTH_WEST;
-	}
-
-	uint8_t promoOptions[4];
-
-	if (isWhite) {
-		promoOptions[0] = W_QUEEN_I;
-		promoOptions[1] = W_ROOK_I;
-		promoOptions[2] = W_BISHOP_I;
-		promoOptions[3] = W_KNIGHT_I;
-	}
-	else {
-		promoOptions[0] = B_QUEEN_I;
-		promoOptions[1] = B_ROOK_I;
-		promoOptions[2] = B_BISHOP_I;
-		promoOptions[3] = B_KNIGHT_I;
-	}
-
-	for (size_t i = 0; i < 4; i++)
+	/*if (canPromote) {
+		assert("ERROR: promotions are not implemented in GeneratePawnMoves optimized");
+		return;
+	}*/
+	
+	const Bitboard occupancies = Utils::GetAllBitboards(board.bitboards, BOTH);
+	
+	if (isWhite)
 	{
-		currentMove.to = positionsComprobe[i];
+		// WHITE
 
-		if (canPromote) {
-			for (size_t j = 0; j < 4; j++)
-			{
-				currentMove.promotion = promoOptions[j];
-				if (board.CanMovePawn(currentMove)) {
-					if (Utils::GetPieceType(board, currentMove.to) < 12) {
-						currentMove.capture = true;
-						currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
-					}
-					else
-						currentMove.capture = false;
+		const Bitboard enemyOcc = Utils::GetAllBitboards(board.bitboards, BLACK);
 
-					moves.push_back(currentMove);
-				}
-				currentMove.promotion = 255;
+		Bitboard mask = 1ULL << from;
+
+		if (!Utils::GetBitboardValueOnIndex(occupancies, from+NORTH))
+			mask |= 1ULL << (from + NORTH);
+		
+		if (rank == 1 && !Utils::GetBitboardValueOnIndex(occupancies, from+NORTH*2) && !Utils::GetBitboardValueOnIndex(occupancies, from + NORTH))
+			mask |= 1ULL << (from + NORTH*2);
+
+		if (canEnPassant) {
+			if (file != 7 && from + NORTH_EAST == board.enPassantSquare) {
+				mask |= 1ULL << (from + NORTH_EAST);
+			}
+			if (file != 0 && from + NORTH_WEST == board.enPassantSquare) {
+				mask |= 1ULL << (from + NORTH_WEST);
 			}
 		}
-		else
-		{
-			if (board.CanMovePawn(currentMove)) {
-				if (Utils::GetPieceType(board, currentMove.to) < 12) {
-					currentMove.capture = true;
-					currentMove.capturedPiece = Utils::GetPieceType(board, currentMove.to);
+		
+		// attacks
+		if (file != 7 && Utils::GetBitboardValueOnIndex(enemyOcc, from + NORTH_EAST)) {
+			mask |= 1ULL << (from + NORTH_EAST);
+		}
+		if (file != 0 && Utils::GetBitboardValueOnIndex(enemyOcc, from + NORTH_WEST))
+			mask |= 1ULL << (from + NORTH_WEST);
+
+		while (mask) {
+			uint8_t to = Utils::PopLSB(mask);
+
+			const bool isCapture = Utils::IsEnemyPieceAt(board, to);
+			const int pieceType = Utils::GetPieceType(board, to);
+
+			if (pieceType == 255 || isCapture) {
+				currentMove.to = to;
+				currentMove.capture = isCapture;
+				currentMove.capturedPiece = pieceType;
+
+				if (canPromote) {
+					for (uint8_t promotion = 1; promotion < 5; promotion++) {
+						currentMove.promotion = promotion;
+						moves.push_back(currentMove);
+					}
+					continue;
 				}
-				else
-					currentMove.capture = false;
+				else currentMove.promotion = 255;
 
 				moves.push_back(currentMove);
 			}
+		}
+
+		return;
+	}
+
+	// BLACK
+	const Bitboard enemyOcc = Utils::GetAllBitboards(board.bitboards, WHITE);
+
+	Bitboard mask = 1ULL << from;
+
+	if (!Utils::GetBitboardValueOnIndex(occupancies, from + SOUTH))
+		mask |= 1ULL << (from + SOUTH);
+
+	if (rank == 6 && !Utils::GetBitboardValueOnIndex(occupancies, from + SOUTH * 2) && !Utils::GetBitboardValueOnIndex(occupancies, from + SOUTH))
+		mask |= 1ULL << (from + SOUTH * 2);
+
+	if (file != 7 && from + SOUTH_EAST == board.enPassantSquare) {
+		mask |= 1ULL << (from + SOUTH_EAST);
+	}
+	if (file != 0 && from + SOUTH_WEST == board.enPassantSquare) {
+		mask |= 1ULL << (from + SOUTH_WEST);
+	}
+
+	// attacks
+	if (file != 7 && Utils::GetBitboardValueOnIndex(enemyOcc, from + SOUTH_EAST))
+		mask |= 1ULL << (from + SOUTH_EAST);
+	if (file != 0 && Utils::GetBitboardValueOnIndex(enemyOcc, from + SOUTH_WEST))
+		mask |= 1ULL << (from + SOUTH_WEST);
+
+	while (mask) {
+		uint8_t to = Utils::PopLSB(mask);
+
+		const bool isCapture = Utils::IsEnemyPieceAt(board, to);
+		const int pieceType = Utils::GetPieceType(board, to);
+
+		if (pieceType == 255 || isCapture) {
+			currentMove.to = to;
+			currentMove.capture = isCapture;
+			currentMove.capturedPiece = pieceType;
+
+			if (canPromote) {
+				for (uint8_t promotion = 7; promotion < 11; promotion++) {
+					currentMove.promotion = promotion;
+					moves.push_back(currentMove);
+				}
+				continue;
+			}
+			else currentMove.promotion = 255;
+
+			moves.push_back(currentMove);
 		}
 	}
 }
@@ -94,10 +143,14 @@ void GenerateKnightMoves(const Board& board, const uint8_t from, std::vector<Mov
 
 	while (mask) {
 		uint8_t to = Utils::PopLSB(mask);
+		const bool isCapture = Utils::IsEnemyPieceAt(board, to);
+		const int pieceType = Utils::GetPieceType(board, to);
 
-		if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+		if (pieceType == 255 || isCapture) {
 			currentMove.to = to;
-			currentMove.capture = Utils::IsEnemyPieceAt(board, to);
+			currentMove.capture = isCapture;
+			currentMove.capturedPiece = pieceType;
+
 			moves.push_back(currentMove);
 		}
 	}
@@ -142,9 +195,14 @@ void GenerateBishopMoves(const Board& board, const uint8_t from, std::vector<Mov
 	while (mask) {
 		uint8_t to = Utils::PopLSB(mask);
 
-		if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+		const bool isEnemyPiece = Utils::IsEnemyPieceAt(board, to);
+		const int pieceType = Utils::GetPieceType(board, to);
+
+		if (pieceType == 255 || isEnemyPiece) {
 			currentMove.to = to;
-			currentMove.capture = Utils::IsEnemyPieceAt(board, to);
+			currentMove.capture = isEnemyPiece;
+			currentMove.capturedPiece = pieceType;
+
 			moves.push_back(currentMove);
 		}
 	}
@@ -184,9 +242,13 @@ void GenerateRookMoves(const Board& board, const uint8_t from, std::vector<Move>
 	while (mask) {
 		uint8_t to = Utils::PopLSB(mask);
 
-		if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+		const bool isEnemyPiece = Utils::IsEnemyPieceAt(board, to);
+		const int pieceType = Utils::GetPieceType(board, to);
+
+		if (pieceType == 255 || isEnemyPiece) {
 			currentMove.to = to;
-			currentMove.capture = Utils::IsEnemyPieceAt(board, to);
+			currentMove.capture = isEnemyPiece;
+			currentMove.capturedPiece = pieceType;
 			moves.push_back(currentMove);
 		}
 	}
@@ -194,68 +256,74 @@ void GenerateRookMoves(const Board& board, const uint8_t from, std::vector<Move>
 
 void GenerateQueenMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 	GenerateBishopMoves(board, from, moves);
-	GenerateRookMoves(board, from, moves);
+	GenerateRookMoves  (board, from, moves);
 }
 
 
 void GenerateKingMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 	Move currentMove =
 	{
-		.from = 0,
+		.from = from,
 		.to = 0,
 		.promotion = 255,
 		.capture = false,
 	};
 
-	currentMove.from = from;
-
 	Bitboard mask = Engine::kingMasks[from];
 
 	while (mask) {
 		uint8_t to = Utils::PopLSB(mask);
+		const bool isCapture = Utils::IsEnemyPieceAt(board, to);
+		const int pieceType = Utils::GetPieceType(board, to);
 
-		if (Utils::GetPieceType(board, to) == 255 || Utils::IsEnemyPieceAt(board, to)) {
+		if (pieceType == 255 || isCapture) {
 			currentMove.to = to;
-			currentMove.capture = Utils::IsEnemyPieceAt(board, to);
+			currentMove.capture = isCapture;
+			currentMove.capturedPiece = pieceType;
+
 			moves.push_back(currentMove);
 		}
 	}
 }
 
-void GenerateCastlingMoves(const Board& board, const uint8_t from, std::vector<Move>& moves)
+void GenerateCastlingMoves(Board board, const uint8_t from, std::vector<Move>& moves)
 {
-	return;
-
 	Move currentMove;
+	currentMove.castling = true;
+
+	if (board.IsCheck(board.turn == !WHITE_TURN ? BLACK : WHITE, false))
+		return;
 
 	if (board.turn == WHITE_TURN)
 	{
+		currentMove.from = 4;
 		if (board.wCastlingKing && !board.IsOccupied(5) && !board.IsOccupied(6))
 		{
-			currentMove.castling = true;
-			currentMove.mode = false;
+			currentMove.mode = true;
+			currentMove.to = 7;
 			moves.push_back(currentMove);
 		}
-		else if (board.wCastlingKing && !board.IsOccupied(1) && !board.IsOccupied(2) && !board.IsOccupied(3))
+		if (board.wCastlingQueen && !board.IsOccupied(1) && !board.IsOccupied(2) && !board.IsOccupied(3))
 		{
-			currentMove.castling = true;
-			currentMove.mode = true;
+			currentMove.mode = false;
+			currentMove.to = 0;
 			moves.push_back(currentMove);
 		}
 	}
 
 	else if (board.turn == BLACK_TURN)
 	{
+		currentMove.from = 60;
 		if (board.bCastlingKing && !board.IsOccupied(62) && !board.IsOccupied(61))
 		{
-			currentMove.castling = true;
-			currentMove.mode = false;
+			currentMove.to = 63;
+			currentMove.mode = true;
 			moves.push_back(currentMove);
 		}
-		else if (board.bCastlingKing && !board.IsOccupied(59) && !board.IsOccupied(58) && !board.IsOccupied(57))
+		if (board.bCastlingQueen && !board.IsOccupied(59) && !board.IsOccupied(58) && !board.IsOccupied(57))
 		{
-			currentMove.castling = true;
-			currentMove.mode = true;
+			currentMove.to = 56;
+			currentMove.mode = false;
 			moves.push_back(currentMove);
 		}
 	}
@@ -263,7 +331,7 @@ void GenerateCastlingMoves(const Board& board, const uint8_t from, std::vector<M
 
 void GeneratePseudoLegalMoves(const Board& board, std::vector<Move>& moves) {
 	moves.clear();
-	moves.reserve(64);
+	moves.reserve(218);
 
 	bool isWhiteTurn = (board.turn == WHITE_TURN);
 	size_t start = isWhiteTurn ? 0 : 6;
@@ -289,56 +357,41 @@ void GeneratePseudoLegalMoves(const Board& board, std::vector<Move>& moves) {
 	}
 }
 
-std::vector<Move> GenerateLegalMoves(Board& board)
+#define COPY_MODE
+void GenerateLegalMoves(Board& board, std::vector<Move>& pseudoLegalMoves)
 {
-	std::vector<Move> pseudoLegalMoves;
 	GeneratePseudoLegalMoves(board, pseudoLegalMoves);
 
 	std::vector<Move> legalMoves;
 	for (const Move& move : pseudoLegalMoves)
 	{
+
+#ifdef COPY_MODE
+		Board copy = board;
+#else
 		UndoInfo info = Utils::CreateUndoInfo(board, move);
-		// Board copy = board;
+#endif // COPY_MODE
 
-		if (board.MovePieceFast(move)) {
+
+		if (copy.MovePieceFast(move)) {
 			legalMoves.push_back(move);
-			
+#ifdef COPY_MODE	
+#else 
 			board.UndoMove(info);
+#endif
+		
 		}
 	}
-	return legalMoves;
+	pseudoLegalMoves = legalMoves;
 }
 
+void MVV_LVA_Order(std::vector<Move>& moves, const Board& board) {
+	auto partitionPoint = std::stable_partition(moves.begin(), moves.end(),
+		[](const Move& move) { return move.capture; });
 
-std::vector<Move> MVV_LVA_Order(const std::vector<Move>& moves, const Board& board) {
-	std::vector<Move> captures;
-	std::vector<Move> nonCaptures;
-	std::vector<Move> orderedMoves;
-
-	for (const Move& move : moves) {
-		if (move.capture) {
-			captures.push_back(move);
-		}
-		else {
-			nonCaptures.push_back(move);
-		}
-	}
-
-
-	std::sort(captures.begin(), captures.end(), [&board](const Move& a, const Move& b) {
-		int aValue = 0;
-		int bValue = 0;
-
-		aValue = 10 * STATIC_PIECE_VALUE[a.capturedPiece] - STATIC_PIECE_VALUE[Utils::GetPieceType(board, a.from)];
-		bValue = 10 * STATIC_PIECE_VALUE[b.capturedPiece] - STATIC_PIECE_VALUE[Utils::GetPieceType(board, b.from)];
-
+	std::sort(moves.begin(), partitionPoint, [&board](const Move& a, const Move& b) {
+		const int aValue = MVV_LVA[a.capturedPiece][Utils::GetPieceType(board, a.from)];
+		const int bValue = MVV_LVA[b.capturedPiece][Utils::GetPieceType(board, b.from)];
 		return aValue > bValue;
-		});
-	orderedMoves.assign(captures.begin(), captures.end());
-	orderedMoves.insert(orderedMoves.end(), nonCaptures.begin(), nonCaptures.end());
-
-	return orderedMoves;
+	});
 }
-
-
-

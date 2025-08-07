@@ -9,6 +9,8 @@
 #include <algorithm>
 #include "move.h"
 
+// TODO: implement own polyglot generator
+
 struct MoveEval;
 
 struct PolyglotEntry

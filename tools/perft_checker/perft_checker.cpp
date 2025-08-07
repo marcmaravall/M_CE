@@ -110,38 +110,54 @@ int main()
 {
     // line: d2d3 d7d5 e1d2 d5d4
     const std::string m_ce = R"(
-f6 f7: 1
-b6 b5: 1
-b6 a6: 1
-b6 c6: 1
-b6 b7: 1
-b4 a3: 1
-b4 b3: 1
-b4 c3: 1
-b4 a4: 1
-b4 c4: 1
-b4 a5: 1
-b4 b5: 1
-b4 c5: 1
+c5 c4: 1
+a7 a5: 1
+a7 a6: 1
+d7 d5: 1
+d7 c6: 1
+d7 d6: 1
+e7 e5: 1
+e7 e6: 1
+f7 f5: 1
+f7 f6: 1
+g7 g5: 1
+g7 g6: 1
+h7 h5: 1
+h7 h6: 1
+b8 a6: 1
+b8 c6: 1
+g8 f6: 1
+g8 h6: 1
+c8 a6: 1
+c8 b7: 1
+d8 a5: 1
+d8 b6: 1
+d8 c7: 1
 )";
 
     const std::string stockfish = R"(
-f6 f7: 1
-b6 b5: 1
-b6 a6: 1
-b6 c6: 1
-b6 d6: 1
-b6 e6: 1
-b6 b7: 1
-b6 b8: 1
-b4 a3: 1
-b4 b3: 1
-b4 c3: 1
-b4 a4: 1
-b4 c4: 1
-b4 a5: 1
-b4 b5: 1
-b4 c5: 1
+a7 a6: 1
+d7 d6: 1
+e7 e6: 1
+f7 f6: 1
+g7 g6: 1
+h7 h6: 1
+a7 a5: 1
+d7 d5: 1
+e7 e5: 1
+f7 f5: 1
+g7 g5: 1
+h7 h5: 1
+d7 c6: 1
+b8 a6: 1
+b8 c6: 1
+g8 f6: 1
+g8 h6: 1
+c8 a6: 1
+c8 b7: 1
+d8 a5: 1
+d8 b6: 1
+d8 c7: 1
 )";
 
     Check(m_ce, stockfish);

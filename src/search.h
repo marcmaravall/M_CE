@@ -17,7 +17,7 @@ extern int ALPHA_BETA_PRUNINGS;
 struct MoveEval
 {
 	Move move;
-	int eval;
+	int eval = 0;
 	int priority;
 
 	int weight;	// for polyglot

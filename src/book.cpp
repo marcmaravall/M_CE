@@ -50,7 +50,7 @@ MoveEval ConvertPolyglotToMove(const uint16_t& move) {
 
     if (current.move.from == 4)
     {
-        std::cerr << "MOVING KING...\n";
+        // std::cerr << "MOVING KING...\n";
         if (current.move.to == 0)
         {
             current.move.castling = true;
@@ -64,7 +64,7 @@ MoveEval ConvertPolyglotToMove(const uint16_t& move) {
     }
     else if (current.move.from == 60)
     {
-        std::cerr << "MOVING KING...\n";
+        // std::cerr << "MOVING KING...\n";
         if (current.move.to == 63)
         {
             current.move.castling = true;

@@ -113,7 +113,7 @@ class UCI
 {
 private:
 	const char* m_uciName = "M_CE";
-	const char* m_uciAuthor = "Marc Maravall Díez";
+	const char* m_uciAuthor = "Marc Maravall Diez";
 
 public:
 

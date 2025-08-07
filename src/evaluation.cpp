@@ -45,6 +45,33 @@ int Evaluation::Evaluate(const Board& board)
 	return res;
 }
 
+int Evaluation::EvaluateV2(const Board& board)
+{
+	int evaluation = 0;
+	evaluation += EvaluatePawnStruct(board);
+
+	for (int i = 0; i < 12; i++) {
+
+	}
+
+	return evaluation;
+}
+
+int Evaluation::EvaluatePawnStruct(const Board& board) {
+	int evaluation = 0;
+
+	Bitboard pawnBitboard = board.bitboards[0];
+
+	while (pawnBitboard)
+	{
+		const uint8_t index = Utils::PopLSB(pawnBitboard);
+	}
+
+	
+
+	return evaluation;
+}
+
 // this is only for print evaluation
 int Evaluation::EvaluatePiece(const Board& board, const uint8_t index)
 {

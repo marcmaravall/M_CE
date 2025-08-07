@@ -60,6 +60,7 @@ public:
     void InitBetweenTable();
     void InitBishopTable();
     void InitRookTable();
+    void InitDistanceTable();
 
     void GenerateMagicNumbers();
 
@@ -96,6 +97,7 @@ public:
 
     static Bitboard rookAttackTable[64][4096];
     static Bitboard bishopAttackTable[64][512];
+    static int distanceTable[64][64];
 
     static Magic rookMagics[64];
 
