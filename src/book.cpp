@@ -112,7 +112,9 @@ Book::Book(const std::string& path) {
             });
     }
 
+#ifdef BOOK_DEBUG
     std::cout << "Book loaded: " << entries.size() << " entries.\n";
+#endif // BOOK_DEBUG
 }
 
 std::pair<size_t, size_t> Book::FindRange(uint64_t key) const {

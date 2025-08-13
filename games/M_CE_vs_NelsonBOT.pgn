@@ -1,0 +1,27 @@
+[Event "Computer chess game"]
+[Site "J-17MFC8CTUPP09"]
+[Date "2025.08.07"]
+[Round "?"]
+[White "Edición"]
+[Black "M_CE"]
+[Result "0-1"]
+[BlackElo "2200"]
+[ECO "B10"]
+[Opening "Caro-Kann"]
+[Time "13:02:48"]
+[Variation "1.e4 c6"]
+[WhiteElo "2400"]
+[Termination "normal"]
+[PlyCount "90"]
+[WhiteType "human"]
+[BlackType "program"]
+
+1. e4 c6 2. Qh5 Nf6 3. Qe5 d6 4. Qg5 Nxe4 5. Qe3 Nf6 6. Bd3 Ng4 7. Qe2 Na6
+8. f3 Ne5 9. f4 Nxd3+ 10. Qxd3 Nb4 11. Qb3 Qa5 12. Nh3 Be6 13. Qc3 Qc5 14.
+Qxc5 dxc5 15. Ng5 Nxc2+ 16. Kd1 Bf5 17. d3 Nxa1 18. Nxf7 Kxf7 19. b3 Rd8
+20. Ke2 Bxd3+ 21. Kf3 Bxb1 22. Be3 Nc2 23. Rxb1 Rd3 24. a4 Rxe3+ 25. Kf2 e6
+26. Rb2 Rc3 27. g4 Ne3 28. Re2 Nxg4+ 29. Ke1 Rxb3 30. Rg2 Rb1+ 31. Ke2 Rb2+
+32. Kf3 Rb3+ 33. Ke2 Rb2+ 34. Kf3 Rb3+ 35. Kxg4 h5+ 36. Kh4 Be7+ 37. Rg5
+Rf3 38. a5 Rxf4+ 39. Kg3 Bxg5 40. Kg2 c4 41. Kg3 c3 42. Kg2 c2 43. Kg3 c1=Q
+44. Kg2 Bh4 45. Kh3 Qf1# 0-1
+

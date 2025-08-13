@@ -530,6 +530,10 @@ MoveEval Engine::SearchTime(const int time_ms)
     {
         auto iteration_start = high_resolution_clock::now();
 
+        for (size_t i = 0; i < TT_SIZE; i++) {
+			TranspositionTable[i] = TTEntry(); 
+        }
+
         currentMove = AlphaBeta(currentBoard, depth, -MATE_SCORE, MATE_SCORE, currentBoard.turn == WHITE_TURN, depth);
 
         depth++;

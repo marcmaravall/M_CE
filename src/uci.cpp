@@ -159,6 +159,7 @@ void UCI::ManageInput(const char* input)
 		
 			MoveEval moveEval = engine.SearchTime(time);
 			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
+			std::cout << "info score cp " << moveEval.eval << "\n";
 		}
 		else if (tokens[index] == "searchmoves") {
 			index++;
@@ -197,7 +198,7 @@ void UCI::ManageInput(const char* input)
 
 			char promotion = (moveEval.move.promotion < 12) ? tolower(PIECE_CHAR[moveEval.move.promotion]) : ' ';
 			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
-			std::cout << "info eval " << moveEval.eval << "\n";
+			std::cout << "info score cp " << moveEval.eval << "\n";
 		}
 		else if (tokens[index] == "wtime")
 		{
@@ -238,8 +239,7 @@ void UCI::ManageInput(const char* input)
 
 			MoveEval moveEval = engine.SearchTime(time);
 			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
-			std::cout << "info string EVALUATION: " << moveEval.eval << "\n";
-
+			std::cout << "info nodes" << NODES  << "score cp " << moveEval.eval << "\n";
 		}
 		else if (tokens[index] == "ponder") {
 			// TODO: ponder search
@@ -414,4 +414,28 @@ void UCI::SearchTest()
 void UCI::InsertCommand(const char* command)
 {
 	ManageInput(command);
+}
+
+std::string UCI::GetOsCompiled() const
+{
+#ifdef __linux__
+	return "linux";
+#elif __APPLE__
+	return "macos";
+#elif _WIN32
+	return "windows";
+#endif 
+}
+
+std::string UCI::GetCompiler() const
+{
+#ifdef __clang__
+	return "clang";
+#elif __GNUC__
+	return "gcc";
+#elif _MSC_VER
+	return "msvc";
+#else
+	return "unknown";
+#endif
 }

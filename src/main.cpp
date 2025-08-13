@@ -94,7 +94,13 @@
 04/08/2025: Added promotions to pawn generation optimized, and solved some bugs. Added more COPY_MODE code. Nps in perft 5 are over 5.5m.
 05/08/2025: Added an optimization in move generation, it generates pseudolegal moves and then in search is when you comprobe if the move is legal or not. 
 			The engine is faster, 800k - 1.2M nps in mid game, and 2.5M - 3.5M nps on some endgames/puzzles. Added search with time to the uci with go wtime... and movetime.
-06/08/2025: 
+06/08/2025: Optimized the mvv_lva move ordering, the engine search much less nodes.
+07/08/2025: Added movedPiece to the Move struct to optimize calculations in mvv_lva and other places. Started to implement quiescene search.
+08/08/2025: Implemented quiescene search, now the engine is more stable at some positions, but it's very poor optimized.
+09/08/2025: Implemented new pawn evaluation, king endgame evaluation, and the evaluation of the bishop pair.
+10/08/2025: Nothing...
+11/08/2025: Solved a bug in evaluation, started to implement a function to visualize evaluationV2.
+12/08/2025: Implemented more of the visualize evaluationV2 function, there is a bug in the evaluate pawn function.
 */
 
 #include <iostream>
@@ -106,6 +112,10 @@ int main()
 	srand(static_cast<unsigned int>(time(nullptr)));
 
 	UCI uci;
+	
+	std::cout	<< "M_CE v" << uci.GetVersion() 
+				<< " compiled in " << uci.GetOsCompiled() 
+				<< " by compiler " << uci.GetCompiler() << ". Author: Marc Maravall Diez.\n";
 
 	while (true)
 	{

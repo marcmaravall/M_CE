@@ -78,7 +78,19 @@ inline constexpr const bool WHITE_TURN = true;
 inline constexpr const bool BLACK_TURN = !WHITE_TURN;
 
 constexpr uint64_t FILE_A_MASK = 0x0101010101010101ULL;
+constexpr uint64_t FILE_B_MASK = 0x0202020202020202ULL;
+constexpr uint64_t FILE_C_MASK = 0x0404040404040404ULL;
+constexpr uint64_t FILE_D_MASK = 0x0808080808080808ULL;
+constexpr uint64_t FILE_E_MASK = 0x1010101010101010ULL;
+constexpr uint64_t FILE_F_MASK = 0x2020202020202020ULL;
+constexpr uint64_t FILE_G_MASK = 0x4040404040404040ULL;
 constexpr uint64_t FILE_H_MASK = 0x8080808080808080ULL;
+
+inline constexpr uint64_t FILES_MASKS[8] = {
+	FILE_A_MASK, FILE_B_MASK, FILE_C_MASK, FILE_D_MASK,
+	FILE_E_MASK, FILE_F_MASK, FILE_G_MASK, FILE_H_MASK
+};
+
 constexpr uint64_t RANK_2_MASK = 0x000000000000FF00ULL;
 constexpr uint64_t RANK_7_MASK = 0x00FF000000000000ULL;
 
@@ -126,17 +138,6 @@ inline constexpr const int W_KING_BITMAP_MIDGAME[64] = {
 	-10,-20,-20,-20,-20,-20,-20,-10,
 	 20, 20,  0,  0,  0,  0, 20, 20,
 	 20, 30, 10,  0,  0, 10, 30, 20
-};
-
-inline constexpr const int W_KING_BITMAP_ENDGAME[64] = {
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
 };
 
 inline constexpr const int W_QUEEN_BITMAP[64] = {
@@ -216,6 +217,28 @@ inline constexpr const int B_QUEEN_BITMAP[64] = {
 	-20,-10,-10, -5, -5,-10,-10,-20
 };
 
+inline constexpr const int W_QUEEN_OPENING_BITMAP[64] = {
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10,   0,   0,   0,   0,   0,   0, -10,
+};
+
+inline constexpr const int B_QUEEN_OPENING_BITMAP[64] = {
+	-10,   0,   0,   0,   0,   0,   0, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+	-10, -10, -10, -10, -10, -10, -10, -10,
+};
+
 inline constexpr const int B_PAWN_BITMAP[64] = {
 	 0,  0,  0,  0,  0,  0,  0,  0,
 	50, 50, 50, 50, 50, 50, 50, 50,
@@ -225,6 +248,17 @@ inline constexpr const int B_PAWN_BITMAP[64] = {
 	 5, -5,-10,  0,  0,-10, -5,  5,
 	 5, 10, 10,-20,-20, 10, 10,  5,
 	 0,  0,  0,  0,  0,  0,  0,  0
+};
+
+inline constexpr const int KING_ENDGAME_BITMAP[64] = {
+	-500,-500,-500,-500,-500,-500,-500,-500,
+	-500, 0,   0,   0,   0,   0,   0,  -500,
+	-500, 0,   0,   0,   0,   0,   0,  -500,
+	-500, 0,   0,   0,   0,   0,   0,  -500,
+	-500, 0,   0,   0,   0,   0,   0,  -500,
+	-500, 0,   0,   0,   0,   0,   0,  -500,
+	-500, 0,   0,   0,   0,   0,   0,  -500,
+	-500,-500,-500,-500,-500,-500,-500,-500
 };
 
 inline constexpr const int* PIECE_SQUARE_TABLES[12] = {
@@ -309,3 +343,5 @@ typedef enum {
 // < 24 midgame, < 10 endgame
 inline constexpr const uint8_t MID_GAME_SCORE = 24;
 inline constexpr const uint8_t END_GAME_SCORE = 10;
+
+inline constexpr const uint8_t MAX_PLY = 256;

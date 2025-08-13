@@ -23,13 +23,18 @@ public:
 
 	// new 
 	static int EvaluateV2(const Board& board);
-	static int EvaluatePawnStruct(const Board& board);
-	static int EvaluateBishopPair(const Board& board);
+	static int EvaluatePawnStruct(const Board& board, const GAME_PHASE phase);
+	static int EvaluateKingsSafety(const Board& board, const GAME_PHASE	phase);
+	static int EvaluateBishopPair(const Board& board, const GAME_PHASE phase);
+	static GAME_PHASE GetGamePhase(const Board& board);
+	static int EvaluatePawn(const uint8_t index, const Board& board, const GAME_PHASE phase);
 
 	static int EvaluatePiece(const Board& board, const uint8_t index);
 	static int EvaluatePieceSimple(const Board&, const uint8_t index);
+	static int EvaluatePieceV2(const Board&, const uint8_t index);
 
 	static void PrintEvaluation(const Board& board);
 	static void PrintSimpleEvaluation(const Board& board);
+	static void PrintEvaluationV2(const Board& board);
 };
 

@@ -17,4 +17,7 @@ void GenerateKingMoves			(const Board& board, const uint8_t from, std::vector<Mo
 void GenerateCastlingMoves		(Board board, const uint8_t from, std::vector<Move>& moves);
 void GenerateLegalMoves			(Board& board, std::vector<Move>& pseudoLegalMoves);
 void GeneratePseudoLegalMoves	(const Board& board, std::vector<Move>& moves);
+
 void MVV_LVA_Order(std::vector<Move>& moves, const Board& board);
+void SeparateByCaptures(const std::vector<Move>& moves, std::vector<Move>& captures);
+void GenerateCaptures(const Board& board, const uint8_t from, std::vector<Move>& moves);

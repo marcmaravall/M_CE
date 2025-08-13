@@ -151,4 +151,9 @@ public:
 	// static bool IsSearching;
 
 	bool sendInfo = true;
+
+public:
+	std::string GetOsCompiled() const;
+	std::string GetVersion() const { return "0.2.0"; }
+	std::string GetCompiler() const;
 };

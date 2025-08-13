@@ -21,6 +21,11 @@ struct MoveEval
 	int priority;
 
 	int weight;	// for polyglot
+
+	MoveEval operator-()
+	{
+		return { move, -eval, 0, 0 };
+	}
 };
 
 enum BoundType
@@ -38,9 +43,12 @@ struct TTEntry
 	BoundType bound;
 };
 
-extern TTEntry TranspositionTable[TT_SIZE];
+extern std::array<TTEntry, TT_SIZE> TranspositionTable;
 
 MoveEval Minimax(Board& position, uint8_t depth, bool max);
-MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max, int ply);
+MoveEval AlphaBeta(Board& position, const uint8_t depth, int alpha, int beta, const bool max, const int ply);
+MoveEval Quiesce(Board& position, int alpha, int beta, bool max, int depth);
+
 uint64_t Perft(Board& position, int depth);
 void Divide(Board& pos, int position);
+void AddToTranspositionTable(const Board& board);

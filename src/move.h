@@ -16,6 +16,7 @@ struct Move
 	int promotion = 255;
 	bool capture;
 	uint8_t capturedPiece;
+	int movedPiece = 255;
 
 	bool check;
 	bool checkmate;

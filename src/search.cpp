@@ -2,7 +2,7 @@
 
 int NODES = 0;
 int ALPHA_BETA_PRUNINGS = 0;
-TTEntry TranspositionTable[TT_SIZE];
+std::array<TTEntry, TT_SIZE> TranspositionTable;
 
 MoveEval Minimax(Board& position, uint8_t depth, bool max)
 {
@@ -57,9 +57,11 @@ MoveEval Minimax(Board& position, uint8_t depth, bool max)
 }
 
 #define COPY_MODE
+#define USE_TT //8/8/8/8/8/1R6/5K2/7k w - - 7 1  12324
+// error, sometimes the engine don't finds the mate in 1.
 
 // reduces complexity O(n^2) to O(n) by using alpha-beta pruning
-MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max, int ply)
+MoveEval AlphaBeta(Board& position, const uint8_t depth, int alpha, int beta, const bool max, const int ply)
 {
 	std::vector<Move> moves;
 	GeneratePseudoLegalMoves(position, moves);
@@ -67,24 +69,38 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 
 	NODES++;
 
+#ifdef USE_TT
 	// TT implementation
 	ZobristHash zobristHash = Utils::GetZobristHash(position, Engine::hashSettings);
 	int index = zobristHash & (TT_SIZE - 1);
 	TTEntry& entry = TranspositionTable[index];
 
 	if (entry.hash == zobristHash && entry.depth >= depth) {
-		if (entry.bound == EXACT)
-			return { entry.bestMove };
-		if (entry.bound == LOWERBOUND && entry.bestMove.eval >= beta)
-			return { entry.bestMove };
-		if (entry.bound == UPPERBOUND && entry.bestMove.eval <= alpha)
-			return { entry.bestMove };
-	}
+		int ttEval = entry.bestMove.eval;
+		const int currentPly = ply - depth;
+		
+		if (ttEval > MATE_SCORE - MAX_PLY)       
+			ttEval -= currentPly;                
+		else if (ttEval < -MATE_SCORE + MAX_PLY)
+			ttEval += currentPly;
 
+		MoveEval ttMove = entry.bestMove;
+		ttMove.eval = ttEval;
+
+		if (entry.bound == EXACT)
+			return ttMove;
+		if (entry.bound == LOWERBOUND && ttEval >= beta)
+			return ttMove;
+		if (entry.bound == UPPERBOUND && ttEval <= alpha)
+			return ttMove;
+	}
+#endif
 
 	if (depth <= 0)
 	{
-		// TODO: implement quiescence search
+		// TODO: optimize quiescence search
+		// return Quiesce(position, alpha, beta, position.turn==WHITE_TURN, depth);
+	
 		return { Move(), Evaluation::Evaluate(position) };
 	}
 
@@ -166,7 +182,9 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 	{
 		if (position.IsCheck(position.turn == WHITE_TURN ? WHITE : BLACK)) {
 			int mateScore = MATE_SCORE - (ply - depth);		// mate - max - depth
+#ifdef PRINT_MATE
 			std::cout << "MATE: " << mateScore << "\n";
+#endif // PRINT_MATE
 			return { Move(), max ? -mateScore : mateScore };
 		}
 		else {
@@ -174,7 +192,100 @@ MoveEval AlphaBeta(Board& position, uint8_t depth, int alpha, int beta, bool max
 		}
 	}
 
-	// save stte into tt
+#ifdef USE_TT
+	const int currentPly = ply - depth;
+
+	BoundType bound;
+	if (bestMove.eval <= alphaOrig) bound = UPPERBOUND;
+	else if (bestMove.eval >= beta) bound = LOWERBOUND;
+	else bound = EXACT;
+
+	int scoreToStore = bestMove.eval;
+	if (scoreToStore > MATE_SCORE - MAX_PLY)
+		scoreToStore += currentPly;
+	else if (scoreToStore < -MATE_SCORE + MAX_PLY)
+		scoreToStore -= currentPly;
+
+	TranspositionTable[index] = {
+		.hash = zobristHash,
+		.depth = depth,
+		.bestMove = { bestMove.move, scoreToStore },
+		.bound = bound
+	};
+#endif // USE_TT
+
+	return bestMove;
+}
+
+MoveEval Quiesce(Board& position, int alpha, int beta, bool max, int depth)
+{
+	NODES++;
+
+	ZobristHash zobristHash = Utils::GetZobristHash(position, Engine::hashSettings);
+	int index = zobristHash & (TT_SIZE - 1);
+	TTEntry& entry = TranspositionTable[index];
+
+	std::vector<Move> moves;
+	GenerateLegalMoves(position, moves);
+	MVV_LVA_Order(moves, position);
+
+	std::vector<Move> captures;
+	SeparateByCaptures(moves, captures);
+
+	if (captures.size() == 0) {
+		return { Move(), Evaluation::Evaluate(position) };
+	}
+	
+	MoveEval bestMove;
+
+	const int alphaOrig = alpha;
+
+	if (max)
+	{
+		bestMove.eval = -MATE_SCORE;
+	
+		for (const Move& move : captures)
+		{
+			Board newPosition = position;
+			newPosition.MovePieceFast(move);
+			MoveEval result = Quiesce(newPosition, alpha, beta, false, depth - 1);
+			if (result.eval > bestMove.eval)
+			{
+				bestMove.eval = result.eval;
+				bestMove.move = move;
+			}
+			alpha = std::max(alpha, bestMove.eval);
+
+			if (beta <= alpha)
+			{
+				ALPHA_BETA_PRUNINGS++;
+				break;
+			}
+		}
+	}
+	else
+	{
+		bestMove.eval = MATE_SCORE;
+		for (const Move& move : captures)
+		{
+			Board newPosition = position;
+			newPosition.MovePieceFast(move);
+			MoveEval result = Quiesce(newPosition, alpha, beta, true, depth - 1);
+			if (result.eval < bestMove.eval)
+			{
+				bestMove.eval = result.eval;
+				bestMove.move = move;
+			}
+			beta = std::min(beta, bestMove.eval);
+
+			if (beta <= alpha)
+			{
+				ALPHA_BETA_PRUNINGS++;
+				break;
+			}
+		}
+	}
+
 	BoundType bound;
 	if (bestMove.eval <= alphaOrig) bound = UPPERBOUND;
 	else if (bestMove.eval >= beta) bound = LOWERBOUND;
@@ -228,7 +339,6 @@ void Divide(Board& pos, int depth) {
 		total += nodes;
 	}
 
-
 	auto end = std::chrono::high_resolution_clock::now();
 
 	std::chrono::duration<float, std::milli> duration = (end - start)/1000;
@@ -262,4 +372,23 @@ uint64_t Perft(Board& position, int depth) {
 #endif
 	}
 	return nodes;
+}
+
+void AddToTranspositionTable(const Board& position, const MoveEval& bestMove, const int depth, const int beta, const int alphaOrig)
+{
+	ZobristHash zobristHash = Utils::GetZobristHash(position, Engine::hashSettings);
+	int index = zobristHash & (TT_SIZE - 1);
+	TTEntry& entry = TranspositionTable[index];
+
+	BoundType bound;
+	if (bestMove.eval <= alphaOrig) bound = UPPERBOUND;
+	else if (bestMove.eval >= beta) bound = LOWERBOUND;
+	else bound = EXACT;
+
+	TranspositionTable[index] = {
+		.hash = zobristHash,
+		.depth = depth,
+		.bestMove = bestMove,
+		.bound = bound
+	};
 }

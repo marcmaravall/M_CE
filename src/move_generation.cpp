@@ -9,8 +9,10 @@ void GeneratePawnMoves(const Board& board, const uint8_t from, std::vector<Move>
 		.promotion = 255,
 		.capture = false,
 	};
+	currentMove.movedPiece = board.turn == WHITE_TURN ? W_PAWN_I : B_PAWN_I;
+	// std::cout << currentMove.movedPiece << "\n";
 
-	const bool isWhite = Utils::IsWhitePieceAt(board, from);
+	const bool isWhite = board.turn==WHITE_TURN;
 	const uint8_t rank = from / 8;
 	const uint8_t file = from % 8;
 	const bool canPromote = (isWhite && rank == 6) || (!isWhite && rank == 1);
@@ -138,6 +140,7 @@ void GenerateKnightMoves(const Board& board, const uint8_t from, std::vector<Mov
 		.promotion = 255,
 		.capture = false,
 	};
+	currentMove.movedPiece = board.turn == WHITE_TURN ? W_KNIGHT_I : B_KNIGHT_I;
 
 	uint64_t mask = Engine::knightMasks[from];
 
@@ -164,7 +167,9 @@ void GenerateBishopMoves(const Board& board, const uint8_t from, std::vector<Mov
 		.to = 0,
 		.promotion = 255,
 		.capture = false,
+		.movedPiece = board.turn == WHITE_TURN ? W_BISHOP_I : B_BISHOP_I,
 	};
+	currentMove.movedPiece = board.turn == WHITE_TURN ? W_BISHOP_I : B_BISHOP_I;
 
 	currentMove.from = from;
 
@@ -217,6 +222,7 @@ void GenerateRookMoves(const Board& board, const uint8_t from, std::vector<Move>
 		.promotion = 255,
 		.capture = false,
 	};
+	currentMove.movedPiece = board.turn == WHITE_TURN ? W_ROOK_I : B_ROOK_I,
 
 	currentMove.from = from;
 
@@ -255,8 +261,34 @@ void GenerateRookMoves(const Board& board, const uint8_t from, std::vector<Move>
 }
 
 void GenerateQueenMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
-	GenerateBishopMoves(board, from, moves);
-	GenerateRookMoves  (board, from, moves);
+
+	Move currentMove =
+	{
+		.from = 0,
+		.to = 0,
+		.promotion = 255,
+		.capture = false,
+	};
+	currentMove.movedPiece = board.turn == WHITE_TURN ? W_QUEEN_I : B_QUEEN_I,
+
+	currentMove.from = from;
+
+	const Bitboard occupancy = Utils::GetAllBitboards(board.bitboards, BOTH);
+	Bitboard mask = Utils::GenerateRookAttacksOptimized(from, occupancy) | Utils::GenerateBishopAttacksOptimized(from, occupancy);
+
+	while (mask) {
+		uint8_t to = Utils::PopLSB(mask);
+
+		const bool isEnemyPiece = Utils::IsEnemyPieceAt(board, to);
+		const int pieceType = Utils::GetPieceType(board, to);
+
+		if (pieceType == 255 || isEnemyPiece) {
+			currentMove.to = to;
+			currentMove.capture = isEnemyPiece;
+			currentMove.capturedPiece = pieceType;
+			moves.push_back(currentMove);
+		}
+	}
 }
 
 
@@ -268,6 +300,7 @@ void GenerateKingMoves(const Board& board, const uint8_t from, std::vector<Move>
 		.promotion = 255,
 		.capture = false,
 	};
+	currentMove.movedPiece = board.turn == WHITE_TURN ? W_KING_I : B_KING_I;
 
 	Bitboard mask = Engine::kingMasks[from];
 
@@ -290,6 +323,8 @@ void GenerateCastlingMoves(Board board, const uint8_t from, std::vector<Move>& m
 {
 	Move currentMove;
 	currentMove.castling = true;
+
+	currentMove.movedPiece = board.turn == WHITE_TURN ? W_KING_I : B_KING_I;
 
 	if (board.IsCheck(board.turn == !WHITE_TURN ? BLACK : WHITE, false))
 		return;
@@ -390,8 +425,18 @@ void MVV_LVA_Order(std::vector<Move>& moves, const Board& board) {
 		[](const Move& move) { return move.capture; });
 
 	std::sort(moves.begin(), partitionPoint, [&board](const Move& a, const Move& b) {
-		const int aValue = MVV_LVA[a.capturedPiece][Utils::GetPieceType(board, a.from)];
-		const int bValue = MVV_LVA[b.capturedPiece][Utils::GetPieceType(board, b.from)];
+		const int aValue = MVV_LVA[a.capturedPiece][a.movedPiece];
+		const int bValue = MVV_LVA[b.capturedPiece][a.movedPiece];
 		return aValue > bValue;
 	});
+}
+
+void SeparateByCaptures(const std::vector<Move>& moves, std::vector<Move>& captures) {
+	captures.clear();
+	captures.reserve(moves.size());
+	for (const Move& move : moves) {
+		if (move.capture) {
+			captures.push_back(move);
+		}
+	}
 }

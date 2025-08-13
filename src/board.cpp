@@ -377,7 +377,7 @@ bool Board::MovePieceFast(const Move& move)		// for search
 			}
 
 			wCastlingKing = false;
-			wCastlingKing = false;
+			wCastlingQueen = false;
 		}
 		else
 		{
@@ -399,7 +399,7 @@ bool Board::MovePieceFast(const Move& move)		// for search
 			}
 
 			bCastlingKing = false;
-			bCastlingKing = false;
+			bCastlingQueen = false;
 		}
 
 		enPassantSquare = 255;
@@ -411,14 +411,17 @@ bool Board::MovePieceFast(const Move& move)		// for search
 		return true;
 	}
 
-	int pieceType = 255;
-	for (int i = 0; i < 12; ++i) {
-		if ((bitboards[i] >> from) & 1ULL) {
-			pieceType = i;
-			break;
+	int pieceType = move.movedPiece;
+	if (move.movedPiece == 255)
+	{
+		for (int i = 0; i < 12; ++i) {
+			if ((bitboards[i] >> from) & 1ULL) {
+				pieceType = i;
+				break;
+			}
 		}
+		if (pieceType >= 12) return false;
 	}
-	if (pieceType >= 12) return false;
 
 	const bool pawnMove = pieceType == W_PAWN_I || pieceType == B_PAWN_I;
 	const bool isEnPassant = pawnMove && to == enPassantSquare;
@@ -1207,6 +1210,7 @@ bool Board::TripleRepetition()
 	for (const auto& position : repetitionsHistory) {
 		if (position == currentHash) {
 			repetitions++;
+
 		}
 	}
 

@@ -1,0 +1,30 @@
+[Event "Computer chess game"]
+[Site "J-17MFC8CTUPP09"]
+[Date "2025.08.07"]
+[Round "?"]
+[White "M_CE"]
+[Black "Edición"]
+[Result "*"]
+[BlackElo "2400"]
+[ECO "C84"]
+[Opening "Spanish"]
+[Time "13:19:50"]
+[Variation "Closed, 6.d3 b5"]
+[WhiteElo "2200"]
+[Termination "unterminated"]
+[PlyCount "125"]
+[WhiteType "program"]
+[BlackType "human"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. d3 b5 7. Bb3 d6 8.
+Nc3 O-O 9. Bg5 Bd7 10. Nd5 Nxd5 11. Bxd5 Bxg5 12. Nxg5 Qxg5 13. h4 Qf4 14.
+g3 Qf6 15. f4 exf4 16. Rxf4 Qxb2 17. Rb1 Qc3 18. Kh1 Ne5 19. Rb3 Qd4 20.
+Qg1 Qxg1+ 21. Kxg1 c6 22. d4 Ng6 23. Rxf7 Rxf7 24. Bxf7+ Kxf7 25. h5 Nf8
+26. d5 g6 27. Rc3 c5 28. Rf3+ Ke7 29. h6 Bg4 30. Rf4 Bd7 31. a3 g5 32. Rf3
+Bg4 33. Rb3 c4 34. Rb1 Bf3 35. Kf2 Bg4 36. Ke3 Nd7 37. a4 Rb8 38. Rb4 Bd1
+39. axb5 axb5 40. Kd2 Bf3 41. Rb1 Ne5 42. Ke3 b4 43. Kd4 b3 44. Rc1 b2 45.
+Rb1 Rb5 46. g4 Rb4 47. Kc3 Rb8 48. Kd4 Nxg4 49. Kxc4 Bxe4 50. Kc3 Ne3 51.
+Kd4 Bxc2 52. Rxb2 Rxb2 53. Kxe3 Rb5 54. Kd2 Bb3 55. Kc1 Kf6 56. Kb1 Bxd5+
+57. Ka1 Be4 58. Ka2 g4 59. Ka3 g3 60. Ka4 Rb1 61. Ka3 g2 62. Ka2 g1=Q 63.
+Ka3 *
+
