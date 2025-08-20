@@ -57,8 +57,7 @@ MoveEval Minimax(Board& position, uint8_t depth, bool max)
 }
 
 #define COPY_MODE
-#define USE_TT //8/8/8/8/8/1R6/5K2/7k w - - 7 1  12324
-// error, sometimes the engine don't finds the mate in 1.
+#define USE_TT 
 
 // reduces complexity O(n^2) to O(n) by using alpha-beta pruning
 MoveEval AlphaBeta(Board& position, const uint8_t depth, int alpha, int beta, const bool max, const int ply)
@@ -261,6 +260,13 @@ MoveEval Quiesce(Board& position, int alpha, int beta, bool max, int depth)
 				ALPHA_BETA_PRUNINGS++;
 				break;
 			}
+
+			/*if (SEE(position) > 0) {
+				if (beta > alpha) {
+					break;
+					return { Move(), 0};
+				}
+			}*/
 		}
 	}
 	else
@@ -391,4 +397,11 @@ void AddToTranspositionTable(const Board& position, const MoveEval& bestMove, co
 		.bestMove = bestMove,
 		.bound = bound
 	};
+}
+
+int SEE(const Board& position, const uint8_t index) {
+	int evaluation = 0;
+
+	return evaluation;
+	// uint8_t piece = position.GetSmallestAttacker();
 }

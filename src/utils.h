@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <math.h>
 #include <array>
 #include <assert.h>
 
@@ -79,4 +80,8 @@ public:
 	static uint64_t Rand64();
 
 	static std::string ToBin(const uint64_t n);
+	static uint16_t GetMate(const int evaluation);
+
+	static int* Interpolate(const int *a, const int *b, const double interpolation, const bool extrapolate = false);
+	static double InterpolateInt(const int a, const int b, const double interpolation, const bool extrapolate = false);
 };

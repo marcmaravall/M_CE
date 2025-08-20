@@ -30,7 +30,7 @@ void Engine::init()
     InitRookTable();
 
     // ValidateMagics();
-
+    
     // DebugMagics();
     // DebugTables();
 
@@ -71,7 +71,7 @@ void Engine::ManageInput()
     Move current = {
         .from = 255, .to = 255, .castling = false, .mode = 0, .check = false, .checkmate = false,
     };
-	current.promotion = 255;
+    current.promotion = 255;
 
     if (input == "0-0")
     {
@@ -226,11 +226,10 @@ void Engine::PlayAgainistHuman()
         if (currentBoard.turn == WHITE_TURN)
         {
             std::string input;
-            // std::cout << "Move: ";
             std::cin >> input;
 
             Move current = {
-                .from = 255, .to = 255, .castling = false, .mode = 0, .check = false, .checkmate = false,
+                .from = 255, .to = 255,.castling = false, .mode = 0, .check = false, .checkmate = false,
             };
 
             if (input == "0-0")
@@ -515,20 +514,28 @@ void Engine::SetPosition(const char* fen)
 
 #include <chrono>
 
+#define USE_BOOKS
+
 MoveEval Engine::SearchTime(const int time_ms)
 {
     MoveEval currentMove;
 
     int depth = 1;
-    const int maxDepth = 10000;
 
     using namespace std::chrono;
     auto start = high_resolution_clock::now();
     auto elapsed = duration_cast<milliseconds>(high_resolution_clock::now() - start).count();
 
-    while (elapsed < time_ms && depth <= maxDepth)
+#ifdef USE_BOOKS
+    currentMove = MoveBook();
+    if (currentMove.eval == 0) {
+        return currentMove;
+    }
+#endif
+
+    while (elapsed < time_ms && depth <= maxSearchDepth)
     {
-        auto iteration_start = high_resolution_clock::now();
+        const auto iteration_start = high_resolution_clock::now();
 
         for (size_t i = 0; i < TT_SIZE; i++) {
 			TranspositionTable[i] = TTEntry(); 
@@ -537,11 +544,11 @@ MoveEval Engine::SearchTime(const int time_ms)
         currentMove = AlphaBeta(currentBoard, depth, -MATE_SCORE, MATE_SCORE, currentBoard.turn == WHITE_TURN, depth);
 
         depth++;
-        auto iteration_end = high_resolution_clock::now();
-        auto iteration_duration = duration_cast<milliseconds>(iteration_end - iteration_start).count();
+        const auto iteration_end = high_resolution_clock::now();
+        const auto iteration_duration = duration_cast<milliseconds>(iteration_end - iteration_start).count();
         elapsed = duration_cast<milliseconds>(high_resolution_clock::now() - start).count();
 
-        if (elapsed + iteration_duration > time_ms)
+        if (elapsed + iteration_duration* manager.waitingOffset > time_ms)
         {
             break;
         }
@@ -551,7 +558,66 @@ MoveEval Engine::SearchTime(const int time_ms)
     return currentMove;
 }
 
-#define USE_BOOKS
+MoveEval Engine::SearchNodes(const uint64_t nodes) {
+    MoveEval currentMove;
+
+#ifdef USE_BOOKS
+    currentMove = MoveBook();
+    if (currentMove.eval == 0) {
+        std::cout << "info string Using Books in Search\n";
+        return currentMove;
+    }
+#endif
+
+    int depth = 1;
+
+    while (NODES < nodes && depth <= maxSearchDepth)
+    {
+        currentMove = AlphaBeta(currentBoard, depth, -MATE_SCORE, MATE_SCORE, currentBoard.turn == WHITE_TURN, depth);
+        depth++;
+    }
+
+    std::cout << "info depth " << depth << "\n";
+    return currentMove;
+}
+
+
+MoveEval Engine::MoveBook() {
+
+    uint64_t hash = Utils::GetZobristHash(currentBoard, Engine::polyglotSettings);
+
+    const auto it = std::find_if(book.entries.begin(), book.entries.end(),
+        [hash](const PolyglotEntry& entry) {
+            return entry.key == hash;
+        });
+
+    if (it != book.entries.end())
+    {
+        const std::vector<MoveEval>& moves = book.GetMoves(hash);
+
+        int totalWeight = 0;
+        for (const MoveEval& move : moves) {
+            totalWeight += move.weight;
+        }
+
+        const int random = rand() % totalWeight;
+        int cumulative = 0;
+
+        for (const MoveEval& move : moves) {
+            cumulative += move.weight;
+            if (random < cumulative) {
+                return move;
+            }
+        }
+
+        return MoveEval(moves[0]);
+    }
+
+	return MoveEval({
+		.move = Move(),
+        .eval = 255, 
+	});
+}
 
 MoveEval Engine::Search(int depth)
 {
@@ -560,35 +626,9 @@ MoveEval Engine::Search(int depth)
     uint64_t hash = Utils::GetZobristHash(currentBoard, Engine::polyglotSettings);
 
 #ifdef USE_BOOKS
-    auto it = std::find_if(book.entries.begin(), book.entries.end(),
-        [hash](const PolyglotEntry& entry) {
-            // std::cerr << "polygot entry founded\n" << (entry.key == hash);
-            return entry.key == hash;
-        });
-
-    if (it != book.entries.end())
-    {
-        const std::vector<MoveEval>& moves = book.GetMoves(hash);
-        
-		int totalWeight = 0;
-		for (const MoveEval& move : moves) {
-			totalWeight += move.weight;
-		}
-
-		int random = rand() % totalWeight;
-        int cumulative = 0;
-
-        // std::cout << random << "\n";
-
-        for (const MoveEval& move : moves) {
-            cumulative += move.weight;
-            if (random < cumulative) {
-                // std::cout << cumulative << "\n";
-                return move;
-            }
-        }
-
-        return MoveEval(moves[0]);
+	currentMove = MoveBook();
+    if (currentMove.eval == 0) {
+        return currentMove;
     }
 #endif
 
@@ -597,6 +637,34 @@ MoveEval Engine::Search(int depth)
 	return currentMove;
 }
 
+MoveEval Engine::SearchInfinite()
+{
+    MoveEval currentMove;
+    uint16_t currentDepth = 1;
+    
+    while (currentDepth < maxSearchDepth) {
+        
+        NODES = 0;
+        const auto start = std::chrono::high_resolution_clock::now();
+
+        currentMove = AlphaBeta(currentBoard, currentDepth, -MATE_SCORE, MATE_SCORE, currentBoard.turn == WHITE_TURN, currentDepth);
+        
+        const auto end = std::chrono::high_resolution_clock::now();
+        const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+        // print info of the engine: 
+        std::cout << "info nodes " << NODES << " nps " << (double(NODES) / elapsed)*1000.0 << " depth " << currentDepth << " currmove " << Utils::MoveToStr(currentMove.move) << " score ";
+        uint16_t mateIn = Utils::GetMate(currentMove.eval);
+        if (mateIn != 0) {
+            std::cout << "mate " << mateIn << " ";
+        } else {
+            std::cout << "cp " << currentMove.eval << "\n";
+        }
+        currentDepth++;
+    }
+
+    return currentMove;
+}
 
 void Engine::MovePiece(const char* moveStr)
 {
@@ -606,6 +674,7 @@ void Engine::MovePiece(const char* moveStr)
         Move current = {
             .from = 255, .to = 255,.castling = false, .mode = 0, .check = false, .checkmate = false,
         };
+
         current.promotion = 255;
 
         uint8_t from = 0, to = 0;
@@ -755,7 +824,6 @@ ZobristHashSettings Engine::generatePolyglotSettings() {
 void Engine::RunBookTest()
 {
     init();
-    // book = Book("C:\\Users\\marcm\\Source\\Repos\\M_CE\\books\\komodo.bin");
 
     SetPosition(START_FEN);
 

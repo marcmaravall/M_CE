@@ -6,8 +6,8 @@
 #include "book.h"
 #include "constants.h"
 #include "evaluation.h"
+#include "time_control.h"
 #include "search.h"
-// #include "uci.h"
 #include "move.h"
 #include <chrono>
 #include <random>
@@ -28,7 +28,6 @@ private:
     fs::path getProjectDirectory();
 
 private:
-
     void GenerateZobristHash(int seed);
     static uint32_t polyglotSeed;
 
@@ -47,7 +46,7 @@ public:
     Engine();
     ~Engine();
 
-    static const int maxSearchDepth = 5;
+    static const int maxSearchDepth = 25;
 
     void init();
     void start();
@@ -76,6 +75,10 @@ public:
 
     MoveEval SearchTime(int time);
     MoveEval Search(int depth);
+	MoveEval SearchNodes(const uint64_t nodes);
+    MoveEval SearchInfinite();
+    MoveEval MoveBook();
+
     void DivideTest(uint8_t depth);
 
     void MovePiece(const char* moveStr);
@@ -111,6 +114,7 @@ public:
 	static ZobristHashSettings polyglotSettings;
 
 	static Book book;
+    TimeManager manager;
 
 public:
 	int timeSearching = 0;

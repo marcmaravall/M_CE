@@ -2,15 +2,13 @@
 
 void GeneratePawnMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 
-	Move currentMove =
-	{
-		.from = from,
-		.to = 0,
-		.promotion = 255,
-		.capture = false,
-	};
+	Move currentMove;
+	currentMove.promotion = 255;
+	currentMove.capture = false;
+	currentMove.from = from;
+	currentMove.to = 0;
+
 	currentMove.movedPiece = board.turn == WHITE_TURN ? W_PAWN_I : B_PAWN_I;
-	// std::cout << currentMove.movedPiece << "\n";
 
 	const bool isWhite = board.turn==WHITE_TURN;
 	const uint8_t rank = from / 8;
@@ -19,13 +17,14 @@ void GeneratePawnMoves(const Board& board, const uint8_t from, std::vector<Move>
 	const bool canEnPassant = board.enPassantSquare != 255 && (
 		isWhite ? (from + NORTH_EAST == board.enPassantSquare && (file != 7) || from + NORTH_WEST == board.enPassantSquare && (file != 0)) : 
 				  (from + SOUTH_EAST == board.enPassantSquare && (file != 7) || from + SOUTH_WEST == board.enPassantSquare && (file != 0)));
-
-	/*if (canPromote) {
-		assert("ERROR: promotions are not implemented in GeneratePawnMoves optimized");
-		return;
-	}*/
 	
 	const Bitboard occupancies = Utils::GetAllBitboards(board.bitboards, BOTH);
+
+	bool debug = false;
+
+	if (from == 26) {
+		debug = true;
+	}
 	
 	if (isWhite)
 	{
@@ -134,12 +133,9 @@ void GeneratePawnMoves(const Board& board, const uint8_t from, std::vector<Move>
 }
 
 void GenerateKnightMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
-	Move currentMove = {
-		.from = from,
-		.to = 0,
-		.promotion = 255,
-		.capture = false,
-	};
+	Move currentMove;
+	currentMove.from = from;
+
 	currentMove.movedPiece = board.turn == WHITE_TURN ? W_KNIGHT_I : B_KNIGHT_I;
 
 	uint64_t mask = Engine::knightMasks[from];
@@ -162,13 +158,13 @@ void GenerateKnightMoves(const Board& board, const uint8_t from, std::vector<Mov
 // #define DEBUG_MAGICS
 
 void GenerateBishopMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
-	Move currentMove = {
-		.from = 0,
-		.to = 0,
-		.promotion = 255,
-		.capture = false,
-		.movedPiece = board.turn == WHITE_TURN ? W_BISHOP_I : B_BISHOP_I,
-	};
+	Move currentMove;
+
+	currentMove.promotion = 255;
+	currentMove.capture = false;
+	currentMove.from = from;
+	currentMove.to = 0;
+
 	currentMove.movedPiece = board.turn == WHITE_TURN ? W_BISHOP_I : B_BISHOP_I;
 
 	currentMove.from = from;
@@ -215,16 +211,14 @@ void GenerateBishopMoves(const Board& board, const uint8_t from, std::vector<Mov
 
 void GenerateRookMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 
-	Move currentMove =
-	{
-		.from = 0,
-		.to = 0,
-		.promotion = 255,
-		.capture = false,
-	};
-	currentMove.movedPiece = board.turn == WHITE_TURN ? W_ROOK_I : B_ROOK_I,
+	Move currentMove;
 
+	currentMove.promotion = 255;
+	currentMove.capture = false;
 	currentMove.from = from;
+	currentMove.to = 0;
+
+	currentMove.movedPiece = board.turn == WHITE_TURN ? W_ROOK_I : B_ROOK_I;
 
 #ifdef DEBUG_MAGICS
 	{
@@ -262,13 +256,13 @@ void GenerateRookMoves(const Board& board, const uint8_t from, std::vector<Move>
 
 void GenerateQueenMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
 
-	Move currentMove =
-	{
-		.from = 0,
-		.to = 0,
-		.promotion = 255,
-		.capture = false,
-	};
+	Move currentMove;
+
+	currentMove.promotion = 255;
+	currentMove.capture = false;
+	currentMove.from = from;
+	currentMove.to = 0;
+
 	currentMove.movedPiece = board.turn == WHITE_TURN ? W_QUEEN_I : B_QUEEN_I,
 
 	currentMove.from = from;
@@ -293,13 +287,14 @@ void GenerateQueenMoves(const Board& board, const uint8_t from, std::vector<Move
 
 
 void GenerateKingMoves(const Board& board, const uint8_t from, std::vector<Move>& moves) {
-	Move currentMove =
-	{
-		.from = from,
-		.to = 0,
-		.promotion = 255,
-		.capture = false,
-	};
+	Move currentMove;
+
+	currentMove.promotion = 255;
+	currentMove.capture = false;
+	currentMove.from = from;
+	currentMove.to = 0;
+
+	currentMove.from = from;
 	currentMove.movedPiece = board.turn == WHITE_TURN ? W_KING_I : B_KING_I;
 
 	Bitboard mask = Engine::kingMasks[from];
@@ -322,6 +317,8 @@ void GenerateKingMoves(const Board& board, const uint8_t from, std::vector<Move>
 void GenerateCastlingMoves(Board board, const uint8_t from, std::vector<Move>& moves)
 {
 	Move currentMove;
+	currentMove.from = from;
+
 	currentMove.castling = true;
 
 	currentMove.movedPiece = board.turn == WHITE_TURN ? W_KING_I : B_KING_I;
@@ -332,13 +329,15 @@ void GenerateCastlingMoves(Board board, const uint8_t from, std::vector<Move>& m
 	if (board.turn == WHITE_TURN)
 	{
 		currentMove.from = 4;
-		if (board.wCastlingKing && !board.IsOccupied(5) && !board.IsOccupied(6))
+		if (board.wCastlingKing && !board.IsOccupied(5) && !board.IsOccupied(6) && 
+			!board.IsSquareAttacked(board.turn == !WHITE_TURN? WHITE : BLACK, 5) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 6))
 		{
 			currentMove.mode = true;
 			currentMove.to = 7;
 			moves.push_back(currentMove);
 		}
-		if (board.wCastlingQueen && !board.IsOccupied(1) && !board.IsOccupied(2) && !board.IsOccupied(3))
+		if (board.wCastlingQueen && !board.IsOccupied(1) && !board.IsOccupied(2) && !board.IsOccupied(3) && 
+			!board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 2) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 3))
 		{
 			currentMove.mode = false;
 			currentMove.to = 0;
@@ -349,13 +348,15 @@ void GenerateCastlingMoves(Board board, const uint8_t from, std::vector<Move>& m
 	else if (board.turn == BLACK_TURN)
 	{
 		currentMove.from = 60;
-		if (board.bCastlingKing && !board.IsOccupied(62) && !board.IsOccupied(61))
+		if (board.bCastlingKing && !board.IsOccupied(62) && !board.IsOccupied(61) &&
+			!board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 62) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 61))
 		{
 			currentMove.to = 63;
 			currentMove.mode = true;
 			moves.push_back(currentMove);
 		}
-		if (board.bCastlingQueen && !board.IsOccupied(59) && !board.IsOccupied(58) && !board.IsOccupied(57))
+		if (board.bCastlingQueen && !board.IsOccupied(59) && !board.IsOccupied(58) && !board.IsOccupied(57) &&
+			!board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 58) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 59))
 		{
 			currentMove.to = 56;
 			currentMove.mode = false;

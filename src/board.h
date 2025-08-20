@@ -76,7 +76,8 @@ public:
 	bool CanCastle(const Move move);
 	void DoCastleMove(const Move move);
 
-	bool IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug = false) ;
+	bool IsSquareAttacked(const PIECE_COLORS attackerColor, const int square, const bool debug = false);
+	uint8_t GetSmallestAttacker(const PIECE_COLORS attackerColor, const uint8_t square);
 
 	bool IsOccupied(uint8_t indexPosition) const;
 	bool IsCheck(const PIECE_COLORS color, const bool debug = false);

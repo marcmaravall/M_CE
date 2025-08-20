@@ -6,7 +6,8 @@
 
 UCI::UCI()
 {
-	// engine.init();
+	engine.init();
+	// std::cout << "HI: " << Evaluation::GetGamePhase(engine.currentBoard) << "\n";
 }
 
 void UCI::uci()
@@ -110,7 +111,6 @@ void UCI::ManageInput(const char* input)
 
 		if ((tokens.size() > index) && tokens[index] == "moves") {
 			index++;
-			// std::cerr << "Moves: ";
 			while (index < tokens.size()) {
 				std::string moveStr = tokens[index];
 				engine.MovePiece(moveStr.c_str());
@@ -131,6 +131,31 @@ void UCI::ManageInput(const char* input)
 			Evaluation::PrintEvaluation(engine.currentBoard);
 	}
 
+	else if (command == "getphase") {
+		std::cout << "+----------+----------+" << "\n";
+		
+		std::cout << "Game Phase: ";
+		switch (Evaluation::GetGamePhase(engine.currentBoard))
+		{
+		case OPENING:
+			std::cout << "opening";
+			break;
+
+		case MIDGAME:
+			std::cout << "midgame";
+			break;
+		case ENDGAME:
+			std::cout << "endgame";
+			break;
+		default:
+			break;
+		}
+		std::cout << "\n";
+		std::cout << "Value phase: " << Evaluation::GetGamePhaseValue(engine.currentBoard) << "\n";
+	
+		std::cout << "+----------+----------+" << "\n";
+	}
+
 	else if (command == "tests")
 	{
 		SpeedTest();
@@ -145,21 +170,32 @@ void UCI::ManageInput(const char* input)
 		{
 			index++;
 
-			// if (tokens[index] == "nolegal")
-
 			int depth = std::stoi(tokens[index]);
 
 			perft(depth);
 		}
 		else if (tokens[index] == "nodes") {
-			// TODO: implement nodes search
+			index++;
+			int nodes = std::stoi(tokens[index]);
+
+			NODES = 0; 
+			const auto start = std::chrono::high_resolution_clock::now();
+
+			const MoveEval moveEval = engine.SearchNodes(nodes);
+
+			const auto end = std::chrono::high_resolution_clock::now();
+			const double elapsedSeconds = std::chrono::duration<double>(end - start).count();
+
+			std::cout << "info nodes " << NODES << " nps " << static_cast<int>(NODES / elapsedSeconds) << " info score cp " << moveEval.eval << "\n";
+
+			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
 		}
 		else if (tokens[index] == "movetime") {
 			const int time = std::stoi(tokens[index + 1]);
 		
 			MoveEval moveEval = engine.SearchTime(time);
-			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
 			std::cout << "info score cp " << moveEval.eval << "\n";
+			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
 		}
 		else if (tokens[index] == "searchmoves") {
 			index++;
@@ -169,20 +205,13 @@ void UCI::ManageInput(const char* input)
 			}
 		}
 		else if (tokens[index] == "infinite") {
-			index++;
-			MoveEval moveEval = engine.Search(5);
-
-			char promotion = (moveEval.move.promotion != 255) ? tolower(PIECE_CHAR[moveEval.move.promotion]) : ' ';
-			std::cout << "bestmove " << Utils::ConvertToBoardPosition(moveEval.move.from)
-				<< Utils::ConvertToBoardPosition(moveEval.move.to)
-				<< promotion << "\n";
+			engine.SearchInfinite();
 		}
+
+		// depth search
 		else if (tokens[index] == "depth") {
 			index++;
 			int depth = std::stoi(tokens[index]);
-
-			// sendInfo = true;
-
 			NODES = 0; 
 			auto start = std::chrono::high_resolution_clock::now();
 
@@ -191,14 +220,22 @@ void UCI::ManageInput(const char* input)
 			auto end = std::chrono::high_resolution_clock::now();
 			double elapsedSeconds = std::chrono::duration<double>(end - start).count();
 
-			std::cout << "info nodes " << NODES << "\n";
-			std::cout << "info nps " << static_cast<int>(NODES / elapsedSeconds) << "\n";
-
-			// std::cerr << moveEval.move.from << " " << moveEval.move.to << "\n";
+			std::cout << "info nodes " << NODES <<
+				" nps " << static_cast<int>(NODES / elapsedSeconds) << " score ";
+			
+			if (moveEval.eval > MATE_SCORE - 500) {
+				std::cout << "mate " << (MATE_SCORE - (moveEval.eval+1))/2;
+			}
+			else if (moveEval.eval < -MATE_SCORE + 500) {
+				std::cout << "mate " << abs((MATE_SCORE + (moveEval.eval-1))/2);
+			}
+			else {
+				std::cout << "cp " << moveEval.eval;
+			}
+			std::cout << "\n";
 
 			char promotion = (moveEval.move.promotion < 12) ? tolower(PIECE_CHAR[moveEval.move.promotion]) : ' ';
 			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
-			std::cout << "info score cp " << moveEval.eval << "\n";
 		}
 		else if (tokens[index] == "wtime")
 		{
@@ -227,17 +264,8 @@ void UCI::ManageInput(const char* input)
 
 			const bool engineTurn = engine.currentBoard.turn;
 			const float engineTime = (engineTurn == WHITE_TURN ? wTime : bTime);
-			
-			int time = 3000;
 
-			if (engineTime < 3000)
-				time = 500;
-			else if (engineTime < 10000)
-				time = 1000;
-			else if (engineTime < 60000)
-				time = 1500;
-
-			MoveEval moveEval = engine.SearchTime(time);
+			MoveEval moveEval = engine.SearchTime(engine.manager.CalculateTimeBasic(wTime, bTime, wInc, bInc, engineTurn));
 			std::cout << "bestmove " << Utils::MoveToStr(moveEval.move) << "\n";
 			std::cout << "info nodes" << NODES  << "score cp " << moveEval.eval << "\n";
 		}
@@ -439,3 +467,26 @@ std::string UCI::GetCompiler() const
 	return "unknown";
 #endif
 }
+
+void UCI::InterpolateTest()
+{
+	std::cout << "\n" << "+----------+----------+\n";
+	std::cout << "  Interpolation Test. \n";
+	std::cout << "+----------+----------+\n";
+	
+	const int a = 0;
+	const int b = 4;
+	const double interpolate = 0.5;
+	const double extrapolate = false;
+		
+	std::cout << "\nA=" << a << " B=" << b << " Interpolation=" << interpolate << "\n";
+	std::cout << "Result: " << Utils::InterpolateInt(a, b, interpolate, extrapolate) << "\n" << "\n";
+
+	const int* out = Utils::Interpolate(W_PAWN_BITMAP_OPENING, W_PAWN_BITMAP_MIDGAME, 0.5);
+
+	for (size_t i = 0; i < 64; i++) {
+		std::cout << out[i] << " ";
+		if (i % 8 == 0) std::cout << "\n";
+	}
+}
+

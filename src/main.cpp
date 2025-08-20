@@ -101,6 +101,13 @@
 10/08/2025: Nothing...
 11/08/2025: Solved a bug in evaluation, started to implement a function to visualize evaluationV2.
 12/08/2025: Implemented more of the visualize evaluationV2 function, there is a bug in the evaluate pawn function.
+13/08/2025: Nothing...
+14/08/2025: Solved a little bug with move generation and castling.
+15/08/2025: Added search nodes and added a function to simplify the use of books in search.
+16/08/2025: Started to implement a time manager with multiple functions to calculate the time to search in a position.
+17/08/2025: Implemented a table with times to search in different times.
+18/08/2025: Implemented search infinite and "score mate <n>", started to implement interpolations of tables in different game phases.
+19/08/2025: Started to implement new tables, added a new command for see the current game phase, and a function to get the pse interpolated based on the tables.
 */
 
 #include <iostream>

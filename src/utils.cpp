@@ -258,7 +258,7 @@ inline uint8_t Utils::GetPieceType(const Board& board, const uint8_t index) {
 
 inline int Utils::PopLSB(uint64_t& bb) {
 	if (bb == 0) {
-		assert("ERROR: PopLSB value returned 0");
+		std::cout << "ERROR: assert returned bb"; 
 		return -1;
 	}
 
@@ -656,4 +656,39 @@ std::string Utils::ToBin(uint64_t n) {
 	}
 
 	return res;
+}
+
+uint16_t Utils::GetMate(const int evaluation) {
+	if (evaluation > MATE_SCORE - 500) {
+		return (MATE_SCORE - (evaluation + 1)) / 2;
+	}
+	else if (evaluation < -MATE_SCORE + 500) {
+		return abs(double(MATE_SCORE + (evaluation - 1)) / 2);
+	}
+	
+	return 0;
+}
+
+int* Utils::Interpolate(const int* a, const int* b, double interpolation, bool extrapolate) {
+	int* out = new int[64]; 
+
+	for (size_t i = 0; i < 64; i++) {
+		if (!extrapolate && (interpolation < 0.0 || interpolation > 1.0)) {
+			out[i] = (interpolation < 0.0 ? a[i] : b[i]);
+		}
+		else {
+			out[i] = static_cast<int>(a[i] + interpolation * (b[i] - a[i]));
+		}
+	}
+
+	return out; 
+}
+
+double Utils::InterpolateInt(const int a, const int b, const double interpolation, const bool extrapolate) {
+	if (!extrapolate && (interpolation < 0.0 || interpolation > 1.0)) {
+		return (interpolation < 0.0 ? a : b);
+	}
+	else {
+		return static_cast<int>(a + interpolation * (b - a));
+	}
 }

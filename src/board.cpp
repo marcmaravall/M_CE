@@ -1227,3 +1227,15 @@ void Board::ClearHalfMoves()
 	halfMoves = 0;
 	repetitionsHistory.clear();
 }
+
+// TODO: implement this.
+uint8_t Board::GetSmallestAttacker(const PIECE_COLORS side, const uint8_t index) {
+	const Bitboard sidePieces = Utils::GetAllBitboards(bitboards, side);
+	if (side == WHITE) {
+		for (uint8_t i = 0; i < 6; i++) {
+			
+		}
+	}
+
+	return 0;
+}

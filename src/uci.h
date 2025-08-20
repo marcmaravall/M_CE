@@ -145,8 +145,12 @@ public:
 	void EvalTest();
 	void UndoMoveTest();
 	void NPSTest();
+	void InterpolateTest();
+
 	void SearchTest();
 	void InsertCommand(const char* command);
+
+	static void PrintInfo();
 
 	// static bool IsSearching;
 

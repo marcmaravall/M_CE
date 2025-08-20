@@ -27,6 +27,7 @@ public:
 	static int EvaluateKingsSafety(const Board& board, const GAME_PHASE	phase);
 	static int EvaluateBishopPair(const Board& board, const GAME_PHASE phase);
 	static GAME_PHASE GetGamePhase(const Board& board);
+	static double GetGamePhaseValue(const Board& position);
 	static int EvaluatePawn(const uint8_t index, const Board& board, const GAME_PHASE phase);
 
 	static int EvaluatePiece(const Board& board, const uint8_t index);
@@ -36,5 +37,9 @@ public:
 	static void PrintEvaluation(const Board& board);
 	static void PrintSimpleEvaluation(const Board& board);
 	static void PrintEvaluationV2(const Board& board);
+
+	static int GetPSEValue(const uint8_t position, const uint8_t pieceType, const GAME_PHASE phase, const double phaseValue);
+
+private:
 };
 

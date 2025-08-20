@@ -28,17 +28,17 @@ int Evaluation::Evaluate(const Board& board)
 			int eval = 0;
 
 			switch (i) {
-			case W_PAWN_I:   eval = STATIC_PIECE_VALUE[W_PAWN_I] + W_PAWN_BITMAP[sq]; break;
-			case W_KNIGHT_I: eval = STATIC_PIECE_VALUE[W_KNIGHT_I] + W_KNIGHT_BITMAP[sq]; break;
-			case W_BISHOP_I: eval = STATIC_PIECE_VALUE[W_BISHOP_I] + W_BISHOP_BITMAP[sq]; break;
-			case W_ROOK_I:   eval = STATIC_PIECE_VALUE[W_ROOK_I] + W_ROOK_BITMAP[sq]; break;
-			case W_QUEEN_I:  eval = STATIC_PIECE_VALUE[W_QUEEN_I] + W_QUEEN_BITMAP[sq]; break;
+			case W_PAWN_I:   eval = STATIC_PIECE_VALUE[W_PAWN_I] + W_PAWN_BITMAP_OPENING[sq]; break;
+			case W_KNIGHT_I: eval = STATIC_PIECE_VALUE[W_KNIGHT_I] + W_KNIGHT_BITMAP_OPENING[sq]; break;
+			case W_BISHOP_I: eval = STATIC_PIECE_VALUE[W_BISHOP_I] + W_BISHOP_BITMAP_OPENING[sq]; break;
+			case W_ROOK_I:   eval = STATIC_PIECE_VALUE[W_ROOK_I] + W_ROOK_BITMAP_OPENING[sq]; break;
+			case W_QUEEN_I:  eval = STATIC_PIECE_VALUE[W_QUEEN_I] + W_QUEEN_BITMAP_OPENING[sq]; break;
 
-			case B_PAWN_I:   eval = STATIC_PIECE_VALUE[B_PAWN_I] - B_PAWN_BITMAP[sq]; break;
-			case B_KNIGHT_I: eval = STATIC_PIECE_VALUE[B_KNIGHT_I] - B_KNIGHT_BITMAP[sq]; break;
-			case B_BISHOP_I: eval = STATIC_PIECE_VALUE[B_BISHOP_I] - B_BISHOP_BITMAP[sq]; break;
-			case B_ROOK_I:   eval = STATIC_PIECE_VALUE[B_ROOK_I] - B_ROOK_BITMAP[sq]; break;
-			case B_QUEEN_I:  eval = STATIC_PIECE_VALUE[B_QUEEN_I] - B_QUEEN_BITMAP[sq]; break;
+			case B_PAWN_I:   eval = STATIC_PIECE_VALUE[B_PAWN_I] - B_PAWN_BITMAP_OPENING[sq]; break;
+			case B_KNIGHT_I: eval = STATIC_PIECE_VALUE[B_KNIGHT_I] - B_KNIGHT_BITMAP_OPENING[sq]; break;
+			case B_BISHOP_I: eval = STATIC_PIECE_VALUE[B_BISHOP_I] - B_BISHOP_BITMAP_OPENING[sq]; break;
+			case B_ROOK_I:   eval = STATIC_PIECE_VALUE[B_ROOK_I] - B_ROOK_BITMAP_OPENING[sq]; break;
+			case B_QUEEN_I:  eval = STATIC_PIECE_VALUE[B_QUEEN_I] - B_QUEEN_BITMAP_OPENING[sq]; break;
 			}
 
 			res += eval;
@@ -50,7 +50,8 @@ int Evaluation::Evaluate(const Board& board)
 
 int Evaluation::EvaluateV2(const Board& board)
 {
-	GAME_PHASE gamePhase = GetGamePhase(board);
+	const GAME_PHASE gamePhase = GetGamePhase(board);
+	const double gamePhaseValue = GetGamePhaseValue(board);
 
 	int evaluation = 0;
 
@@ -58,7 +59,7 @@ int Evaluation::EvaluateV2(const Board& board)
 	evaluation += EvaluateKingsSafety(board, gamePhase);
 	evaluation += EvaluateBishopPair(board, gamePhase);
 
-	for (int i = 1; i < 12; i+=(i!=5?1:2)) {
+	for (int i = 0; i < 12; i++) {
 		Bitboard b = board.bitboards[i];
 		while (b) {
 			int sq = Utils::PopLSB(b);
@@ -66,16 +67,20 @@ int Evaluation::EvaluateV2(const Board& board)
 			int eval = 0;
 
 			switch (i) {
-			case W_KNIGHT_I: eval = STATIC_PIECE_VALUE[W_KNIGHT_I] + W_KNIGHT_BITMAP[sq]; break;
-			case W_BISHOP_I: eval = STATIC_PIECE_VALUE[W_BISHOP_I] + W_BISHOP_BITMAP[sq]; break;
-			case W_ROOK_I:   eval = STATIC_PIECE_VALUE[W_ROOK_I] + W_ROOK_BITMAP[sq]; break;
-			case W_QUEEN_I:  eval = (STATIC_PIECE_VALUE[W_QUEEN_I] + W_QUEEN_BITMAP[sq]); break;
+			case W_PAWN_I:	 eval = STATIC_PIECE_VALUE[W_PAWN_I];   break;
+			case W_KNIGHT_I: eval = STATIC_PIECE_VALUE[W_KNIGHT_I]; break;
+			case W_BISHOP_I: eval = STATIC_PIECE_VALUE[W_BISHOP_I]; break;
+			case W_ROOK_I:   eval = STATIC_PIECE_VALUE[W_ROOK_I]  ; break;
+			case W_QUEEN_I:  eval = STATIC_PIECE_VALUE[W_QUEEN_I]; break;
 
-			case B_KNIGHT_I: eval = STATIC_PIECE_VALUE[B_KNIGHT_I] - B_KNIGHT_BITMAP[sq]; break;
-			case B_BISHOP_I: eval = STATIC_PIECE_VALUE[B_BISHOP_I] - B_BISHOP_BITMAP[sq]; break;
-			case B_ROOK_I:   eval = STATIC_PIECE_VALUE[B_ROOK_I] - B_ROOK_BITMAP[sq]; break;
-			case B_QUEEN_I:  eval = STATIC_PIECE_VALUE[B_QUEEN_I] - B_QUEEN_BITMAP[sq]; break;
+			case B_PAWN_I:	 eval = STATIC_PIECE_VALUE[B_PAWN_I];   break;
+			case B_KNIGHT_I: eval = STATIC_PIECE_VALUE[B_KNIGHT_I]; break;
+			case B_BISHOP_I: eval = STATIC_PIECE_VALUE[B_BISHOP_I]; break;
+			case B_ROOK_I:   eval = STATIC_PIECE_VALUE[B_ROOK_I]  ; break;
+			case B_QUEEN_I:  eval = STATIC_PIECE_VALUE[B_QUEEN_I] ; break;
 			}
+
+			eval += i < 6? GetPSEValue(sq, i, gamePhase, gamePhaseValue) : -GetPSEValue(sq, i, gamePhase, gamePhaseValue);
 
 			evaluation += eval;
 		}
@@ -252,14 +257,14 @@ int Evaluation::EvaluateKingsSafety(const Board& position, const GAME_PHASE phas
 		while (wKing)
 		{
 			const uint8_t index = Utils::PopLSB(wKing);
-			evaluation += KING_ENDGAME_BITMAP[index];
+			// evaluation += KING_ENDGAME_BITMAP[index];
 		}
 
 		Bitboard bKing = position.bitboards[B_KING_I];
 		while (bKing)
 		{
 			const uint8_t index = Utils::PopLSB(bKing);
-			evaluation -= KING_ENDGAME_BITMAP[index];
+			// evaluation -= KING_ENDGAME_BITMAP[index];
 		}
 	}
 
@@ -271,21 +276,23 @@ GAME_PHASE Evaluation::GetGamePhase(const Board& board)
 	int whiteMaterial = 0;
 	int blackMaterial = 0;
 	for (int i = 0; i < 12; i++) {
+		if (i == 5 || i == 11)
+			continue;
 		Bitboard b = board.bitboards[i];
 		while (b) {
 			int sq = Utils::PopLSB(b);
 			if (i < 6) {
-				whiteMaterial += STATIC_PIECE_VALUE[i];
+				whiteMaterial = GAME_PHASE_VALUE[i];
 			}
 			else {
-				blackMaterial += STATIC_PIECE_VALUE[i];
+				blackMaterial -= GAME_PHASE_VALUE[i-6];
 			}
 		}
 	}
-	if (whiteMaterial - blackMaterial <= 1500) {
+	if (whiteMaterial - blackMaterial <= ENDGAME_VALUE) {
 		return ENDGAME;
 	}
-	else if (whiteMaterial - blackMaterial <= 2300) {
+	else if (whiteMaterial - blackMaterial <= MIDGAME_VALUE) {
 		return MIDGAME;
 	}
 	else {
@@ -302,17 +309,17 @@ int Evaluation::EvaluatePiece(const Board& board, const uint8_t index)
 	int eval = 0;
 
 	switch (type) {
-		case W_PAWN_I:   eval = STATIC_PIECE_VALUE[W_PAWN_I] + W_PAWN_BITMAP[sq]; break;
-		case W_KNIGHT_I: eval = STATIC_PIECE_VALUE[W_KNIGHT_I] + W_KNIGHT_BITMAP[sq]; break;
-		case W_BISHOP_I: eval = STATIC_PIECE_VALUE[W_BISHOP_I] + W_BISHOP_BITMAP[sq]; break;
-		case W_ROOK_I:   eval = STATIC_PIECE_VALUE[W_ROOK_I] + W_ROOK_BITMAP[sq]; break;
-		case W_QUEEN_I:  eval = STATIC_PIECE_VALUE[W_QUEEN_I] + W_QUEEN_BITMAP[sq]; break;
+		case W_PAWN_I:   eval = STATIC_PIECE_VALUE[W_PAWN_I] + W_PAWN_BITMAP_OPENING[sq]; break;
+		case W_KNIGHT_I: eval = STATIC_PIECE_VALUE[W_KNIGHT_I] + W_KNIGHT_BITMAP_OPENING[sq]; break;
+		case W_BISHOP_I: eval = STATIC_PIECE_VALUE[W_BISHOP_I] + W_BISHOP_BITMAP_OPENING[sq]; break;
+		case W_ROOK_I:   eval = STATIC_PIECE_VALUE[W_ROOK_I] + W_ROOK_BITMAP_OPENING[sq]; break;
+		case W_QUEEN_I:  eval = STATIC_PIECE_VALUE[W_QUEEN_I] + W_QUEEN_BITMAP_OPENING[sq]; break;
 
-		case B_PAWN_I:   eval = STATIC_PIECE_VALUE[B_PAWN_I] - B_PAWN_BITMAP[sq]; break;
-		case B_KNIGHT_I: eval = STATIC_PIECE_VALUE[B_KNIGHT_I] - B_KNIGHT_BITMAP[sq]; break;
-		case B_BISHOP_I: eval = STATIC_PIECE_VALUE[B_BISHOP_I] - B_BISHOP_BITMAP[sq]; break;
-		case B_ROOK_I:   eval = STATIC_PIECE_VALUE[B_ROOK_I] - B_ROOK_BITMAP[sq]; break;
-		case B_QUEEN_I:  eval = STATIC_PIECE_VALUE[B_QUEEN_I] - B_QUEEN_BITMAP[sq]; break;
+		case B_PAWN_I:   eval = STATIC_PIECE_VALUE[B_PAWN_I] - B_PAWN_BITMAP_OPENING[sq]; break;
+		case B_KNIGHT_I: eval = STATIC_PIECE_VALUE[B_KNIGHT_I] - B_KNIGHT_BITMAP_OPENING[sq]; break;
+		case B_BISHOP_I: eval = STATIC_PIECE_VALUE[B_BISHOP_I] - B_BISHOP_BITMAP_OPENING[sq]; break;
+		case B_ROOK_I:   eval = STATIC_PIECE_VALUE[B_ROOK_I] - B_ROOK_BITMAP_OPENING[sq]; break;
+		case B_QUEEN_I:  eval = STATIC_PIECE_VALUE[B_QUEEN_I] - B_QUEEN_BITMAP_OPENING[sq]; break;
 	}
 
 	return eval;
@@ -493,7 +500,7 @@ int Evaluation::EvaluatePawn(const uint8_t index, const Board& board, const GAME
 {
 	const uint8_t type = Utils::GetPieceType(board, index);
 	const bool isWhite = type < 6; 
-	int evaluation = isWhite? +100 : -100;
+	int evaluation = 0; //isWhite? +100 : -100;
 
 	const Bitboard whitePawns = board.bitboards[W_PAWN_I];
 	const Bitboard blackPawns = board.bitboards[B_PAWN_I];
@@ -510,11 +517,11 @@ int Evaluation::EvaluatePawn(const uint8_t index, const Board& board, const GAME
 	const Bitboard fileBitboard = FILES_MASKS[file];
 	const Bitboard pawnMask = (1ULL << index);
 
-	if (file != 0 && (myPieces & (pawnMask >> directionDefendedW))) {
-		evaluation += isWhite?defendedScore:-defendedScore;
+	if (file != 0 && (myPieces & (1ULL << (index + directionDefendedW)))) {
+		evaluation += isWhite ? defendedScore:-defendedScore;
 	}
-	if (file != 7 && (myPieces & (pawnMask >> directionDefendedE))) {
-		evaluation += isWhite? defendedScore : -defendedScore;
+	if (file != 7 && (myPieces & (1ULL << (index + directionDefendedE)))) {
+		evaluation += isWhite ? defendedScore : -defendedScore;
 	}
 
 	if (fileBitboard & (myPieces & ~pawnMask)) {
@@ -527,46 +534,100 @@ int Evaluation::EvaluatePawn(const uint8_t index, const Board& board, const GAME
 		evaluation += isWhite? isolatedScore : -isolatedScore;
 	}
 
-	/*if (evaluation == -130) {
-		std::cout << "DEBUG: evaluation: \n";
-		std::cout << "index: " << (int)index << "\n";
-		std::cout << "rank: " << (int)rank << "\n";
-		std::cout << "file: " << (int)file << "\n";
-		std::cout << "myPieces: \n";
-		Utils::DebugBitboard(myPieces);
-		std::cout << "oponentPawns: \n";
-		Utils::DebugBitboard(oponentPawns);
-	}*/
+	return evaluation;
+}
+
+// TODO: simplify some logic.
+int Evaluation::EvaluatePieceV2(const Board& board, const uint8_t index)
+{
+	const uint8_t type = Utils::GetPieceType(board, index);
+	int evaluation = 0;
+	if (type > 11) return 0;
+
+	if (type == 0 || type == 6) {
+		evaluation += EvaluatePawn(index, board, GetGamePhase(board));
+	}
+
+	switch (type) {
+	case W_PAWN_I:   evaluation += STATIC_PIECE_VALUE[W_PAWN_I]  ; break;
+	case W_KNIGHT_I: evaluation += STATIC_PIECE_VALUE[W_KNIGHT_I]; break;
+	case W_BISHOP_I: evaluation += STATIC_PIECE_VALUE[W_BISHOP_I]; break;
+	case W_ROOK_I:   evaluation += STATIC_PIECE_VALUE[W_ROOK_I]  ; break;
+	case W_QUEEN_I:  evaluation += STATIC_PIECE_VALUE[W_QUEEN_I] ; break;
+																 ; 
+	case B_PAWN_I:   evaluation += STATIC_PIECE_VALUE[B_PAWN_I]  ; break;
+	case B_KNIGHT_I: evaluation += STATIC_PIECE_VALUE[B_KNIGHT_I]; break;
+	case B_BISHOP_I: evaluation += STATIC_PIECE_VALUE[B_BISHOP_I]; break;
+	case B_ROOK_I:   evaluation += STATIC_PIECE_VALUE[B_ROOK_I]  ; break;
+	case B_QUEEN_I:  evaluation += STATIC_PIECE_VALUE[B_QUEEN_I] ; break;
+	}
+
+
+	evaluation += (type < 6 ? GetPSEValue(index, type, GetGamePhase(board), GetGamePhaseValue(board)) : -GetPSEValue(index, type, GetGamePhase(board), GetGamePhaseValue(board)));
 
 	return evaluation;
 }
 
-int Evaluation::EvaluatePieceV2(const Board& board, const uint8_t index)
-{
-	const uint8_t type = Utils::GetPieceType(board, index);
-	if (type > 11) return 0;
+// returns a value from 0 to 1 to indicate the game phase who the game is, for example, if it's 0, 
+// the game phase is opening, mid game or endgame. When the position is closer to 1 indicates that 
+// the position is closer to the next game phase. For example: 
+// OPENING: 0.00	start of the game
+// MIDGAME: 0.86	midgame close to the endgame.
+double Evaluation::GetGamePhaseValue(const Board& position) {
+	int whiteMaterial = 0;
+	int blackMaterial = 0;
 
-	if (type == 0 || type == 6) {
-		return EvaluatePawn(index, board, GetGamePhase(board));
-	}
+	for (int i = 0; i < 12; i++) {
+		if (i == 5 || i == 11)
+			continue;
 
-	else {
-		switch (type) {
-		case W_PAWN_I:   return STATIC_PIECE_VALUE[W_PAWN_I] + W_PAWN_BITMAP[index]; break;
-		case W_KNIGHT_I: return STATIC_PIECE_VALUE[W_KNIGHT_I] + W_KNIGHT_BITMAP[index]; break;
-		case W_BISHOP_I: return STATIC_PIECE_VALUE[W_BISHOP_I] + W_BISHOP_BITMAP[index]; break;
-		case W_ROOK_I:   return STATIC_PIECE_VALUE[W_ROOK_I] + W_ROOK_BITMAP[index]; break;
-		case W_QUEEN_I:  return STATIC_PIECE_VALUE[W_QUEEN_I] + W_QUEEN_BITMAP[index]; break;
-						 
-		case B_PAWN_I:   return STATIC_PIECE_VALUE[B_PAWN_I] - B_PAWN_BITMAP[index]; break;
-		case B_KNIGHT_I: return STATIC_PIECE_VALUE[B_KNIGHT_I] - B_KNIGHT_BITMAP[index]; break;
-		case B_BISHOP_I: return STATIC_PIECE_VALUE[B_BISHOP_I] - B_BISHOP_BITMAP[index]; break;
-		case B_ROOK_I:   return STATIC_PIECE_VALUE[B_ROOK_I] - B_ROOK_BITMAP[index]; break;
-		case B_QUEEN_I:  return STATIC_PIECE_VALUE[B_QUEEN_I] - B_QUEEN_BITMAP[index]; break;
+		Bitboard b = position.bitboards[i];
+		while (b) {
+			int sq = Utils::PopLSB(b);
+			if (i < 6) {
+				whiteMaterial += GAME_PHASE_VALUE[i];
+			}
+			else {
+				blackMaterial -= GAME_PHASE_VALUE[i-6];
+			}
 		}
 	}
 
-	return 0;
+	const int score = whiteMaterial - blackMaterial;
+
+	if (score <= ENDGAME_VALUE) {
+		return 1;
+	}
+	else if (score <= MIDGAME_VALUE) {
+		const double scoreToEndgame = score - ENDGAME_VALUE;
+		const double distanceBetween = MIDGAME_VALUE - ENDGAME_VALUE;
+		return double(1.0-scoreToEndgame/distanceBetween);
+	}
+	else {
+		const double scoreToMidgame = score - MIDGAME_VALUE;
+		const double distanceBetween = OPENING_VALUE - MIDGAME_VALUE;
+		return double(1.0 - scoreToMidgame / distanceBetween);
+	}
 }
 
+int Evaluation::GetPSEValue(const uint8_t position, const uint8_t piece, const GAME_PHASE phase, const double gameValue) {
 
+	switch (phase)
+	{
+	case OPENING:
+		return int(Utils::InterpolateInt(PSE_OPENING[piece][position], PSE_MIDGAME[piece][position], gameValue, false));
+		break;
+	case MIDGAME:
+		return int(Utils::InterpolateInt(PSE_MIDGAME[piece][position], PSE_ENDGAME[piece][position], gameValue, false));
+		break;
+
+	case ENDGAME:
+		return PSE_ENDGAME[piece][position];
+		break;
+	default:
+		break;
+	}
+
+	std::cout << "ERROR: unknown game phase.\n";
+	return 0;
+}
