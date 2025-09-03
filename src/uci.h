@@ -13,6 +13,7 @@ public:
 	std::string name;
 	virtual void set_value(const std::string& val) = 0;
 	virtual std::string to_uci_string() const = 0;
+	virtual std::string get_value() const = 0;
 };
 
 class SpinOption : public UciOption {
@@ -24,6 +25,10 @@ public:
 		int v = std::stoi(val);
 		if (v >= min && v <= max)
 			value = v;
+	}
+
+	std::string get_value() const override {
+		return "";
 	}
 
 	std::string to_uci_string() const override {
@@ -43,6 +48,7 @@ public:
 	bool value;
 	void set_value(const std::string& val) override {
 		value = (val == "true");
+		// std::cout << "DEBUG: value " << value << "\n";
 	}
 
 	std::string to_uci_string() const override {
@@ -51,6 +57,10 @@ public:
 			<< " type check"
 			<< " default " << (default_value ? "true" : "false");
 		return oss.str();
+	}
+
+	std::string get_value() const override {
+		return (value ? "true" : "false");
 	}
 };
 
@@ -73,6 +83,10 @@ public:
 			oss << " var " << v;
 		return oss.str();
 	}
+
+	std::string get_value() const override {
+		return "";
+	}
 };
 
 class StringOption : public UciOption {
@@ -90,6 +104,10 @@ public:
 			<< " default " << default_value;
 		return oss.str();
 	}
+
+	std::string get_value() const override {
+		return "";
+	}
 };
 
 class ButtonOption : public UciOption {
@@ -105,8 +123,11 @@ public:
 			<< " type button";
 		return oss.str();
 	}
-};
 
+	std::string get_value() const override {
+		return "";
+	}
+};
 
 class Engine;
 class UCI
@@ -128,7 +149,8 @@ public:
 	void uci();
 	void isready();
 	void init_options();
-	void setoption(const char* name, const char* value);
+	void setoption(const std::string& name, const std::string& value);
+	void UpdateOptions();
 	void register_uci();
 	void ucinewgame();
 	void position(const char* fen);

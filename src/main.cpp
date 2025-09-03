@@ -108,6 +108,14 @@
 17/08/2025: Implemented a table with times to search in different times.
 18/08/2025: Implemented search infinite and "score mate <n>", started to implement interpolations of tables in different game phases.
 19/08/2025: Started to implement new tables, added a new command for see the current game phase, and a function to get the pse interpolated based on the tables.
+20/08/2025: Added new tables and interpolation to the evaluation function. The engine doesn't play better.
+21/08/2025: Nothing...
+22/08/2025: Solved a little bug with the interpolation static_cast and changed values from the pse tables.
+23/08/2025: Implemented UseBooks in setoption.
+24/08/2025: Added UpdateOptions in UCI setoption.
+25/08/2025: Updated README.md, deleted all the incorrect positions that now work.
+26/08/2025: Nothing...
+27/08/2025: Solved a bug in move generation with castling, I think move generation is totally correct now.
 */
 
 #include <iostream>

@@ -677,7 +677,7 @@ int* Utils::Interpolate(const int* a, const int* b, double interpolation, bool e
 			out[i] = (interpolation < 0.0 ? a[i] : b[i]);
 		}
 		else {
-			out[i] = static_cast<int>(a[i] + interpolation * (b[i] - a[i]));
+			out[i] = static_cast<double>(a[i] + interpolation * (b[i] - a[i]));
 		}
 	}
 
@@ -689,6 +689,6 @@ double Utils::InterpolateInt(const int a, const int b, const double interpolatio
 		return (interpolation < 0.0 ? a : b);
 	}
 	else {
-		return static_cast<int>(a + interpolation * (b - a));
+		return static_cast<double>(a + interpolation * (b - a));
 	}
 }

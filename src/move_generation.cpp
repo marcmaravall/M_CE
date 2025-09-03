@@ -330,14 +330,16 @@ void GenerateCastlingMoves(Board board, const uint8_t from, std::vector<Move>& m
 	{
 		currentMove.from = 4;
 		if (board.wCastlingKing && !board.IsOccupied(5) && !board.IsOccupied(6) && 
-			!board.IsSquareAttacked(board.turn == !WHITE_TURN? WHITE : BLACK, 5) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 6))
+			!board.IsSquareAttacked(board.turn == !WHITE_TURN? WHITE : BLACK, 5) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 6)
+			&& (board.bitboards[W_ROOK_I] & (1ULL << 7)))
 		{
 			currentMove.mode = true;
 			currentMove.to = 7;
 			moves.push_back(currentMove);
 		}
 		if (board.wCastlingQueen && !board.IsOccupied(1) && !board.IsOccupied(2) && !board.IsOccupied(3) && 
-			!board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 2) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 3))
+			!board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 2) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 3)
+			&& (board.bitboards[W_ROOK_I] & (1ULL << 0)))
 		{
 			currentMove.mode = false;
 			currentMove.to = 0;
@@ -349,14 +351,16 @@ void GenerateCastlingMoves(Board board, const uint8_t from, std::vector<Move>& m
 	{
 		currentMove.from = 60;
 		if (board.bCastlingKing && !board.IsOccupied(62) && !board.IsOccupied(61) &&
-			!board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 62) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 61))
+			!board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 62) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 61)
+			&& (board.bitboards[B_ROOK_I] & (1ULL << 63)))
 		{
 			currentMove.to = 63;
 			currentMove.mode = true;
 			moves.push_back(currentMove);
 		}
 		if (board.bCastlingQueen && !board.IsOccupied(59) && !board.IsOccupied(58) && !board.IsOccupied(57) &&
-			!board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 58) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 59))
+			!board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 58) && !board.IsSquareAttacked(board.turn == !WHITE_TURN ? WHITE : BLACK, 59)
+			&& (board.bitboards[B_ROOK_I] & (1ULL << 56)))
 		{
 			currentMove.to = 56;
 			currentMove.mode = false;

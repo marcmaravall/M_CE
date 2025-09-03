@@ -36,11 +36,13 @@ void Engine::init()
 
     polyglotSettings = generatePolyglotSettings();
 
+    const std::string bookName = "komodo.bin";
+
 #ifdef WIN32
-    book = Book(programDir+"\\books\\komodo.bin");
+    book = Book(programDir+"\\books\\" + bookName);
     std::ofstream debugFile(programDir + "\\tests", std::ios::app);
 #elif __linux__
-    book = Book(programDir+"/books/komodo.bin");
+    book = Book(programDir+"/books/" + bookName);
     std::ofstream debugFile(programDir + "/tests", std::ios::app);
 #endif
 
@@ -584,6 +586,13 @@ MoveEval Engine::SearchNodes(const uint64_t nodes) {
 
 MoveEval Engine::MoveBook() {
 
+    if (!useBooks) {
+        // std::cout << "don't use book!\n";
+        return MoveEval({
+            .move = Move(),
+            .eval = 255,
+        });
+    }
     uint64_t hash = Utils::GetZobristHash(currentBoard, Engine::polyglotSettings);
 
     const auto it = std::find_if(book.entries.begin(), book.entries.end(),

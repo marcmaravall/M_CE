@@ -22,7 +22,8 @@ add_executable(M_CE
     "src/evaluation.cpp"
     "src/move_generation.cpp" 
     "src/book.h" 
-    "src/book.cpp")
+    "src/book.cpp"
+    "src/time_control.cpp")
 
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

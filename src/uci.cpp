@@ -156,6 +156,33 @@ void UCI::ManageInput(const char* input)
 		std::cout << "+----------+----------+" << "\n";
 	}
 
+	else if (command == "setoption")
+	{
+		index++;
+		if (tokens[index] != "name") {
+			std::cerr << "ERROR: name not setted.\n";
+			return;
+		}
+		index++;
+
+		std::string name = "";
+		std::string value = "";
+
+		while (tokens[index] != "value") {
+			name += tokens[index];
+			index++;
+		}
+		index++;
+
+		while (index < tokens.size())
+		{
+			value += tokens[index];
+			index++;
+		}
+
+		setoption(name, value);
+	}
+
 	else if (command == "tests")
 	{
 		SpeedTest();
@@ -297,29 +324,44 @@ void UCI::ManageInput(const char* input)
 	}
 }
 
-void UCI::setoption(const char* name, const char* value)
+void UCI::setoption(const std::string& name, const std::string& value)
 {
+	std::cout << "Option setted: name: " << name << " value: " << value << "\n";
+
 	options[name]->set_value(value);
+
+	UpdateOptions();
 }
 
-void UCI::init_options()
+void UCI::UpdateOptions()
 {
-	auto hash = std::make_unique<SpinOption>();
-	hash->name = "Hash";
-	hash->min = 1;
-	hash->max = 1024;
-	hash->value = 16;
-	options["Hash"] = std::move(hash);
+	engine.useBooks = options["UseBooks"]->get_value() == "true";
+	engine.ponder = options["Ponder"]->get_value() == "true";
+}
 
-	auto ponder = std::make_unique<CheckOption>();
-	ponder->name = "Ponder";
-	ponder->value = true;
-	options["Ponder"] = std::move(ponder);
+void UCI::init_options()  
+{  
+    auto hash = std::make_unique<SpinOption>();  
+    hash->name = "Hash";  
+    hash->min = 1;  
+    hash->max = 1024;  
+    hash->value = 16;  
+    options["Hash"] = std::move(hash);
 
-	auto clear = std::make_unique<ButtonOption>();
-	clear->name = "Clear Hash";
-	clear->callback = []() { };
-	options["Clear Hash"] = std::move(clear);
+    auto ponder = std::make_unique<CheckOption>();  
+    ponder->name = "Ponder";
+    ponder->value = true;  
+    options["Ponder"] = std::move(ponder);  
+
+    auto clear = std::make_unique<ButtonOption>();  
+    clear->name = "Clear Hash";  
+    clear->callback = []() { };  
+    options["Clear Hash"] = std::move(clear);  
+
+    auto useBooks = std::make_unique<CheckOption>();  
+    useBooks->name = "UseBooks";
+    useBooks->value = false;  
+    options["UseBooks"] = std::move(useBooks);
 }
 
 void UCI::register_uci()
@@ -329,7 +371,7 @@ void UCI::register_uci()
 
 void UCI::ponderhit()
 {
-	std::cout << "Ponder hit\n";
+	std::cout << "Ponder hit\n";	
 }
 
 void UCI::stop()

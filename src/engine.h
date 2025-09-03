@@ -22,6 +22,10 @@ struct MoveEval;
 
 class Engine
 {
+public:
+    bool useBooks = false;
+    bool ponder = false;
+
 private:
     const std::string programName = "M_CE";
     std::string programDir;

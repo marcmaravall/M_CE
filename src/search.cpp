@@ -130,7 +130,7 @@ MoveEval AlphaBeta(Board& position, const uint8_t depth, int alpha, int beta, co
 				bestMove.eval = result.eval;
 				bestMove.move = move;
 			}
-			alpha = std::max(alpha, bestMove.eval);
+			alpha = std::max(alpha, result.eval);
 #ifndef COPY_MODE
 			position.UndoMove(undo);
 #endif
@@ -167,7 +167,7 @@ MoveEval AlphaBeta(Board& position, const uint8_t depth, int alpha, int beta, co
 				bestMove.eval = result.eval;
 				bestMove.move = move;
 			}
-			beta = std::min(beta, bestMove.eval);
+			beta = std::min(beta, result.eval);
 
 			if (beta <= alpha)
 			{
@@ -212,7 +212,7 @@ MoveEval AlphaBeta(Board& position, const uint8_t depth, int alpha, int beta, co
 		.bound = bound
 	};
 #endif // USE_TT
-
+	
 	return bestMove;
 }
 
@@ -403,5 +403,4 @@ int SEE(const Board& position, const uint8_t index) {
 	int evaluation = 0;
 
 	return evaluation;
-	// uint8_t piece = position.GetSmallestAttacker();
 }
